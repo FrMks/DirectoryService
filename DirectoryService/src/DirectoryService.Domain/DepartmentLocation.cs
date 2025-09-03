@@ -16,11 +16,3 @@ public class DepartmentLocation
     
     public Depatment Depatment { get; private set; }
 }
-
-public class Depatment
-{
-}
-
-public class Location
-{
-}
