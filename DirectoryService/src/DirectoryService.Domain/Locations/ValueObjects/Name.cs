@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace DirectoryService.Domain.Locations;
+namespace DirectoryService.Domain.Locations.ValueObjects;
 
 public class Name
 {

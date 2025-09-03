@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
 using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Locations;
 
 namespace DirectoryService.Domain;
 
