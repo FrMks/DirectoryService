@@ -12,7 +12,9 @@ public class Department
         Identifier = identifier;
         Path = path;
     }
-    
+
+    #region Properties
+
     public Guid Id { get; private set; }
     
     public Name Name { get; private set; }
@@ -25,4 +27,17 @@ public class Department
     public Guid? ParentId { get; private set; }
     
     public Path Path { get; private set; }
+    
+    public Depth Depth { get; private set; }
+
+    #endregion
+
+    #region Public methods
+
+    public void SetName(Name name) => Name = name;
+    public void SetIdentifier(Identifier identifier) => Identifier = identifier;
+    public void SetPath(Path path) => Path = path;
+    public void SetDepth(Depth depth) => Depth = depth;
+
+    #endregion
 }
