@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace DirectoryService.Domain.Locations.ValueObjects;
+namespace DirectoryService.Domain.Department.ValueObject;
 
 public class Name
 {
@@ -18,7 +18,7 @@ public class Name
 
         string trimmed = input.Trim();
 
-        if (trimmed.Length < 3 || trimmed.Length > 120)
+        if (trimmed.Length < 3 || trimmed.Length > 150)
             return Result.Failure<Name>("Name cannot be less than 3 symbols and more than 150 characters");
 
         Name name = new(trimmed);
