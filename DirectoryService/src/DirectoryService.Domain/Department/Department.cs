@@ -1,15 +1,16 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Department.ValueObject;
+﻿using DirectoryService.Domain.Department.ValueObject;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Domain.Department;
 
 public class Department
 {
-    private Department(Name name, Identifier identifier)
+    private Department(Name name, Identifier identifier, Path path)
     {
         Id = Guid.NewGuid();
         Name = name;
         Identifier = identifier;
+        Path = path;
     }
     
     public Guid Id { get; private set; }
@@ -18,16 +19,10 @@ public class Department
     
     public Identifier Identifier { get; private set; }
     
-    /// <summary>
-    /// Компания "Рога и копыта"
-    /// ├── IT отдел (ParentId = null - это корень)
-    ///     │   ├── Backend команда (ParentId = ID of "IT отдел")
-    /// │   └── Frontend команда (ParentId = ID of "IT отдел")
-    /// ├── HR отдел (ParentId = null - это тоже корень)
-    ///     │   ├── Найм (ParentId = ID of "HR отдел")
-    /// │   └── Обучение (ParentId = ID of "HR отдел")
-    /// └── Продажи (ParentId = null - корень)
-    ///     └── B2B продажи (ParentId = ID of "Продажи")
-    /// </summary>
+    // ├── IT отдел (ParentId = null - это корень)
+    //     │   ├── Backend команда (ParentId = ID of "IT отдел")
+    // │   └── Frontend команда (ParentId = ID of "IT отдел")
     public Guid? ParentId { get; private set; }
+    
+    public Path Path { get; private set; }
 }
