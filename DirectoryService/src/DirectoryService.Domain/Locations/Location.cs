@@ -20,4 +20,10 @@ public class Location
     public Address Address { get; private set; }
     
     public Timezone Timezone { get; private set; }
+    
+    public bool IsActive { get; private set; }
+    
+    public DateTime CreatedAt { get; private set; }
+    
+    public DateTime UpdateAt { get; private set; }
 }
