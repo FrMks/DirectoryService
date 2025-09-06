@@ -19,10 +19,9 @@ public class DepartmentLocation
 
     public Guid LocationId { get; private set; }
 
-    public static Result<DepartmentLocation> Create(Guid id, Guid departmentId,
-        Guid locationId, Location location, Department.Department department)
+    public static Result<DepartmentLocation> Create(Guid id, Guid departmentId, Guid locationId)
     {
-        DepartmentLocation departmentLocation = new DepartmentLocation(id, departmentId, locationId);
+        DepartmentLocation departmentLocation = new(id, departmentId, locationId);
 
         return Result.Success(departmentLocation);
     }
