@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace DirectoryService.Domain.Positions;
+namespace DirectoryService.Domain.Positions.ValueObject;
 
 // TODO: написано сделать уникальным, но на сколько я понимаю,
 // то уникальность проверяется по сравнению с чем-то
