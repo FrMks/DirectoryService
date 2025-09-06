@@ -5,13 +5,16 @@ namespace DirectoryService.Domain.Positions;
 
 public class Position
 {
-    private Position(Guid id, Name name, Description description,
+    private Position(Guid id, Name name, Description description, bool isActive,
+        DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
     {
         Id = id;
         Name = name;
         Description = description;
-        
+        IsActive = isActive;
+        CreatedAt = createdAt;
+        UpdateAt = updateAt;
         DepartmentPositions = departmentPositions;
     }
 
@@ -20,6 +23,9 @@ public class Position
     public Guid Id { get; private set; }
     public Name Name { get; private set; }
     public Description Description { get; private set; }
+    public bool IsActive { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdateAt { get; private set; }
     
     public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; }
 
@@ -27,10 +33,11 @@ public class Position
 
     #region Public methods
 
-    public Result<Position> Create(Guid id, Name name, Description description,
+    public Result<Position> Create(Guid id, Name name, Description description, bool isActive,
+        DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
     {
-        Position position = new(id, name, description,
+        Position position = new(id, name, description, isActive, createdAt, updateAt,
             departmentPositions);
         
         return Result.Success(position);
@@ -39,7 +46,9 @@ public class Position
     public void SetId(Guid id) => Id = id;
     public void SetName(Name name) => Name = name;
     public void SetDescription(Description description) => Description = description;
-    
+    public void SetIsActive(bool isActive) => IsActive = isActive;
+    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
+    public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
     public void SetDepartmentPositions(IReadOnlyList<DepartmentPosition> departmentPositions) => DepartmentPositions = departmentPositions;
 
     #endregion
