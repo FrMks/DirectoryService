@@ -1,4 +1,5 @@
-﻿using DirectoryService.Domain.Department.ValueObject;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Department.ValueObject;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Domain.Department;
@@ -7,7 +8,8 @@ public class Department
 {
     private Department(Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updateAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations)
+        IReadOnlyList<DepartmentLocation> departmentLocations,
+        IReadOnlyList<DepartmentPosition> departmentPositions)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -17,6 +19,7 @@ public class Department
         CreatedAt = createdAt;
         UpdateAt = updateAt;
         DepartmentLocations = departmentLocations;
+        DepartmentPositions = departmentPositions;
     }
 
     #region Properties
@@ -38,16 +41,28 @@ public class Department
     
     public bool IsActive { get; private set; }
     
-    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
-    
     public DateTime CreatedAt { get; private set; }
     
     public DateTime UpdateAt { get; private set; }
+    
+    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
+    
+    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; }
 
     #endregion
 
     #region Public methods
 
+    public Result<Department> Create(Name name, Identifier identifier, Path path,
+        bool isActive, DateTime createdAt, DateTime updateAt,
+        IReadOnlyList<DepartmentLocation> departmentLocations,
+        IReadOnlyList<DepartmentPosition> departmentPositions)
+    {
+        Department department = new(name, identifier, path, isActive, createdAt, updateAt, departmentLocations, departmentPositions);
+        
+        return Result.Success(department);
+    }
+    
     public void SetName(Name name) => Name = name;
     public void SetIdentifier(Identifier identifier) => Identifier = identifier;
     public void SetPath(Path path) => Path = path;
