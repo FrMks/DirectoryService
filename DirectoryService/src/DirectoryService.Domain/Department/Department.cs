@@ -6,7 +6,7 @@ namespace DirectoryService.Domain.Department;
 public class Department
 {
     private Department(Name name, Identifier identifier, Path path,
-        bool isActive,
+        bool isActive, DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentLocation> departmentLocations)
     {
         Id = Guid.NewGuid();
@@ -14,6 +14,8 @@ public class Department
         Identifier = identifier;
         Path = path;
         IsActive = isActive;
+        CreatedAt = createdAt;
+        UpdateAt = updateAt;
         DepartmentLocations = departmentLocations;
     }
 
@@ -37,6 +39,10 @@ public class Department
     public bool IsActive { get; private set; }
     
     public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
+    
+    public DateTime CreatedAt { get; private set; }
+    
+    public DateTime UpdateAt { get; private set; }
 
     #endregion
 
@@ -47,7 +53,8 @@ public class Department
     public void SetPath(Path path) => Path = path;
     public void SetDepth(Depth depth) => Depth = depth;
     public void SetIsActive(bool isActive) => IsActive = isActive;
-    
+    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
+    public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
     public void SetDepartmentLocations(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
 
     #endregion
