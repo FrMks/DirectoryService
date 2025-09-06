@@ -5,12 +5,15 @@ namespace DirectoryService.Domain.Department;
 
 public class Department
 {
-    private Department(Name name, Identifier identifier, Path path)
+    private Department(Name name, Identifier identifier, Path path,
+        IReadOnlyList<DepartmentLocation> departmentLocations)
     {
         Id = Guid.NewGuid();
         Name = name;
         Identifier = identifier;
         Path = path;
+        
+        DepartmentLocations = departmentLocations;
     }
 
     #region Properties
@@ -29,6 +32,8 @@ public class Department
     public Path Path { get; private set; }
     
     public Depth Depth { get; private set; }
+    
+    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
 
     #endregion
 
@@ -38,6 +43,9 @@ public class Department
     public void SetIdentifier(Identifier identifier) => Identifier = identifier;
     public void SetPath(Path path) => Path = path;
     public void SetDepth(Depth depth) => Depth = depth;
+    
+    
+    public void SetDepartmentLocations(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
 
     #endregion
 }
