@@ -5,12 +5,13 @@ namespace DirectoryService.Domain.Locations;
 public class Location
 {
     private Location(Guid id, Name name, Address address,
-        Timezone timezone)
+        Timezone timezone, IReadOnlyList<DepartmentLocation> departmentLocations)
     {
         Id = id;
         Name = name;
         Address = address;
         Timezone = timezone;
+        DepartmentLocations = departmentLocations;
     }
 
     #region Properties
@@ -28,7 +29,8 @@ public class Location
     public DateTime CreatedAt { get; private set; }
     
     public DateTime UpdateAt { get; private set; }
-
+    
+    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
 
     #endregion
     
@@ -41,6 +43,7 @@ public class Location
     public void SetIsActive(bool isActive) => IsActive = isActive;
     public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
     public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
+    public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations; 
 
     #endregion
 }
