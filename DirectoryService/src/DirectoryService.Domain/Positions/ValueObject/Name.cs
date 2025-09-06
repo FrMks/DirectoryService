@@ -14,8 +14,6 @@ public class Name
     
     public string Value { get; private set; }
     
-    public void SetValue(string value) => Value = value;
-
     public Result<Name> Create(string value)
     {
         if (string.IsNullOrEmpty(value))
@@ -30,4 +28,6 @@ public class Name
 
         return Result.Success(name);
     }
+    
+    public void SetValue(string value) => Value = value;
 }
