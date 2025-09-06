@@ -6,14 +6,11 @@ namespace DirectoryService.Domain;
 
 public class DepartmentLocation
 {
-    private DepartmentLocation(Guid id, Guid departmentId,
-        Guid locationId, Location location, Department.Department department)
+    private DepartmentLocation(Guid id, Guid departmentId, Guid locationId)
     {
         Id = id;
         DepartmentId = departmentId;
         LocationId = locationId;
-        Location = location;
-        Department = department;
     }
 
     public Guid Id { get; private set; }
@@ -22,15 +19,10 @@ public class DepartmentLocation
 
     public Guid LocationId { get; private set; }
 
-    public Location Location { get; private set; }
-
-    public Department.Department Department { get; private set; }
-
     public static Result<DepartmentLocation> Create(Guid id, Guid departmentId,
         Guid locationId, Location location, Department.Department department)
     {
-        DepartmentLocation departmentLocation = new DepartmentLocation(
-            id, departmentId, locationId, location, department);
+        DepartmentLocation departmentLocation = new DepartmentLocation(id, departmentId, locationId);
 
         return Result.Success(departmentLocation);
     }
@@ -41,7 +33,4 @@ public class DepartmentLocation
 
     public void SetLocationId(Guid locationId) => LocationId = locationId;
 
-    public void SetLocation(Location location) => Location = location;
-
-    public void SetDepartment(Department.Department department) => Department = department;
 }
