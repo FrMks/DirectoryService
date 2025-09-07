@@ -4,14 +4,14 @@ using CSharpFunctionalExtensions;
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
-public partial class Timezone
+public partial record Timezone
 {
     private Timezone(string value)
     {
         Value = value;
     }
 
-    public string Value { get; private set; }
+    public string Value { get; init; }
 
     [GeneratedRegex(@"^[A-Za-z_]+\/[A-Za-z_]+$")]
     private static partial Regex ValidFormatRegex();

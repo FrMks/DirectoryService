@@ -2,7 +2,7 @@
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
-public class Address
+public record Address
 {
     private Address(string street, string city, string country)
     {
@@ -11,11 +11,11 @@ public class Address
         Country = country.Trim();
     }
 
-    public string Street { get; private set; }
+    public string Street { get; init; }
 
-    public string City { get; private set; }
+    public string City { get; init; }
 
-    public string Country { get; private set; }
+    public string Country { get; init; }
 
     public static Result<Address> Create(string street, string city, string country)
     {
