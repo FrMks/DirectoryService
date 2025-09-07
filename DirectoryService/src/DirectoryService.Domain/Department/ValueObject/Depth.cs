@@ -2,14 +2,14 @@
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
-public class Depth
+public record Depth
 {
     private Depth(short value)
     {
         Value = value;
     }
     
-    public short Value { get; private set; }
+    public short Value { get; init; }
 
     public static Result<Depth> Create(short depth)
     {

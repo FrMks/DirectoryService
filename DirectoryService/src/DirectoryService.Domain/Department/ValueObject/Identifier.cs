@@ -4,7 +4,7 @@ using CSharpFunctionalExtensions;
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
-public partial class Identifier
+public partial record Identifier
 {
 
     private Identifier(string identifier)
@@ -12,7 +12,7 @@ public partial class Identifier
         Value = identifier;
     }
     
-    public string Value { get; private set; }
+    public string Value { get; init; }
 
     public static Result<Identifier> Create(string identifier)
     {

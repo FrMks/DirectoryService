@@ -3,14 +3,14 @@ using CSharpFunctionalExtensions;
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
-public partial class Path
+public partial record Path
 {
     private Path(string value)
     {
         Value = value;
     }
     
-    public string Value { get; private set; }
+    public string Value { get; init; }
 
     public static Result<Path> Create(string value)
     {

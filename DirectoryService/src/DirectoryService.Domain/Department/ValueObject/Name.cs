@@ -2,14 +2,14 @@
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
-public class Name
+public record Name
 {
     private Name(string value)
     {
         Value = value;
     }
 
-    public string Value { get; }
+    public string Value { get; init; }
 
     public static Result<Name> Create(string input)
     {
