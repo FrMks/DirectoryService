@@ -2,14 +2,14 @@
 
 namespace DirectoryService.Domain.Positions.ValueObject;
 
-public class Description
+public record Description
 {
     private Description(string value)
     {
         Value = value;
     }
     
-    public string Value { get; private set; }
+    public string Value { get; init; }
 
     public Result<Description> Create(string value)
     {
@@ -25,6 +25,4 @@ public class Description
         
         return Result.Success(description);
     }
-    
-    public void SetId(string value) => Value = value;
 }

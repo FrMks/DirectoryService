@@ -5,14 +5,14 @@ namespace DirectoryService.Domain.Positions.ValueObject;
 // TODO: написано сделать уникальным, но на сколько я понимаю,
 // то уникальность проверяется по сравнению с чем-то
 // (хотя бы есть массив, в котором лежат другие имена позиций)
-public class Name
+public record Name
 {
     private Name(string value)
     {
         Value = value;
     }
     
-    public string Value { get; private set; }
+    public string Value { get; init; }
     
     public Result<Name> Create(string value)
     {
@@ -28,6 +28,4 @@ public class Name
 
         return Result.Success(name);
     }
-    
-    public void SetValue(string value) => Value = value;
 }
