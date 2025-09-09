@@ -9,7 +9,8 @@ public class Department
     private Department(Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+        IReadOnlyList<DepartmentPosition> departmentPositions,
+        Depth depth, Guid? parentId)
     {
         Id = Guid.NewGuid();
         Name = name;
@@ -20,6 +21,8 @@ public class Department
         UpdateAt = updateAt;
         DepartmentLocations = departmentLocations;
         DepartmentPositions = departmentPositions;
+        Depth = depth;
+        ParentId = parentId;
     }
 
     #region Properties
@@ -53,12 +56,13 @@ public class Department
 
     #region Public methods
 
-    public Result<Department> Create(Name name, Identifier identifier, Path path,
+    public static Result<Department> Create(Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+        IReadOnlyList<DepartmentPosition> departmentPositions,
+        Depth depth, Guid? parentId)
     {
-        Department department = new(name, identifier, path, isActive, createdAt, updateAt, departmentLocations, departmentPositions);
+        Department department = new(name, identifier, path, isActive, createdAt, updateAt, departmentLocations, departmentPositions, depth, parentId);
         
         return Result.Success(department);
     }
