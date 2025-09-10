@@ -4,6 +4,9 @@ namespace DirectoryService.Domain.Locations;
 
 public class Location
 {
+    // EF Core
+    private Location() { }
+    
     private Location(Guid id, Name name, Address address,
         Timezone timezone, IReadOnlyList<DepartmentLocation> departmentLocations)
     {
@@ -18,19 +21,19 @@ public class Location
 
     public Guid Id { get; private set; }
 
-    public Name Name { get; private set; }
+    public Name Name { get; private set; } = null!;
 
-    public Address Address { get; private set; }
-    
-    public Timezone Timezone { get; private set; }
-    
+    public Address Address { get; private set; } = null!;
+
+    public Timezone Timezone { get; private set; } = null!;
+
     public bool IsActive { get; private set; }
     
     public DateTime CreatedAt { get; private set; }
     
     public DateTime UpdateAt { get; private set; }
     
-    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; }
+    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
 
     #endregion
     

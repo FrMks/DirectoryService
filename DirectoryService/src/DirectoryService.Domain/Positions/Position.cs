@@ -5,6 +5,9 @@ namespace DirectoryService.Domain.Positions;
 
 public class Position
 {
+    // EF Core
+    private Position() { }
+    
     private Position(Guid id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
@@ -21,13 +24,13 @@ public class Position
     #region Properties
 
     public Guid Id { get; private set; }
-    public Name Name { get; private set; }
-    public Description Description { get; private set; }
+    public Name Name { get; private set; } = null!;
+    public Description Description { get; private set; } = null!;
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdateAt { get; private set; }
     
-    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; }
+    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; } = null!;
 
     #endregion
 
