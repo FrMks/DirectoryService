@@ -4,7 +4,8 @@ namespace DirectoryService.Domain.Locations.ValueObjects;
 
 public record Name
 {
-    private Name(string value)
+    // TODO: сделать валидацию
+    public Name(string value)
     {
         Value = value;
     }

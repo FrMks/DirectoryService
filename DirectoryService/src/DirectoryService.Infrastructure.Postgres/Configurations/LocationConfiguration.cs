@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,6 +13,10 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.ToTable("locations");
         
         builder.HasKey(l => l.Id).HasName("id");
+
+        // TODO: в зависимости от ответа переделать или оставить
+        builder.Property(l => l.Name)
+            .HasConversion(l => l.Value, name => new Name(name));
 
         // builder.OwnsOne(l => l.Address, addressBuilder =>
         builder.ComplexProperty(l => l.Address, addressBuilder =>
