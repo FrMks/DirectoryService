@@ -19,7 +19,7 @@ public class DirectoryServiceDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(DirectoryServiceDbContext).Assembly);
     }
 
     public DbSet<Location> Locations => Set<Location>();
