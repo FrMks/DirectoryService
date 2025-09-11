@@ -12,11 +12,16 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
     {
         builder.ToTable("locations");
         
-        builder.HasKey(l => l.Id).HasName("id");
+        builder.HasKey(l => l.Id).HasName("pk_locations");
 
-        // TODO: в зависимости от ответа переделать или оставить
+        builder.Property(l => l.Id)
+            .HasColumnName("id");
+
+        // TODO: Вопрос: мне кажется, что это потенциально опасная операция, потому что,
+        // если у меня не валидные данные, то мне выкенет Exception
         builder.Property(l => l.Name)
-            .HasConversion(l => l.Value, name => new Name(name));
+            .HasConversion(l => l.Value, name => Name.Create(name).Value)
+            .HasColumnName("name");
 
         // builder.OwnsOne(l => l.Address, addressBuilder =>
         builder.ComplexProperty(l => l.Address, addressBuilder =>
@@ -41,5 +46,18 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         });
         // Если нужно, чтобы был nullable VO, то:
         // builder.Navigation(l => l.Address).IsRequired(false);
+
+        builder.Property(l => l.Timezone)
+            .HasConversion(l => l.Value, timezone => Timezone.Create(timezone).Value)
+            .HasColumnName("timezone");
+        
+        builder.Property(l => l.IsActive)
+            .HasColumnName("is_active");
+        
+        builder.Property(l => l.CreatedAt)
+            .HasColumnName("created_at");
+        
+        builder.Property(l => l.UpdatedAt)
+            .HasColumnName("updated_at");
     }
 }
