@@ -1,4 +1,8 @@
-﻿using DirectoryService.Domain.Locations.ValueObjects;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.Locations.ValueObjects;
+using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
+using Path = System.IO.Path;
 
 namespace DirectoryService.Domain.Locations;
 
@@ -8,12 +12,17 @@ public class Location
     private Location() { }
     
     private Location(Guid id, Name name, Address address,
-        Timezone timezone, IReadOnlyList<DepartmentLocation> departmentLocations)
+        Timezone timezone, bool isActive,
+        DateTime createdAt, DateTime updatedAt,
+        IReadOnlyList<DepartmentLocation> departmentLocations)
     {
         Id = id;
         Name = name;
         Address = address;
         Timezone = timezone;
+        IsActive = isActive;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
         DepartmentLocations = departmentLocations;
     }
 
@@ -31,13 +40,23 @@ public class Location
     
     public DateTime CreatedAt { get; private set; }
     
-    public DateTime UpdateAt { get; private set; }
+    public DateTime UpdatedAt { get; private set; }
     
     public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
 
     #endregion
     
     #region Public methods
+    
+    public static Result<Location> Create(Guid id, Name name, Address address,
+        Timezone timezone, bool isActive,
+        DateTime createdAt, DateTime updatedAt,
+        IReadOnlyList<DepartmentLocation> departmentLocations)
+    {
+        Location location = new(id, name, address, timezone, isActive, createdAt, updatedAt, departmentLocations);
+        
+        return Result.Success(location);
+    }
 
     public void SetId(Guid id) => Id = id;
     public void SetName(Name name) => Name = name;
@@ -45,7 +64,7 @@ public class Location
     public void SetTimezone(Timezone timezone) => Timezone = timezone;
     public void SetIsActive(bool isActive) => IsActive = isActive;
     public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
+    public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
     public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations; 
 
     #endregion
