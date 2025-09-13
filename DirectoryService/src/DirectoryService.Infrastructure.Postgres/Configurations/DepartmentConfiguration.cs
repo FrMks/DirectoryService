@@ -14,16 +14,18 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         
         builder.HasKey(d => d.Id).HasName("pk_department");
         
-        builder.Property(d => d.Id).HasColumnName("department_id");
+        builder.Property(d => d.Id).HasColumnName("id");
 
         builder.Property(d => d.Name)
             .HasConversion(d => d.Value, name => Name.Create(name).Value)
-            .HasColumnType("name");
+            .HasColumnName("name");
         
         builder.Property(d => d.Identifier)
             .HasConversion(d => d.Value, identifier => Identifier.Create(identifier).Value)
-            .HasColumnType("identifier");
-        
-        
+            .HasColumnName("identifier");
+
+        builder.Property(d => d.ParentId)
+            .HasColumnName("parent_id")
+            .IsRequired(false);
     }
 }
