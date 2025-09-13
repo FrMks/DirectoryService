@@ -45,5 +45,11 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         
         builder.Property(d => d.UpdatedAt)
             .HasColumnName("updated_at");
+        
+        builder.HasMany(d => d.DepartmentLocations)
+            .WithOne()
+            .HasForeignKey(d => d.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
     }
 }
