@@ -1,4 +1,5 @@
-﻿using DirectoryService.Domain.Locations;
+﻿using DirectoryService.Domain;
+using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Infrastructure.Postgres;
@@ -23,4 +24,5 @@ public class DirectoryServiceDbContext : DbContext
     }
 
     public DbSet<Location> Locations => Set<Location>();
+    public DbSet<DepartmentLocation> DepartmentLocations => Set<DepartmentLocation>();
 }
