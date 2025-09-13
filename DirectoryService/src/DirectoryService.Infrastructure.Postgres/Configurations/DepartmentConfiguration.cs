@@ -32,5 +32,18 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         builder.Property(d => d.Path)
             .HasConversion(d => d.Value, path => Path.Create(path).Value)
             .HasColumnName("path");
+        
+        builder.Property(d => d.Depth)
+            .HasConversion(d => d.Value, depth => Depth.Create(depth).Value)
+            .HasColumnName("depth");
+
+        builder.Property(d => d.IsActive)
+            .HasColumnName("is_active");
+
+        builder.Property(d => d.CreatedAt)
+            .HasColumnName("created_at");
+        
+        builder.Property(d => d.UpdatedAt)
+            .HasColumnName("updated_at");
     }
 }
