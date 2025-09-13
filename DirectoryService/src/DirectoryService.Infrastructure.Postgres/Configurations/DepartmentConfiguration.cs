@@ -3,6 +3,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Name = DirectoryService.Domain.Department.ValueObject.Name;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Infrastructure.Postgres.Configurations;
 
@@ -27,5 +28,9 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         builder.Property(d => d.ParentId)
             .HasColumnName("parent_id")
             .IsRequired(false);
+
+        builder.Property(d => d.Path)
+            .HasConversion(d => d.Value, path => Path.Create(path).Value)
+            .HasColumnName("path");
     }
 }
