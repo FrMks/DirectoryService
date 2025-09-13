@@ -10,6 +10,8 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 {
     public void Configure(EntityTypeBuilder<Department> builder)
     {
+        builder.ToTable("departments");
+        
         builder.HasKey(d => d.Id).HasName("pk_department");
         
         builder.Property(d => d.Id).HasColumnName("department_id");
@@ -21,5 +23,7 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         builder.Property(d => d.Identifier)
             .HasConversion(d => d.Value, identifier => Identifier.Create(identifier).Value)
             .HasColumnType("identifier");
+        
+        
     }
 }
