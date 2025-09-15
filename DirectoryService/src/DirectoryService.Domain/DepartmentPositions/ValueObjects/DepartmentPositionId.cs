@@ -12,4 +12,6 @@ public record DepartmentPositionId
     public static DepartmentPositionId NewDepartmentId() => new (Guid.NewGuid());
     
     public static DepartmentPositionId Empty() => new (Guid.Empty);
+    
+    public static DepartmentPositionId FromValue(Guid value) => new(value);
 }

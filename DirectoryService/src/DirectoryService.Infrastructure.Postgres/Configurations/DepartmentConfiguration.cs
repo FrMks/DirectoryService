@@ -15,7 +15,9 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
         
         builder.HasKey(d => d.Id).HasName("pk_department");
         
-        builder.Property(d => d.Id).HasColumnName("id");
+        builder.Property(d => d.Id)
+            .HasConversion(d => d.Value, departmentId => DepartmentId.FromValue(departmentId))
+            .HasColumnName("id");
 
         builder.Property(d => d.Name)
             .HasConversion(d => d.Value, name => Name.Create(name).Value)
@@ -51,5 +53,9 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
             .HasForeignKey(d => d.DepartmentId)
             .OnDelete(DeleteBehavior.Cascade);
             
+        builder.HasMany(d => d.DepartmentPositions)
+            .WithOne()
+            .HasForeignKey(d => d.DepartmentId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

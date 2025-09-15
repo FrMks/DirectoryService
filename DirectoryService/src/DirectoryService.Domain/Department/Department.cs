@@ -9,13 +9,13 @@ public class Department
     // EF Core
     private Department() { }
     
-    private Department(Name name, Identifier identifier, Path path,
+    private Department(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
         IReadOnlyList<DepartmentLocation> departmentLocations,
         IReadOnlyList<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
-        Id = Guid.NewGuid();
+        Id = id;
         Name = name;
         Identifier = identifier;
         Path = path;
@@ -30,7 +30,7 @@ public class Department
 
     #region Properties
 
-    public Guid Id { get; private set; }
+    public DepartmentId Id { get; private set; }
     
     public Name Name { get; private set; } = null!;
 
@@ -59,13 +59,13 @@ public class Department
 
     #region Public methods
 
-    public static Result<Department> Create(Name name, Identifier identifier, Path path,
+    public static Result<Department> Create(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
         IReadOnlyList<DepartmentLocation> departmentLocations,
         IReadOnlyList<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
-        Department department = new(name, identifier, path, isActive, createdAt, updatedAt, departmentLocations, departmentPositions, depth, parentId);
+        Department department = new(id, name, identifier, path, isActive, createdAt, updatedAt, departmentLocations, departmentPositions, depth, parentId);
         
         return Result.Success(department);
     }

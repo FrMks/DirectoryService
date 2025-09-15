@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
+using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -22,17 +23,13 @@ public class DepartmentLocationConfiguration : IEntityTypeConfiguration<Departme
             .IsRequired();
         
         builder.Property(dl => dl.DepartmentId)
+            .HasConversion(dl => dl.Value, departmentId => DepartmentId.FromValue(departmentId))
             .HasColumnName("department_id")
             .IsRequired();
         
         builder.HasOne<Location>()
             .WithMany()
             .HasForeignKey(dl => dl.LocationId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
-        builder.HasOne<Department>()
-            .WithMany()
-            .HasForeignKey(dl => dl.DepartmentId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
