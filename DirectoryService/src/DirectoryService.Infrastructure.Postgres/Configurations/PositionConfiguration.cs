@@ -14,6 +14,7 @@ public class PositionConfiguration : IEntityTypeConfiguration<Position>
         builder.HasKey(p => p.Id).HasName("pk_positions");
 
         builder.Property(p => p.Id)
+            .HasConversion(p => p.Value, positionId => PositionId.FromValue(positionId))
             .HasColumnName("id");
 
         builder.Property(p => p.Name)
