@@ -11,7 +11,7 @@ public class Location
     // EF Core
     private Location() { }
     
-    private Location(Guid id, Name name, Address address,
+    private Location(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
         IReadOnlyList<DepartmentLocation> departmentLocations)
@@ -28,7 +28,7 @@ public class Location
 
     #region Properties
 
-    public Guid Id { get; private set; }
+    public LocationId Id { get; private set; }
 
     public Name Name { get; private set; } = null!;
 
@@ -48,7 +48,7 @@ public class Location
     
     #region Public methods
     
-    public static Result<Location> Create(Guid id, Name name, Address address,
+    public static Result<Location> Create(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
         IReadOnlyList<DepartmentLocation> departmentLocations)
@@ -58,7 +58,7 @@ public class Location
         return Result.Success(location);
     }
 
-    public void SetId(Guid id) => Id = id;
+    public void SetId(LocationId id) => Id = id;
     public void SetName(Name name) => Name = name;
     public void SetAddress(Address address) => Address = address;
     public void SetTimezone(Timezone timezone) => Timezone = timezone;

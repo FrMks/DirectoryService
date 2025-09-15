@@ -29,10 +29,5 @@ public class DepartmentPositionConfiguration : IEntityTypeConfiguration<Departme
         builder.Property(dp => dp.PositionId)
             .HasColumnName("position_id")
             .IsRequired();
-        
-        builder.HasOne<Position>()
-            .WithMany()
-            .HasForeignKey(dp => dp.PositionId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -15,6 +15,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.HasKey(l => l.Id).HasName("pk_locations");
 
         builder.Property(l => l.Id)
+            .HasConversion(l => l.Value, locationId => LocationId.FromValue(locationId))
             .HasColumnName("id");
 
         // TODO: Вопрос: мне кажется, что это потенциально опасная операция, потому что,

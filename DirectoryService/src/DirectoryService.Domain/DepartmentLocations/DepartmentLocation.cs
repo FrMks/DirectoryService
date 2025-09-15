@@ -2,6 +2,7 @@
 using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 
 namespace DirectoryService.Domain;
 
@@ -10,7 +11,7 @@ public class DepartmentLocation
     // EF Core
     private DepartmentLocation() { }
     
-    private DepartmentLocation(Guid id, DepartmentId departmentId, Guid locationId)
+    private DepartmentLocation(Guid id, DepartmentId departmentId, LocationId locationId)
     {
         Id = id;
         DepartmentId = departmentId;
@@ -21,9 +22,9 @@ public class DepartmentLocation
 
     public DepartmentId DepartmentId { get; private set; }
 
-    public Guid LocationId { get; private set; }
+    public LocationId LocationId { get; private set; }
 
-    public static Result<DepartmentLocation> Create(Guid id, DepartmentId departmentId, Guid locationId)
+    public static Result<DepartmentLocation> Create(Guid id, DepartmentId departmentId, LocationId locationId)
     {
         DepartmentLocation departmentLocation = new(id, departmentId, locationId);
 
@@ -34,6 +35,6 @@ public class DepartmentLocation
 
     public void SetDepartmentId(DepartmentId departmentId) => DepartmentId = departmentId;
 
-    public void SetLocationId(Guid locationId) => LocationId = locationId;
+    public void SetLocationId(LocationId locationId) => LocationId = locationId;
 
 }
