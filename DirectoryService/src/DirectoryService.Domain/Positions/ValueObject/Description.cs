@@ -11,7 +11,7 @@ public record Description
     
     public string Value { get; init; }
 
-    public Result<Description> Create(string value)
+    public static Result<Description> Create(string value)
     {
         if (string.IsNullOrEmpty(value))
             Result.Failure("Value cannot be null or empty.");
