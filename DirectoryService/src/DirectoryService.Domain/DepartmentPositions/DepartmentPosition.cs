@@ -1,15 +1,17 @@
 ﻿using System.Reflection.Emit;
 using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.DepartmentPositions.ValueObjects;
 
 namespace DirectoryService.Domain;
 
-public class DepartmentPosition
+public class DepartmentPosition : Entity<DepartmentPositionId>
 {
     // EF Core
-    private DepartmentPosition() { }
+    private DepartmentPosition(DepartmentPositionId id)
+        : base(id) { }
     
-    private DepartmentPosition(Guid id, Guid departmentId, Guid positionId)
+    private DepartmentPosition(DepartmentPositionId id, Guid departmentId, Guid positionId)
+        : base(id)
     {
         Id = id;
         DepartmentId = departmentId;
@@ -18,7 +20,7 @@ public class DepartmentPosition
 
     #region Properties
 
-    public Guid Id { get; private set; }
+    public DepartmentPositionId Id { get; private set; }
     
     public Guid DepartmentId { get; private set; }
     
@@ -28,14 +30,14 @@ public class DepartmentPosition
 
     #region Public methods
 
-    public static Result<DepartmentPosition> Create(Guid id, Guid departmentId, Guid positionId)
+    public static Result<DepartmentPosition> Create(DepartmentPositionId id, Guid departmentId, Guid positionId)
     {
         DepartmentPosition departmentPosition = new(id, departmentId, positionId);
 
         return Result.Success(departmentPosition);
     }
     
-    public void SetId(Guid id) => Id = id;
+    public void SetId(DepartmentPositionId id) => Id = id;
     public void SetDepartmentId(Guid departmentId) => DepartmentId = departmentId;
     public void SetPositionId(Guid positionId) => PositionId = positionId;
 

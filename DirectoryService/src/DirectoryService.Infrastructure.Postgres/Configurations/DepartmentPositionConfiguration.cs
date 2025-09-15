@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
+using DirectoryService.Domain.DepartmentPositions.ValueObjects;
 using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,6 +16,7 @@ public class DepartmentPositionConfiguration : IEntityTypeConfiguration<Departme
         builder.HasKey(dp => dp.Id).HasName("pk_department_positions");
         
         builder.Property(dp => dp.Id)
+            .HasConversion(dp => dp.Value, id => DepartmentPositionId.NewDepartmentId())
             .HasColumnName("id");
         
         builder.Property(dp => dp.DepartmentId)
