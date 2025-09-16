@@ -22,7 +22,8 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         // если у меня не валидные данные, то мне выкенет Exception
         builder.Property(l => l.Name)
             .HasConversion(l => l.Value, name => Name.Create(name).Value)
-            .HasColumnName("name");
+            .HasColumnName("name")
+            .HasMaxLength(LengthConstants.LENGTH120);
 
         // builder.OwnsOne(l => l.Address, addressBuilder =>
         builder.ComplexProperty(l => l.Address, addressBuilder =>
@@ -31,19 +32,22 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
                 .Property(l => l.Street)
                 .IsRequired()
                 .HasMaxLength(LengthConstants.LENGTH100)
-                .HasColumnName("street");
+                .HasColumnName("street")
+                .HasMaxLength(LengthConstants.LENGTH100);
             
             addressBuilder
                 .Property(l => l.City)
                 .IsRequired()
                 .HasMaxLength(LengthConstants.LENGTH60)
-                .HasColumnName("city");
+                .HasColumnName("city")
+                .HasMaxLength(LengthConstants.LENGTH60);
             
             addressBuilder
                 .Property(l => l.Country)
                 .IsRequired()
                 .HasMaxLength(LengthConstants.LENGTH60)
-                .HasColumnName("country");
+                .HasColumnName("country")
+                .HasMaxLength(LengthConstants.LENGTH60);
         });
         // Если нужно, чтобы был nullable VO, то:
         // builder.Navigation(l => l.Address).IsRequired(false);
