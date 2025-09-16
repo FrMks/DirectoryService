@@ -18,7 +18,7 @@ public record Name
 
         string trimmed = input.Trim();
 
-        if (trimmed.Length < 3 || trimmed.Length > 150)
+        if (trimmed.Length < LengthConstants.LENGTH3 || trimmed.Length > LengthConstants.LENGTH150)
             return Result.Failure<Name>("Name cannot be less than 3 symbols and more than 150 characters");
 
         Name name = new(trimmed);

@@ -1,4 +1,5 @@
-﻿using DirectoryService.Domain.Department;
+﻿using DirectoryService.Domain;
+using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -21,7 +22,8 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.Property(d => d.Name)
             .HasConversion(d => d.Value, name => Name.Create(name).Value)
-            .HasColumnName("name");
+            .HasColumnName("name")
+            .HasMaxLength(LengthConstants.LENGTH150);
         
         builder.Property(d => d.Identifier)
             .HasConversion(d => d.Value, identifier => Identifier.Create(identifier).Value)
