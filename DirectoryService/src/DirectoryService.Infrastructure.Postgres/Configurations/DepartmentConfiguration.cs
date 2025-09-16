@@ -55,7 +55,7 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
             
         builder.HasMany(d => d.DepartmentPositions)
             .WithOne()
-            .HasForeignKey(d => d.DepartmentId)
+            .HasForeignKey(dp => dp.DepartmentId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
