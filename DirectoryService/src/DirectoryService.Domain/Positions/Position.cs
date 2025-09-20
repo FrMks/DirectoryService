@@ -5,7 +5,10 @@ namespace DirectoryService.Domain.Positions;
 
 public class Position
 {
-    private Position(Guid id, Name name, Description description, bool isActive,
+    // EF Core
+    private Position() { }
+    
+    private Position(PositionId id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
     {
@@ -20,20 +23,20 @@ public class Position
 
     #region Properties
 
-    public Guid Id { get; private set; }
-    public Name Name { get; private set; }
-    public Description Description { get; private set; }
+    public PositionId Id { get; private set; }
+    public Name Name { get; private set; } = null!;
+    public Description Description { get; private set; } = null!;
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdateAt { get; private set; }
     
-    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; }
+    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; } = null!;
 
     #endregion
 
     #region Public methods
 
-    public Result<Position> Create(Guid id, Name name, Description description, bool isActive,
+    public Result<Position> Create(PositionId id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
     {
@@ -43,7 +46,7 @@ public class Position
         return Result.Success(position);
     }
     
-    public void SetId(Guid id) => Id = id;
+    public void SetId(PositionId id) => Id = id;
     public void SetName(Name name) => Name = name;
     public void SetDescription(Description description) => Description = description;
     public void SetIsActive(bool isActive) => IsActive = isActive;

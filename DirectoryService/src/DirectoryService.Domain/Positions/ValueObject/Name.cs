@@ -14,14 +14,14 @@ public record Name
     
     public string Value { get; init; }
     
-    public Result<Name> Create(string value)
+    public static Result<Name> Create(string value)
     {
         if (string.IsNullOrEmpty(value))
             Result.Failure("Name cannot be null or empty");
             
         string trimmedValue = value.Trim();
         
-        if (trimmedValue.Length < 3 || trimmedValue.Length > 100)
+        if (trimmedValue.Length < LengthConstants.LENGTH3 || trimmedValue.Length > LengthConstants.LENGTH100)
             return Result.Failure<Name>("Name cannot be less than 3 characters and more than 100 characters");
         
         Name name = new(trimmedValue);
