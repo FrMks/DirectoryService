@@ -1,8 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
-using Path = System.IO.Path;
 
 namespace DirectoryService.Domain.Locations;
 
@@ -65,7 +63,7 @@ public class Location
     public void SetIsActive(bool isActive) => IsActive = isActive;
     public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
     public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
-    public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations; 
+    public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
 
     #endregion
 }
