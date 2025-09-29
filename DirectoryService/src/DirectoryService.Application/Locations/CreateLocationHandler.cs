@@ -7,19 +7,11 @@ using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Application.Locations;
 
-public class CreateLocationHandler: ICreateLocationHandler
+public class CreateLocationHandler(
+    ILocationsRepository locationsRepository,
+    ILogger<CreateLocationHandler> logger)
+    : ICreateLocationHandler
 {
-    private readonly ILocationsRepository _locationsRepository;
-    private readonly ILogger<CreateLocationHandler> _logger;
-
-    public CreateLocationHandler(
-        ILocationsRepository locationsRepository,
-        ILogger<CreateLocationHandler> logger)
-    {
-        _locationsRepository = locationsRepository;
-        _logger = logger;
-    }
-    
     // public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     {
@@ -35,10 +27,10 @@ public class CreateLocationHandler: ICreateLocationHandler
             new List<DepartmentLocation>()).Value;
 
         // Сохранение сущность Location в БД
-        await _locationsRepository.AddAsync(location, cancellationToken);
+        await locationsRepository.AddAsync(location, cancellationToken);
 
         // Логирование об успешном или неуспешном сохранении
-        _logger.LogInformation("Creating location with id {LocationId}", locationId);
+        logger.LogInformation("Creating location with id {LocationId}", locationId);
         
         return locationId.Value;
     }
