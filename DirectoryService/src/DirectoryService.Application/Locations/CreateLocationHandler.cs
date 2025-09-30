@@ -27,10 +27,10 @@ public class CreateLocationHandler(
             new List<DepartmentLocation>()).Value;
 
         // Сохранение сущность Location в БД
-        await locationsRepository.AddAsync(location, cancellationToken);
+        Result<Guid> successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
         // Логирование об успешном или неуспешном сохранении
-        logger.LogInformation("Creating location with id {LocationId}", locationId);
+        logger.LogInformation("Creating location with id {successfulId.Value}", successfulId.Value);
         
         return locationId.Value;
     }
