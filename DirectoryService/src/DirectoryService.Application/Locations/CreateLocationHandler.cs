@@ -20,7 +20,7 @@ public class CreateLocationHandler(
         Name locationName = Name.Create(locationRequest.Name).Value;
         var locationAddress = Domain.Locations.ValueObjects.Address.Create(locationRequest.Address.Street, locationRequest.Address.City, locationRequest.Address.Country).Value;
         Timezone locationTimezone = Timezone.Create(locationRequest.Timezone).Value;
-        
+
         Location location = Location.Create(locationId, locationName,
             locationAddress, locationTimezone,
             true, DateTime.UtcNow, DateTime.UtcNow,
@@ -31,7 +31,7 @@ public class CreateLocationHandler(
 
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Creating location with id {successfulId.Value}", successfulId.Value);
-        
+
         return locationId.Value;
     }
 }

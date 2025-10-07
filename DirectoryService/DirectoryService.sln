@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Applicatio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Infrastructure.Postgres", "src\DirectoryService.Infrastructure.Postgres\DirectoryService.Infrastructure.Postgres.csproj", "{166B34C0-7A7A-4989-B2F0-8A7B4564D107}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{166B34C0-7A7A-4989-B2F0-8A7B4564D107}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{166B34C0-7A7A-4989-B2F0-8A7B4564D107}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{166B34C0-7A7A-4989-B2F0-8A7B4564D107}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{44FEB702-8A0E-4664-BE83-48488DE27C77} = {6979BD37-391C-4EB3-88E6-BE0B0DAA885D}
@@ -51,5 +57,6 @@ Global
 		{3EB9488E-7287-42B9-AEB9-4CEA0E2F87D7} = {6979BD37-391C-4EB3-88E6-BE0B0DAA885D}
 		{D714FD21-94A2-4471-9AE3-CDC4196A3C63} = {6979BD37-391C-4EB3-88E6-BE0B0DAA885D}
 		{166B34C0-7A7A-4989-B2F0-8A7B4564D107} = {6979BD37-391C-4EB3-88E6-BE0B0DAA885D}
+		{E11BCB0A-C3D7-4BE4-AD02-26B86B4DF769} = {6979BD37-391C-4EB3-88E6-BE0B0DAA885D}
 	EndGlobalSection
 EndGlobal
