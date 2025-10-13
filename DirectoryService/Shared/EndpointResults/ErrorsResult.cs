@@ -1,6 +1,6 @@
-﻿using Shared;
+﻿using Microsoft.AspNetCore.Http;
 
-namespace DirectoryService.Web.EndpointResults;
+namespace Shared.EndpointResults;
 
 public class ErrorsResult : IResult
 {
@@ -10,7 +10,7 @@ public class ErrorsResult : IResult
     {
         _errors = error.ToErrors();
     }
-    
+
     public ErrorsResult(Errors errors)
     {
         _errors = errors;
@@ -35,10 +35,10 @@ public class ErrorsResult : IResult
         int statusCode = distinctErrorTypes.Count > 1
             ? StatusCodes.Status500InternalServerError
             : GetStatusCodeForErrorType(distinctErrorTypes.First());
-        
+
         var envelope = Envelope.Error(_errors);
         httpContext.Response.StatusCode = statusCode;
-        
+
         return httpContext.Response.WriteAsJsonAsync(envelope);
     }
 

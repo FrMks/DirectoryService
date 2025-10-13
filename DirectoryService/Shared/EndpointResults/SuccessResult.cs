@@ -1,8 +1,7 @@
 ﻿using System.Net;
-using System.Security.Cryptography.Xml;
-using Shared;
+using Microsoft.AspNetCore.Http;
 
-namespace DirectoryService.Web.EndpointResults;
+namespace Shared.EndpointResults;
 
 public class SuccessResult<TValue> : IResult
 {
