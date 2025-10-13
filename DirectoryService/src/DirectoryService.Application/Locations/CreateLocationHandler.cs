@@ -4,6 +4,7 @@ using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DirectoryService.Application.Locations;
 
@@ -13,7 +14,7 @@ public class CreateLocationHandler(
     : ICreateLocationHandler
 {
     // public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
-    public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     {
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
