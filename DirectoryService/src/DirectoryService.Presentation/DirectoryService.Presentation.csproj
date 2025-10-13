@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Shared\Shared.csproj" />
       <ProjectReference Include="..\\DirectoryService.Application\\DirectoryService.Application.csproj" />
       <ProjectReference Include="..\\DirectoryService.Contracts\\DirectoryService.Contracts.csproj" />
       <ProjectReference Include="..\\DirectoryService.Domain\\DirectoryService.Domain.csproj" />
