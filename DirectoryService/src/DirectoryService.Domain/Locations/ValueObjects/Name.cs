@@ -20,7 +20,7 @@ public record Name
         string trimmed = input.Trim();
 
         if (trimmed.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH120)
-            return Error.Validation(null, "Location name cannot be less than 3 symbols and more than 120 characters");
+            return Error.Validation("lenght.is.invalid", "Location name cannot be less than 3 symbols and more than 120 characters");
 
         Name name = new(trimmed);
 

@@ -19,8 +19,8 @@ public record Name
 
         string trimmed = input.Trim();
 
-        if (trimmed.Length < LengthConstants.LENGTH3 || trimmed.Length > LengthConstants.LENGTH150)
-            return Error.Validation(null, "Department name cannot be less than 3 symbols and more than 150 characters");
+        if (trimmed.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH150)
+            return Error.Validation("lenght.is.invalid", "Department name cannot be less than 3 symbols and more than 150 characters");
 
         Name name = new(trimmed);
 

@@ -20,7 +20,7 @@ public record Description
         string trimmedValue = value.Trim();
 
         if (string.IsNullOrEmpty(trimmedValue) || trimmedValue.Length > LengthConstants.LENGTH1000)
-            return Error.Validation(null, "Position description cannot be longer than 1000 characters and empty.");
+            return Error.Validation("lenght.is.invalid", "Position description cannot be longer than 1000 characters and empty.");
 
         Description description = new(trimmedValue);
 

@@ -26,7 +26,7 @@ public partial record Identifier
             return Error.Validation(null, "Department identifier is required.");
         
         if (trimmedIdentifier.Length is < 3 or > 150)
-            return Error.Validation(null, "Department identifier is invalid.");
+            return Error.Validation("lenght.is.invalid", "Department identifier is invalid.");
         
         if (!LatinLettersOnlyRegex().IsMatch(trimmedIdentifier))
             return Error.Validation(null, "Department identifier is invalid.");

@@ -28,7 +28,7 @@ public partial record Path
         if (!LatinLettersDotsHyphensRegex().IsMatch(result))
             return Error.Validation(null, "Department path is invalid.");
         
-        Path path = new Path(result);
+        Path path = new(result);
         
         return Result.Success<Path, Error>(path);
     }

@@ -31,7 +31,7 @@ public record Address
             return Error.Validation(null, "Location street cannot be empty");
         
         if (trimmedStreet.Length > LengthConstants.LENGTH100)
-            return Error.Validation(null, "Location street cannot be more than 100 characters");
+            return Error.Validation("lenght.is.invalid", "Location street cannot be more than 100 characters");
 
         #endregion
 
@@ -46,7 +46,7 @@ public record Address
             return Error.Validation(null, "Location city cannot be empty");
         
         if (trimmedCity.Length > LengthConstants.LENGTH60)
-            return Error.Validation(null, "Location city cannot be more than 60 characters");
+            return Error.Validation("lenght.is.invalid", "Location city cannot be more than 60 characters");
 
         #endregion
 
@@ -61,7 +61,7 @@ public record Address
             return Error.Validation(null, "Location address Country cannot be empty");
         
         if (trimmedCountry.Length > LengthConstants.LENGTH60)
-            return Error.Validation(null, "Location address Country cannot be more than 60 characters");
+            return Error.Validation("lenght.is.invalid", "Location address Country cannot be more than 60 characters");
 
         #endregion
         
