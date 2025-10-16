@@ -18,9 +18,24 @@ public class CreateLocationHandler(
     {
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
-        Name locationName = Name.Create(locationRequest.Name).Value;
-        var locationAddress = Domain.Locations.ValueObjects.Address.Create(locationRequest.Address.Street, locationRequest.Address.City, locationRequest.Address.Country).Value;
-        Timezone locationTimezone = Timezone.Create(locationRequest.Timezone).Value;
+        
+        var locationNameResult = Name.Create(locationRequest.Name);
+        if (locationNameResult.IsFailure)
+            return locationNameResult.Error;
+        Name locationName = locationNameResult.Value;
+
+        var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
+            locationRequest.Address.Street,
+            locationRequest.Address.City,
+            locationRequest.Address.Country);
+        if (locationAddressResult.IsFailure)
+            return locationAddressResult.Error;
+        var locationAddress = locationAddressResult.Value;
+        
+        var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
+        if (locationTimezoneResult.IsFailure)
+            return locationTimezoneResult.Error;
+        Timezone locationTimezone = locationTimezoneResult.Value;
 
         Location location = Location.Create(locationId, locationName,
             locationAddress, locationTimezone,
