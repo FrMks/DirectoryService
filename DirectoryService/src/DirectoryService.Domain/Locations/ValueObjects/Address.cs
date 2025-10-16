@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Shared;
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
@@ -17,55 +18,55 @@ public record Address
 
     public string Country { get; init; }
 
-    public static Result<Address> Create(string street, string city, string country)
+    public static Result<Address, Error> Create(string street, string city, string country)
     {
         #region street
 
         if (string.IsNullOrWhiteSpace(street))
-            return Result.Failure<Address>("Street cannot be empty");
+            return Error.Validation(null, "Location street cannot be empty");
         
         string trimmedStreet = street.Trim();
         
         if (string.IsNullOrWhiteSpace(trimmedStreet))
-            return Result.Failure<Address>("Street cannot be empty");
+            return Error.Validation(null, "Location street cannot be empty");
         
         if (trimmedStreet.Length > LengthConstants.LENGTH100)
-            return Result.Failure<Address>("Street cannot be more than 100 characters");
+            return Error.Validation(null, "Location street cannot be more than 100 characters");
 
         #endregion
 
         #region city
 
         if (string.IsNullOrWhiteSpace(city))
-            return Result.Failure<Address>("City cannot be empty");
+            return Error.Validation(null, "Location city cannot be empty");
         
         string trimmedCity = city.Trim();
         
         if (string.IsNullOrWhiteSpace(trimmedCity))
-            return Result.Failure<Address>("City cannot be empty");
+            return Error.Validation(null, "Location city cannot be empty");
         
         if (trimmedCity.Length > LengthConstants.LENGTH60)
-            return Result.Failure<Address>("City cannot be more than 60 characters");
+            return Error.Validation(null, "Location city cannot be more than 60 characters");
 
         #endregion
 
         #region country
 
         if (string.IsNullOrWhiteSpace(country))
-            return Result.Failure<Address>("Country cannot be empty");
+            return Error.Validation(null, "Location address Country cannot be empty");
         
         string trimmedCountry = country.Trim();
         
         if (string.IsNullOrWhiteSpace(trimmedCountry))
-            return Result.Failure<Address>("Country cannot be empty");
+            return Error.Validation(null, "Location address Country cannot be empty");
         
         if (trimmedCountry.Length > LengthConstants.LENGTH60)
-            return Result.Failure<Address>("Country cannot be more than 60 characters");
+            return Error.Validation(null, "Location address Country cannot be more than 60 characters");
 
         #endregion
         
         Address address = new(street, city, country);
         
-        return Result.Success(address);
+        return Result.Success<Address, Error>(address);
     }
 }
