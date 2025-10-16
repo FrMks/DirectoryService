@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Positions.ValueObject;
+using Shared;
 
 namespace DirectoryService.Domain.Positions;
 

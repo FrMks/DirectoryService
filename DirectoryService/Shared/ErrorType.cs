@@ -18,7 +18,7 @@ public enum ErrorType
     FAILURE,
 
     /// <summary>
-    /// Ошибка конфликт. 
+    /// Ошибка конфликт.
     /// </summary>
     CONFLICT,
 }
