@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Shared;
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
@@ -11,18 +12,18 @@ public record Name
 
     public string Value { get; init; }
 
-    public static Result<Name> Create(string input)
+    public static Result<Name, Error> Create(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
-            return Result.Failure<Name>("Name cannot be empty");
+            return Error.Validation(null, "Department name cannot be empty");
 
         string trimmed = input.Trim();
 
         if (trimmed.Length < LengthConstants.LENGTH3 || trimmed.Length > LengthConstants.LENGTH150)
-            return Result.Failure<Name>("Name cannot be less than 3 symbols and more than 150 characters");
+            return Error.Validation(null, "Department name cannot be less than 3 symbols and more than 150 characters");
 
         Name name = new(trimmed);
 
-        return Result.Success(name);
+        return Result.Success<Name, Error>(name);
     }
 }

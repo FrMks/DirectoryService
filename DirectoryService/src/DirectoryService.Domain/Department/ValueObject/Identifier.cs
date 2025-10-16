@@ -1,6 +1,7 @@
 ﻿using System.Security;
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using Shared;
 
 namespace DirectoryService.Domain.Department.ValueObject;
 
@@ -14,25 +15,25 @@ public partial record Identifier
     
     public string Value { get; init; }
 
-    public static Result<Identifier> Create(string identifier)
+    public static Result<Identifier, Error> Create(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
-            Result.Failure("Identifier is required.");
+            return Error.Validation(null, "Department identifier is required.");
         
         string trimmedIdentifier = identifier.Trim();
         
         if (trimmedIdentifier == string.Empty)
-            Result.Failure<Department>("Identifier is required.");
+            return Error.Validation(null, "Department identifier is required.");
         
-        if (trimmedIdentifier.Length < 3 || trimmedIdentifier.Length > 150)
-            Result.Failure<Department>("Identifier is invalid.");
+        if (trimmedIdentifier.Length is < 3 or > 150)
+            return Error.Validation(null, "Department identifier is invalid.");
         
         if (!LatinLettersOnlyRegex().IsMatch(trimmedIdentifier))
-            Result.Failure<Department>("Identifier is invalid.");
+            return Error.Validation(null, "Department identifier is invalid.");
         
-        Identifier instance = new Identifier(identifier);
+        Identifier instance = new(identifier);
         
-        return Result.Success(instance);
+        return Result.Success<Identifier, Error>(instance);
     }
 
     [GeneratedRegex(@"^[a-zA-Z]+$")]
