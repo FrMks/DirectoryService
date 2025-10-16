@@ -1,12 +1,13 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
+using Shared;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
 public class LocationsRepository(DirectoryServiceDbContext dbContext) : ILocationsRepository
 {
-    public async Task<Result<Guid>> AddAsync(Location location, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> AddAsync(Location location, CancellationToken cancellationToken)
     {
         try
         {
@@ -16,9 +17,9 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext) : ILocatio
         }
         catch (Exception e)
         {
-            return Result.Failure<Guid>("Database error occurred.");
+            return Error.Failure(null, "Database error occurred.");
         }
         
-        return Result.Success(location.Id.Value);
+        return Result.Success<Guid, Error>(location.Id.Value);
     }
 }
