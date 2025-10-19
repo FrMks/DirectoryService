@@ -2,6 +2,7 @@
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 using Shared.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
@@ -16,6 +17,11 @@ public class Locations : ControllerBase
         [FromBody] CreateLocationRequest request,
         CancellationToken cancellationToken)
     {
-        return await handler.Handle(request, cancellationToken);
+        var result = await handler.Handle(request, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
     }
 }
