@@ -44,8 +44,6 @@ public sealed class Location
 
     #endregion
     
-    #region Public methods
-    
     public static Result<Location> Create(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
@@ -55,15 +53,4 @@ public sealed class Location
         
         return Result.Success(location);
     }
-
-    public void SetId(LocationId id) => Id = id;
-    public void SetName(Name name) => Name = name;
-    public void SetAddress(Address address) => Address = address;
-    public void SetTimezone(Timezone timezone) => Timezone = timezone;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
-    public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
-
-    #endregion
 }

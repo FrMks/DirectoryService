@@ -29,11 +29,4 @@ public sealed class DepartmentLocation
 
         return Result.Success(departmentLocation);
     }
-
-    public void SetId(DepartmentLocationId id) => Id = id;
-
-    public void SetDepartmentId(DepartmentId departmentId) => DepartmentId = departmentId;
-
-    public void SetLocationId(LocationId locationId) => LocationId = locationId;
-
 }

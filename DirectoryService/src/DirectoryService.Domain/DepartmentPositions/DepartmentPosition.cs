@@ -38,10 +38,6 @@ public sealed class DepartmentPosition : Entity<DepartmentPositionId>
 
         return Result.Success(departmentPosition);
     }
-    
-    public void SetId(DepartmentPositionId id) => Id = id;
-    public void SetDepartmentId(DepartmentId departmentId) => DepartmentId = departmentId;
-    public void SetPositionId(PositionId positionId) => PositionId = positionId;
 
     #endregion
 }

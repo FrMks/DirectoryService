@@ -35,8 +35,6 @@ public sealed class Position
 
     #endregion
 
-    #region Public methods
-
     public Result<Position> Create(PositionId id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
         IReadOnlyList<DepartmentPosition> departmentPositions)
@@ -46,14 +44,4 @@ public sealed class Position
         
         return Result.Success(position);
     }
-    
-    public void SetId(PositionId id) => Id = id;
-    public void SetName(Name name) => Name = name;
-    public void SetDescription(Description description) => Description = description;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
-    public void SetDepartmentPositions(IReadOnlyList<DepartmentPosition> departmentPositions) => DepartmentPositions = departmentPositions;
-
-    #endregion
 }

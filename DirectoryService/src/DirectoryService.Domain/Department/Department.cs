@@ -57,8 +57,6 @@ public sealed class Department
 
     #endregion
 
-    #region Public methods
-
     public static Result<Department> Create(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
         IReadOnlyList<DepartmentLocation> departmentLocations,
@@ -69,15 +67,4 @@ public sealed class Department
         
         return Result.Success(department);
     }
-    
-    public void SetName(Name name) => Name = name;
-    public void SetIdentifier(Identifier identifier) => Identifier = identifier;
-    public void SetPath(Path path) => Path = path;
-    public void SetDepth(Depth depth) => Depth = depth;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
-    public void SetDepartmentLocations(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
-
-    #endregion
 }
