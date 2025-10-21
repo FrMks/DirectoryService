@@ -4,6 +4,7 @@ using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace DirectoryService.Application.Locations;
 
@@ -13,25 +14,40 @@ public class CreateLocationHandler(
     : ICreateLocationHandler
 {
     // public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
-    public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     {
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
-        Name locationName = Name.Create(locationRequest.Name).Value;
-        var locationAddress = Domain.Locations.ValueObjects.Address.Create(locationRequest.Address.Street, locationRequest.Address.City, locationRequest.Address.Country).Value;
-        Timezone locationTimezone = Timezone.Create(locationRequest.Timezone).Value;
         
+        var locationNameResult = Name.Create(locationRequest.Name);
+        if (locationNameResult.IsFailure)
+            return locationNameResult.Error;
+        Name locationName = locationNameResult.Value;
+
+        var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
+            locationRequest.Address.Street,
+            locationRequest.Address.City,
+            locationRequest.Address.Country);
+        if (locationAddressResult.IsFailure)
+            return locationAddressResult.Error;
+        var locationAddress = locationAddressResult.Value;
+        
+        var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
+        if (locationTimezoneResult.IsFailure)
+            return locationTimezoneResult.Error;
+        Timezone locationTimezone = locationTimezoneResult.Value;
+
         Location location = Location.Create(locationId, locationName,
             locationAddress, locationTimezone,
             true, DateTime.UtcNow, DateTime.UtcNow,
             new List<DepartmentLocation>()).Value;
 
         // Сохранение сущность Location в БД
-        Result<Guid> successfulId = await locationsRepository.AddAsync(location, cancellationToken);
+        var successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Creating location with id {successfulId.Value}", successfulId.Value);
-        
+
         return locationId.Value;
     }
 }

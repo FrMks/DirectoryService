@@ -1,6 +1,6 @@
-﻿using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using Shared;
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
@@ -16,23 +16,18 @@ public partial record Timezone
     [GeneratedRegex(@"^[A-Za-z_]+\/[A-Za-z_]+$")]
     private static partial Regex ValidFormatRegex();
     
-    public static Result<Timezone> Create(string input)
+    public static Result<Timezone, Error> Create(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
-            Result.Failure("Input cannot be empty");
+            return Error.Validation(null, "Location input cannot be empty");
         
         string trimmed = input.Trim();
         
         if (!ValidFormatRegex().IsMatch(trimmed))
-            Result.Failure("Input is not valid");
-
-        TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(trimmed);
+            return Error.Validation(null, "Location input is not valid");
         
-        if (!timeZone.HasIanaId)
-            Result.Failure("Time zone is not found");
-        
-        Timezone timezone = new Timezone(input);
+        Timezone timezone = new(input);
 
-        return timezone;
+        return Result.Success<Timezone, Error>(timezone);
     }
 }
