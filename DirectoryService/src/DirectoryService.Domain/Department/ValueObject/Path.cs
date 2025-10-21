@@ -11,7 +11,7 @@ public partial record Path
         Value = value;
     }
     
-    public string Value { get; init; }
+    public string Value { get; }
 
     public static Result<Path, Error> Create(string value)
     {

@@ -11,7 +11,7 @@ public partial record Timezone
         Value = value;
     }
 
-    public string Value { get; init; }
+    public string Value { get; }
 
     [GeneratedRegex(@"^[A-Za-z_]+\/[A-Za-z_]+$")]
     private static partial Regex ValidFormatRegex();

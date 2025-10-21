@@ -13,7 +13,7 @@ public record Name
         Value = value;
     }
 
-    public string Value { get; init; }
+    public string Value { get; }
 
     public static Result<Name, Error> Create(string value)
     {

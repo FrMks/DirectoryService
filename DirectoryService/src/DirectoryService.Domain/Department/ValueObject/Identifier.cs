@@ -13,7 +13,7 @@ public partial record Identifier
         Value = identifier;
     }
     
-    public string Value { get; init; }
+    public string Value { get; }
 
     public static Result<Identifier, Error> Create(string identifier)
     {
