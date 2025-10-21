@@ -11,8 +11,8 @@ public sealed class Department
     
     private Department(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Id = id;
@@ -22,8 +22,8 @@ public sealed class Department
         IsActive = isActive;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
-        DepartmentLocations = departmentLocations;
-        DepartmentPositions = departmentPositions;
+        DepartmentLocations = departmentLocations.ToList();
+        DepartmentPositions = departmentPositions.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -59,8 +59,8 @@ public sealed class Department
 
     public static Result<Department> Create(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Department department = new(id, name, identifier, path, isActive, createdAt, updatedAt, departmentLocations, departmentPositions, depth, parentId);

@@ -11,7 +11,7 @@ public sealed class Position
     
     private Position(PositionId id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+        IEnumerable<DepartmentPosition> departmentPositions)
     {
         Id = id;
         Name = name;
@@ -19,7 +19,7 @@ public sealed class Position
         IsActive = isActive;
         CreatedAt = createdAt;
         UpdateAt = updateAt;
-        DepartmentPositions = departmentPositions;
+        DepartmentPositions = departmentPositions.ToList();
     }
 
     #region Properties
@@ -37,7 +37,7 @@ public sealed class Position
 
     public Result<Position> Create(PositionId id, Name name, Description description, bool isActive,
         DateTime createdAt, DateTime updateAt,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+        IEnumerable<DepartmentPosition> departmentPositions)
     {
         Position position = new(id, name, description, isActive, createdAt, updateAt,
             departmentPositions);

@@ -12,7 +12,7 @@ public sealed class Location
     private Location(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations)
+        IEnumerable<DepartmentLocation> departmentLocations)
     {
         Id = id;
         Name = name;
@@ -21,7 +21,7 @@ public sealed class Location
         IsActive = isActive;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
-        DepartmentLocations = departmentLocations;
+        DepartmentLocations = departmentLocations.ToList();
     }
 
     #region Properties
@@ -47,7 +47,7 @@ public sealed class Location
     public static Result<Location> Create(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations)
+        IEnumerable<DepartmentLocation> departmentLocations)
     {
         Location location = new(id, name, address, timezone, isActive, createdAt, updatedAt, departmentLocations);
         
