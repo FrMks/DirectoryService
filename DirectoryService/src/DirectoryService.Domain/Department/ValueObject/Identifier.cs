@@ -25,7 +25,7 @@ public partial record Identifier
         if (trimmedIdentifier == string.Empty)
             return Error.Validation(null, "Department identifier is required.");
         
-        if (trimmedIdentifier.Length is < 3 or > 150)
+        if (trimmedIdentifier.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH150)
             return Error.Validation("lenght.is.invalid", "Department identifier is invalid.");
         
         if (!LatinLettersOnlyRegex().IsMatch(trimmedIdentifier))
