@@ -12,27 +12,27 @@ public partial record Identifier
     {
         Value = identifier;
     }
-    
+
     public string Value { get; }
 
     public static Result<Identifier, Error> Create(string identifier)
     {
         if (string.IsNullOrWhiteSpace(identifier))
             return Error.Validation(null, "Department identifier is required.");
-        
+
         string trimmedIdentifier = identifier.Trim();
-        
+
         if (trimmedIdentifier == string.Empty)
             return Error.Validation(null, "Department identifier is required.");
-        
+
         if (trimmedIdentifier.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH150)
             return Error.Validation("lenght.is.invalid", "Department identifier is invalid.");
-        
+
         if (!LatinLettersOnlyRegex().IsMatch(trimmedIdentifier))
             return Error.Validation(null, "Department identifier is invalid.");
-        
+
         Identifier instance = new(identifier);
-        
+
         return Result.Success<Identifier, Error>(instance);
     }
 
