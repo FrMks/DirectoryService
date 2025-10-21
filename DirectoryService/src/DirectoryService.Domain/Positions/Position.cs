@@ -4,7 +4,7 @@ using Shared;
 
 namespace DirectoryService.Domain.Positions;
 
-public class Position
+public sealed class Position
 {
     // EF Core
     private Position() { }

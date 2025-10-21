@@ -4,7 +4,7 @@ using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Domain.Department;
 
-public class Department
+public sealed class Department
 {
     // EF Core
     private Department() { }

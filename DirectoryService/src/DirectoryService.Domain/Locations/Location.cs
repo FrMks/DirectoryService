@@ -4,7 +4,7 @@ using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
 
 namespace DirectoryService.Domain.Locations;
 
-public class Location
+public sealed class Location
 {
     // EF Core
     private Location() { }

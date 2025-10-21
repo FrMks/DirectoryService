@@ -5,7 +5,7 @@ using DirectoryService.Domain.ValueObjects;
 
 namespace DirectoryService.Domain;
 
-public class DepartmentLocation
+public sealed class DepartmentLocation
 {
     // EF Core
     private DepartmentLocation() { }

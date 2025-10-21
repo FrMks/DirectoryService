@@ -6,7 +6,7 @@ using DirectoryService.Domain.Positions.ValueObject;
 
 namespace DirectoryService.Domain;
 
-public class DepartmentPosition : Entity<DepartmentPositionId>
+public sealed class DepartmentPosition : Entity<DepartmentPositionId>
 {
     // EF Core
     private DepartmentPosition(DepartmentPositionId id)
