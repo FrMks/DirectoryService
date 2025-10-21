@@ -10,7 +10,7 @@ public record Depth
         Value = value;
     }
     
-    public short Value { get; init; }
+    public short Value { get; }
 
     public static Result<Depth, Error> Create(short depth)
     {

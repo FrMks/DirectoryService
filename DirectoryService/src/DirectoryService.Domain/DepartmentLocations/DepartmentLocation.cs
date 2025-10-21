@@ -5,7 +5,7 @@ using DirectoryService.Domain.ValueObjects;
 
 namespace DirectoryService.Domain;
 
-public class DepartmentLocation
+public sealed class DepartmentLocation
 {
     // EF Core
     private DepartmentLocation() { }
@@ -29,11 +29,4 @@ public class DepartmentLocation
 
         return Result.Success(departmentLocation);
     }
-
-    public void SetId(DepartmentLocationId id) => Id = id;
-
-    public void SetDepartmentId(DepartmentId departmentId) => DepartmentId = departmentId;
-
-    public void SetLocationId(LocationId locationId) => LocationId = locationId;
-
 }

@@ -10,7 +10,7 @@ public record Description
         Value = value;
     }
     
-    public string Value { get; init; }
+    public string Value { get; }
 
     public static Result<Description, Error> Create(string value)
     {

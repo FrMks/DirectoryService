@@ -4,15 +4,15 @@ using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Domain.Department;
 
-public class Department
+public sealed class Department
 {
     // EF Core
     private Department() { }
     
     private Department(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Id = id;
@@ -22,8 +22,8 @@ public class Department
         IsActive = isActive;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
-        DepartmentLocations = departmentLocations;
-        DepartmentPositions = departmentPositions;
+        DepartmentLocations = departmentLocations.ToList();
+        DepartmentPositions = departmentPositions.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -57,27 +57,14 @@ public class Department
 
     #endregion
 
-    #region Public methods
-
     public static Result<Department> Create(DepartmentId id, Name name, Identifier identifier, Path path,
         bool isActive, DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations,
-        IReadOnlyList<DepartmentPosition> departmentPositions,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Department department = new(id, name, identifier, path, isActive, createdAt, updatedAt, departmentLocations, departmentPositions, depth, parentId);
         
         return Result.Success(department);
     }
-    
-    public void SetName(Name name) => Name = name;
-    public void SetIdentifier(Identifier identifier) => Identifier = identifier;
-    public void SetPath(Path path) => Path = path;
-    public void SetDepth(Depth depth) => Depth = depth;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
-    public void SetDepartmentLocations(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
-
-    #endregion
 }

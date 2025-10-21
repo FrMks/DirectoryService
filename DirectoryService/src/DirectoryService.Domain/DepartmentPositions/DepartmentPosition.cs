@@ -6,7 +6,7 @@ using DirectoryService.Domain.Positions.ValueObject;
 
 namespace DirectoryService.Domain;
 
-public class DepartmentPosition : Entity<DepartmentPositionId>
+public sealed class DepartmentPosition : Entity<DepartmentPositionId>
 {
     // EF Core
     private DepartmentPosition(DepartmentPositionId id)
@@ -38,10 +38,6 @@ public class DepartmentPosition : Entity<DepartmentPositionId>
 
         return Result.Success(departmentPosition);
     }
-    
-    public void SetId(DepartmentPositionId id) => Id = id;
-    public void SetDepartmentId(DepartmentId departmentId) => DepartmentId = departmentId;
-    public void SetPositionId(PositionId positionId) => PositionId = positionId;
 
     #endregion
 }

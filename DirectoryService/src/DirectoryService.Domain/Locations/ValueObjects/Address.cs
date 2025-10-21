@@ -12,11 +12,11 @@ public record Address
         Country = country.Trim();
     }
 
-    public string Street { get; init; }
+    public string Street { get; }
 
-    public string City { get; init; }
+    public string City { get; }
 
-    public string Country { get; init; }
+    public string Country { get; }
 
     public static Result<Address, Error> Create(string street, string city, string country)
     {

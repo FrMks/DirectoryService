@@ -4,7 +4,7 @@ using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
 
 namespace DirectoryService.Domain.Locations;
 
-public class Location
+public sealed class Location
 {
     // EF Core
     private Location() { }
@@ -12,7 +12,7 @@ public class Location
     private Location(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations)
+        IEnumerable<DepartmentLocation> departmentLocations)
     {
         Id = id;
         Name = name;
@@ -21,7 +21,7 @@ public class Location
         IsActive = isActive;
         CreatedAt = createdAt;
         UpdatedAt = updatedAt;
-        DepartmentLocations = departmentLocations;
+        DepartmentLocations = departmentLocations.ToList();
     }
 
     #region Properties
@@ -44,26 +44,13 @@ public class Location
 
     #endregion
     
-    #region Public methods
-    
     public static Result<Location> Create(LocationId id, Name name, Address address,
         Timezone timezone, bool isActive,
         DateTime createdAt, DateTime updatedAt,
-        IReadOnlyList<DepartmentLocation> departmentLocations)
+        IEnumerable<DepartmentLocation> departmentLocations)
     {
         Location location = new(id, name, address, timezone, isActive, createdAt, updatedAt, departmentLocations);
         
         return Result.Success(location);
     }
-
-    public void SetId(LocationId id) => Id = id;
-    public void SetName(Name name) => Name = name;
-    public void SetAddress(Address address) => Address = address;
-    public void SetTimezone(Timezone timezone) => Timezone = timezone;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdatedAt = updateAt;
-    public void SetDepartmentLocation(IReadOnlyList<DepartmentLocation> departmentLocations) => DepartmentLocations = departmentLocations;
-
-    #endregion
 }
