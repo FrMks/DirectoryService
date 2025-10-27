@@ -1,5 +1,4 @@
-﻿using System.Transactions;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department.ValueObject;
 using Shared;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
@@ -91,9 +90,9 @@ public sealed class Department
         {
             return Error.Validation(null, depthResult.Error.ToString());
         }
-        
+
         var depth = depthResult.Value;
-        
+
         Department department = new(
             departmentId ?? DepartmentId.NewDepartmentId(),
             name,
@@ -106,7 +105,7 @@ public sealed class Department
             );
         return Result.Success<Department, Error>(department);
     }
-    
+
     public static Result<Department, Error> CreateChild(
         Name name,
         Identifier identifier,
@@ -124,7 +123,7 @@ public sealed class Department
         {
             return Error.Validation(null, depthResult.Error.ToString());
         }
-        
+
         var depth = depthResult.Value;
 
         Department department = new(
