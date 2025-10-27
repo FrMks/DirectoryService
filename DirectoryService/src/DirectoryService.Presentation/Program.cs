@@ -14,6 +14,8 @@ builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 
 var app = builder.Build();
 
+app.UseHttpLogging();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
