@@ -6,33 +6,45 @@ namespace DirectoryService.Domain.Department.ValueObject;
 
 public partial record Path
 {
+    private const char SEPARATOR = '/';
+    
+    public string Value { get; }
+    
     private Path(string value)
     {
         Value = value;
     }
-    
-    public string Value { get; init; }
 
+    public static Path CreateParent(Identifier identifier)
+    {
+        return new Path(identifier.Value);
+    }
+
+    public Path CreateChild(Identifier childIdentifier)
+    {
+        return new Path(Value + SEPARATOR + childIdentifier.Value);
+    }
+    
     public static Result<Path, Error> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return Error.Validation(null, "Department path cannot be null or empty");
-        
+
         string trimmedValue = value.Trim();
-        
+
         if (string.IsNullOrWhiteSpace(trimmedValue))
             return Error.Validation(null, "Department path cannot be null or empty");
-        
+
         string result = trimmedValue.Replace(' ', '-');
-        
+
         if (!LatinLettersDotsHyphensRegex().IsMatch(result))
             return Error.Validation(null, "Department path is invalid.");
-        
+
         Path path = new(result);
-        
+
         return Result.Success<Path, Error>(path);
     }
-    
+
     [GeneratedRegex(@"^[a-zA-Z.-]+$")]
     private static partial Regex LatinLettersDotsHyphensRegex();
 }

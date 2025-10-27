@@ -4,22 +4,21 @@ using Shared;
 
 namespace DirectoryService.Domain.Positions;
 
-public class Position
+public sealed class Position
 {
     // EF Core
     private Position() { }
     
-    private Position(PositionId id, Name name, Description description, bool isActive,
-        DateTime createdAt, DateTime updateAt,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+    private Position(PositionId id, Name name, Description description,
+        IEnumerable<DepartmentPosition> departmentPositions)
     {
         Id = id;
         Name = name;
         Description = description;
-        IsActive = isActive;
-        CreatedAt = createdAt;
-        UpdateAt = updateAt;
-        DepartmentPositions = departmentPositions;
+        IsActive = true;
+        CreatedAt = DateTime.UtcNow;
+        UpdateAt = DateTime.UtcNow;
+        DepartmentPositions = departmentPositions.ToList();
     }
 
     #region Properties
@@ -35,25 +34,12 @@ public class Position
 
     #endregion
 
-    #region Public methods
-
-    public Result<Position> Create(PositionId id, Name name, Description description, bool isActive,
-        DateTime createdAt, DateTime updateAt,
-        IReadOnlyList<DepartmentPosition> departmentPositions)
+    public Result<Position> Create(PositionId id, Name name, Description description,
+        IEnumerable<DepartmentPosition> departmentPositions)
     {
-        Position position = new(id, name, description, isActive, createdAt, updateAt,
+        Position position = new(id, name, description,
             departmentPositions);
         
         return Result.Success(position);
     }
-    
-    public void SetId(PositionId id) => Id = id;
-    public void SetName(Name name) => Name = name;
-    public void SetDescription(Description description) => Description = description;
-    public void SetIsActive(bool isActive) => IsActive = isActive;
-    public void SetCreatedAt(DateTime createdAt) => CreatedAt = createdAt;
-    public void SetUpdateAt(DateTime updateAt) => UpdateAt = updateAt;
-    public void SetDepartmentPositions(IReadOnlyList<DepartmentPosition> departmentPositions) => DepartmentPositions = departmentPositions;
-
-    #endregion
 }
