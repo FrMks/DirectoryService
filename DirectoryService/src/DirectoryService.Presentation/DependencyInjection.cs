@@ -16,6 +16,9 @@ public static class DependencyInjection
     private static IServiceCollection AddWebDependencies(this IServiceCollection services)
     {
         services.AddControllers();
+        
+        services.AddHttpLogging();
+        
         services.AddOpenApi(options =>
         {
             options.AddSchemaTransformer((schema, context, _) =>
