@@ -9,16 +9,15 @@ public sealed class Position
     // EF Core
     private Position() { }
     
-    private Position(PositionId id, Name name, Description description, bool isActive,
-        DateTime createdAt, DateTime updateAt,
+    private Position(PositionId id, Name name, Description description,
         IEnumerable<DepartmentPosition> departmentPositions)
     {
         Id = id;
         Name = name;
         Description = description;
-        IsActive = isActive;
-        CreatedAt = createdAt;
-        UpdateAt = updateAt;
+        IsActive = true;
+        CreatedAt = DateTime.UtcNow;
+        UpdateAt = DateTime.UtcNow;
         DepartmentPositions = departmentPositions.ToList();
     }
 
@@ -35,11 +34,10 @@ public sealed class Position
 
     #endregion
 
-    public Result<Position> Create(PositionId id, Name name, Description description, bool isActive,
-        DateTime createdAt, DateTime updateAt,
+    public Result<Position> Create(PositionId id, Name name, Description description,
         IEnumerable<DepartmentPosition> departmentPositions)
     {
-        Position position = new(id, name, description, isActive, createdAt, updateAt,
+        Position position = new(id, name, description,
             departmentPositions);
         
         return Result.Success(position);
