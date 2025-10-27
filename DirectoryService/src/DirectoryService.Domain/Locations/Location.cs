@@ -10,17 +10,16 @@ public sealed class Location
     private Location() { }
     
     private Location(LocationId id, Name name, Address address,
-        Timezone timezone, bool isActive,
-        DateTime createdAt, DateTime updatedAt,
+        Timezone timezone,
         IEnumerable<DepartmentLocation> departmentLocations)
     {
         Id = id;
         Name = name;
         Address = address;
         Timezone = timezone;
-        IsActive = isActive;
-        CreatedAt = createdAt;
-        UpdatedAt = updatedAt;
+        IsActive = true;
+        CreatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;;
         DepartmentLocations = departmentLocations.ToList();
     }
 
@@ -45,11 +44,10 @@ public sealed class Location
     #endregion
     
     public static Result<Location> Create(LocationId id, Name name, Address address,
-        Timezone timezone, bool isActive,
-        DateTime createdAt, DateTime updatedAt,
+        Timezone timezone,
         IEnumerable<DepartmentLocation> departmentLocations)
     {
-        Location location = new(id, name, address, timezone, isActive, createdAt, updatedAt, departmentLocations);
+        Location location = new(id, name, address, timezone, departmentLocations);
         
         return Result.Success(location);
     }

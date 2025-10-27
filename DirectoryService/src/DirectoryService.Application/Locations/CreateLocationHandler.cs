@@ -39,7 +39,6 @@ public class CreateLocationHandler(
 
         Location location = Location.Create(locationId, locationName,
             locationAddress, locationTimezone,
-            true, DateTime.UtcNow, DateTime.UtcNow,
             new List<DepartmentLocation>()).Value;
 
         // Сохранение сущность Location в БД
