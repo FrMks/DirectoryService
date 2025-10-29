@@ -1,15 +1,11 @@
 ﻿using DirectoryService.Application.Exceptions;
+using Shared;
 
 namespace DirectoryService.Application.Locations.Exceptions;
 
 public class LocationValidationException : BadRequestException
 {
-    public LocationValidationException(string? error)
-        : base(error)
-    {
-    }
-
-    public LocationValidationException(IEnumerable<string> errors)
+    public LocationValidationException(Error[] errors)
         : base(errors)
     {
     }
