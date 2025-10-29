@@ -27,13 +27,12 @@ public class CreateLocationHandler(
             locationRequest.Address.Street,
             locationRequest.Address.City,
             locationRequest.Address.Country);
-        
+
         if (locationAddressResult.IsFailure)
             return locationAddressResult.Error;
-            // throw new LocationValidationException(locationAddressResult.Error.ToString());
-                
+
         var locationAddress = locationAddressResult.Value;
-        
+
         var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
         if (locationTimezoneResult.IsFailure)
             return locationTimezoneResult.Error;
