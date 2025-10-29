@@ -13,7 +13,6 @@ public class CreateLocationHandler(
     ILogger<CreateLocationHandler> logger)
     : ICreateLocationHandler
 {
-    // public async Task<Result<Guid>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     {
         // Создание сущности Location
@@ -28,8 +27,11 @@ public class CreateLocationHandler(
             locationRequest.Address.Street,
             locationRequest.Address.City,
             locationRequest.Address.Country);
+        
         if (locationAddressResult.IsFailure)
             return locationAddressResult.Error;
+            // throw new LocationValidationException(locationAddressResult.Error.ToString());
+                
         var locationAddress = locationAddressResult.Value;
         
         var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);

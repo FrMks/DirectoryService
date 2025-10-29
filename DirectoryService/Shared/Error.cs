@@ -18,6 +18,9 @@ public class Error
         InvalidField = invalidField;
     }
 
+    /// <summary>
+    /// When not found in database.
+    /// </summary>
     public static Error NotFound(string? code, string message, Guid? id) => new(code ?? "record.not.found", message, ErrorType.NOT_FOUND);
 
     public static Error Validation(string? code, string message, string? invalidField = null) => new(code ?? "value.is.invalid", message, ErrorType.VALIDATION, invalidField);
