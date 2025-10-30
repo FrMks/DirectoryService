@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Net.Http.Headers;
+using CSharpFunctionalExtensions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
@@ -35,7 +36,11 @@ public class CreateLocationHandler(
 
         var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
         if (locationTimezoneResult.IsFailure)
-            return locationTimezoneResult.Error;
+        {
+            // return locationTimezoneResult.Error;
+            return Errors.Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
+        }
+        
         Timezone locationTimezone = locationTimezoneResult.Value;
 
         Location location = Location.Create(locationId, locationName,
