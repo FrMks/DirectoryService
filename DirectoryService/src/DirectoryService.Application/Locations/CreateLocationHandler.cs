@@ -6,6 +6,7 @@ using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Errors = DirectoryService.Application.Locations.Failure.Errors;
 
 namespace DirectoryService.Application.Locations;
 
@@ -32,7 +33,7 @@ public class CreateLocationHandler(
         if (locationAddressResult.IsFailure)
         {
             // return locationAddressResult.Error;
-            return Errors.Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
+            return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
         }
 
         var locationAddress = locationAddressResult.Value;
@@ -41,7 +42,7 @@ public class CreateLocationHandler(
         if (locationTimezoneResult.IsFailure)
         {
             // return locationTimezoneResult.Error;
-            return Errors.Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
+            return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
         }
         
         Timezone locationTimezone = locationTimezoneResult.Value;

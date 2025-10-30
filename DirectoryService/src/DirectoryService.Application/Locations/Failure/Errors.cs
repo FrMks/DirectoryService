@@ -1,6 +1,6 @@
 ﻿using Shared;
 
-namespace DirectoryService.Application.Locations.Errors;
+namespace DirectoryService.Application.Locations.Failure;
 
 public partial class Errors
 {
