@@ -27,6 +27,7 @@ public class CreateLocationHandler(
             // return locationNameResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
             // throw new IncorrectCreationOfAClassNameInstanceException();
+            // throw new LocationValidationException([locationNameResult.Error]);
         }
 
         Name locationName = locationNameResult.Value;
@@ -40,6 +41,7 @@ public class CreateLocationHandler(
             // return locationAddressResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
             // throw new IncorrectCreationOfAClassAddressInstanceException();
+            // throw new LocationValidationException([locationNameResult.Error]);
         }
 
         var locationAddress = locationAddressResult.Value;
@@ -50,6 +52,7 @@ public class CreateLocationHandler(
             // return locationTimezoneResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
             // throw new IncorrectCreationOfAClassTimezoneInstanceException();
+            // throw new LocationValidationException([locationNameResult.Error]);
         }
 
         Timezone locationTimezone = locationTimezoneResult.Value;
