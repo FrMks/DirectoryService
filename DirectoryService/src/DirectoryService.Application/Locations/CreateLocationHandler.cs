@@ -30,7 +30,10 @@ public class CreateLocationHandler(
             locationRequest.Address.Country);
 
         if (locationAddressResult.IsFailure)
-            return locationAddressResult.Error;
+        {
+            // return locationAddressResult.Error;
+            return Errors.Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
+        }
 
         var locationAddress = locationAddressResult.Value;
 
