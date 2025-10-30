@@ -15,5 +15,10 @@ public partial class Errors
             Error.Validation(
                 "locations.incorrect.address.instance",
                 $"При создании экземпляра класса Address произошла ошибка: {error.Message}");
+        
+        public static Error IncorrectCreationOfAClassNameInstance(Error error) =>
+            Error.Validation(
+                "locations.incorrect.name.instance",
+                $"При создании экземпляра класса Name произошла ошибка: {error.Message}");
     }
 }

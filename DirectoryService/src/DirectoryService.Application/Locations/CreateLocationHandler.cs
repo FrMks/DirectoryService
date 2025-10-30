@@ -22,14 +22,17 @@ public class CreateLocationHandler(
         
         var locationNameResult = Name.Create(locationRequest.Name);
         if (locationNameResult.IsFailure)
-            return locationNameResult.Error;
+        {
+            // return locationNameResult.Error;
+            return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
+        }
+
         Name locationName = locationNameResult.Value;
 
         var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
             locationRequest.Address.Street,
             locationRequest.Address.City,
             locationRequest.Address.Country);
-
         if (locationAddressResult.IsFailure)
         {
             // return locationAddressResult.Error;
@@ -44,7 +47,7 @@ public class CreateLocationHandler(
             // return locationTimezoneResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
         }
-        
+
         Timezone locationTimezone = locationTimezoneResult.Value;
 
         Location location = Location.Create(locationId, locationName,
