@@ -2,13 +2,18 @@
 
 public class Error
 {
-    public string Code { get; }
+    public string Code { get; set; }
 
-    public string Message { get; }
+    public string Message { get; set; }
 
-    public ErrorType Type { get; }
+    public ErrorType Type { get; set; }
 
-    public string? InvalidField { get; }
+    public string? InvalidField { get; set; }
+
+    // TODO: у меня не работала программа без этого конструктора, если выбрасывать exception
+    // public Error()
+    // {
+    // }
 
     private Error(string code, string message, ErrorType type, string? invalidField = null)
     {
