@@ -15,7 +15,7 @@ builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseExceptionHandlingMiddleware();
 
 app.UseHttpLogging();
 
