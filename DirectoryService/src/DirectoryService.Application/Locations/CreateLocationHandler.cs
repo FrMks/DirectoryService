@@ -1,12 +1,13 @@
 ﻿using System.Net.Http.Headers;
 using CSharpFunctionalExtensions;
+using DirectoryService.Application.Locations.Fails.Exceptions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Shared;
-using Errors = DirectoryService.Application.Locations.Failure.Errors;
+using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
@@ -19,12 +20,13 @@ public class CreateLocationHandler(
     {
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
-        
+
         var locationNameResult = Name.Create(locationRequest.Name);
         if (locationNameResult.IsFailure)
         {
             // return locationNameResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
+            // throw new IncorrectCreationOfAClassNameInstanceException();
         }
 
         Name locationName = locationNameResult.Value;
@@ -37,6 +39,7 @@ public class CreateLocationHandler(
         {
             // return locationAddressResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
+            // throw new IncorrectCreationOfAClassAddressInstanceException();
         }
 
         var locationAddress = locationAddressResult.Value;
@@ -46,6 +49,7 @@ public class CreateLocationHandler(
         {
             // return locationTimezoneResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
+            // throw new IncorrectCreationOfAClassTimezoneInstanceException();
         }
 
         Timezone locationTimezone = locationTimezoneResult.Value;
