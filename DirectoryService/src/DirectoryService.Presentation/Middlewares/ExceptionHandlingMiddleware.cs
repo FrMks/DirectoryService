@@ -8,9 +8,9 @@ namespace DirectoryService.Web.Middlewares;
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlerMiddleware> _logger;
+    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlerMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -25,8 +25,6 @@ public class ExceptionHandlingMiddleware
         catch (Exception e)
         {
             await HandleExceptionAsync(context, e);
-
-            await context.Response.WriteAsJsonAsync(e.Message);
         }
     }
 
@@ -34,23 +32,41 @@ public class ExceptionHandlingMiddleware
     {
         _logger.LogError(exception, exception.Message);
 
-        (int code, Error[]? errors) = exception switch
+        (int code, Errors errors) = exception switch
         {
-            BadRequestException =>
-                (StatusCodes.Status500InternalServerError,
-                    JsonSerializer.Deserialize<Error[]>(exception.Message)),
-            NotFoundException =>
+            BadRequestException badRequest =>
+                (StatusCodes.Status400BadRequest, // Исправлено: было 500
+                    TryDeserializeErrors(badRequest.Message)),
+
+            NotFoundException notFound =>
                 (StatusCodes.Status404NotFound,
-                    JsonSerializer.Deserialize<Error[]>(exception.Message)),
+                    TryDeserializeErrors(notFound.Message)),
+
             _ =>
                 (StatusCodes.Status500InternalServerError,
-                    [Error.Failure(null, "Something went wrong")]),
+                    new Errors([Error.Failure("server.error", "Something went wrong")])),
         };
+
+        var envelope = Envelope.Error(errors);
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = code;
 
-        await context.Response.WriteAsJsonAsync(errors);
+        await context.Response.WriteAsJsonAsync(envelope);
+    }
+
+    private static Errors TryDeserializeErrors(string message)
+    {
+        try
+        {
+            var errorArray = JsonSerializer.Deserialize<Error[]>(message);
+            return errorArray != null ? new Errors(errorArray) :
+                    new Errors([Error.Failure("deserialization.error", "Failed to parse Error message")]);
+        }
+        catch
+        {
+            return new Errors([Error.Failure("unknown.error", message)]);
+        }
     }
 }
 
