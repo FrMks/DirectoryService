@@ -35,7 +35,7 @@ public class ExceptionHandlingMiddleware
         (int code, Errors errors) = exception switch
         {
             BadRequestException badRequest =>
-                (StatusCodes.Status400BadRequest, // Исправлено: было 500
+                (StatusCodes.Status400BadRequest,
                     TryDeserializeErrors(badRequest.Message)),
 
             NotFoundException notFound =>
