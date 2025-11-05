@@ -61,11 +61,13 @@ public class CreateLocationHandler(
             locationAddress, locationTimezone,
             new List<DepartmentLocation>()).Value;
 
+        logger.LogInformation("Creating location with id {successfulId.Value}", location.Name);
+
         // Сохранение сущность Location в БД
         var successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
         // Логирование об успешном или неуспешном сохранении
-        logger.LogInformation("Creating location with id {successfulId.Value}", successfulId.Value);
+        logger.LogInformation("Location with id {successfulId.Value} add to db.", successfulId.Value);
 
         return locationId.Value;
     }
