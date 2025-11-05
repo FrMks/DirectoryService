@@ -10,7 +10,11 @@ public static class DependencyInjection
     {
         return services
             .AddWebDependencies()
-            .AddApplication();
+            .AddApplication()
+            .AddHttpLogging(o =>
+            {
+                o.CombineLogs = true;
+            });
     }
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services)
