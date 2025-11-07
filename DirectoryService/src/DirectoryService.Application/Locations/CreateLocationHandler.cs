@@ -24,6 +24,7 @@ public class CreateLocationHandler(
         var locationNameResult = Name.Create(locationRequest.Name);
         if (locationNameResult.IsFailure)
         {
+            logger.LogInformation("Error when creating location name, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
             // return locationNameResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
             // throw new IncorrectCreationOfAClassNameInstanceException();
@@ -38,6 +39,7 @@ public class CreateLocationHandler(
             locationRequest.Address.Country);
         if (locationAddressResult.IsFailure)
         {
+            logger.LogInformation("Error when creating location address, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
             // return locationAddressResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
             // throw new IncorrectCreationOfAClassAddressInstanceException();
@@ -49,6 +51,7 @@ public class CreateLocationHandler(
         var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
         if (locationTimezoneResult.IsFailure)
         {
+            logger.LogInformation("Error when creating location timezone, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
             // return locationTimezoneResult.Error;
             return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
             // throw new IncorrectCreationOfAClassTimezoneInstanceException();
