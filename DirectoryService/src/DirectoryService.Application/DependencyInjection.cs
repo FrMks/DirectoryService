@@ -1,4 +1,5 @@
-﻿using DirectoryService.Application.Locations;
+﻿using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.Validation;
 using DirectoryService.Contracts.Locations;
 using FluentValidation;
@@ -12,6 +13,8 @@ public static class DependencyInjection
     {
         services
             .AddScoped<ICreateLocationHandler, CreateLocationHandler>()
+            .AddScoped<ICommandHandler<Guid, CreateLocationCommand>, CreateLocationHandler>()
+            
             .AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
 
         return services;

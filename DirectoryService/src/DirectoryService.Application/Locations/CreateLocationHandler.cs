@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
@@ -10,11 +11,12 @@ using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
+// TODO: Нужно ли реализовывать два интерфейса?
 public class CreateLocationHandler(
     ILocationsRepository locationsRepository,
     IValidator<CreateLocationRequest> validator,
     ILogger<CreateLocationHandler> logger)
-    : ICreateLocationHandler
+    : ICreateLocationHandler, ICommandHandler<Guid, CreateLocationCommand>
 {
     public async Task<Result<Guid, Error>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
     {

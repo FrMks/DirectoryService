@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Locations;
 
 namespace DirectoryService.Application.Locations;
@@ -12,4 +13,4 @@ namespace DirectoryService.Application.Locations;
 ///  Это обеспечивает более строгие границы между слоями и соответствует принципам CQRS.
 /// </summary>
 /// <param name="LocationRequest"></param>
-public record CreateLocationCommand(CreateLocationRequest LocationRequest);
+public record CreateLocationCommand(CreateLocationRequest LocationRequest) : ICommand;
