@@ -16,13 +16,13 @@ public class CreateLocationHandler(
     ILogger<CreateLocationHandler> logger)
     : ICreateLocationHandler
 {
-    public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
     {
         // Валидация DTO
-        var validationResult = await validator.ValidateAsync(locationRequest, cancellationToken);
+        var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            var errors = new Shared.Errors(validationResult.Errors.Select(failure => 
+            var errors = new Shared.Errors(validationResult.Errors.Select(failure =>
                 Error.Validation(failure.ErrorCode, failure.ErrorMessage, failure.PropertyName)));
             logger.LogInformation("Error when check validation of dto: {Errors}", errors);
             return Errors.Locations.IncorrectDtoValidator(errors);
@@ -31,7 +31,7 @@ public class CreateLocationHandler(
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
 
-        var locationNameResult = Name.Create(locationRequest.Name);
+        var locationNameResult = Name.Create(locationCommand.LocationRequest.Name);
         if (locationNameResult.IsFailure)
         {
             logger.LogInformation("Error when creating location name, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
@@ -44,9 +44,9 @@ public class CreateLocationHandler(
         Name locationName = locationNameResult.Value;
 
         var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
-            locationRequest.Address.Street,
-            locationRequest.Address.City,
-            locationRequest.Address.Country);
+            locationCommand.LocationRequest.Address.Street,
+            locationCommand.LocationRequest.Address.City,
+            locationCommand.LocationRequest.Address.Country);
         if (locationAddressResult.IsFailure)
         {
             logger.LogInformation("Error when creating location address, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
@@ -58,7 +58,7 @@ public class CreateLocationHandler(
 
         var locationAddress = locationAddressResult.Value;
 
-        var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
+        var locationTimezoneResult = Timezone.Create(locationCommand.LocationRequest.Timezone);
         if (locationTimezoneResult.IsFailure)
         {
             logger.LogInformation("Error when creating location timezone, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);

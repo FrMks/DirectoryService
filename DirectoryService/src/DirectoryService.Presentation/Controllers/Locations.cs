@@ -17,7 +17,9 @@ public class Locations : ControllerBase
         [FromBody] CreateLocationRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await handler.Handle(request, cancellationToken);
+        CreateLocationCommand locationCommand = new(request);
+
+        var result = await handler.Handle(locationCommand, cancellationToken);
 
         if (result.IsFailure)
             return result.ConvertFailure<Guid>();
