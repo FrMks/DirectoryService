@@ -1,10 +1,9 @@
-﻿using System.Net.Http.Headers;
-using CSharpFunctionalExtensions;
-using DirectoryService.Application.Locations.Fails.Exceptions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Errors = DirectoryService.Application.Locations.Fails.Errors;
@@ -13,11 +12,22 @@ namespace DirectoryService.Application.Locations;
 
 public class CreateLocationHandler(
     ILocationsRepository locationsRepository,
+    IValidator<CreateLocationRequest> validator,
     ILogger<CreateLocationHandler> logger)
     : ICreateLocationHandler
 {
     public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
     {
+        // Валидация DTO
+        var validationResult = await validator.ValidateAsync(locationRequest, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            var errors = new Shared.Errors(validationResult.Errors.Select(failure => 
+                Error.Validation(failure.ErrorCode, failure.ErrorMessage, failure.PropertyName)));
+            logger.LogInformation("Error when check validation of dto: {Errors}", errors);
+            return Errors.Locations.IncorrectDtoValidator(errors);
+        }
+
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
 
