@@ -11,12 +11,15 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        services
-            .AddScoped<ICreateLocationHandler, CreateLocationHandler>()
-            .AddScoped<ICommandHandler<Guid, CreateLocationCommand>, CreateLocationHandler>()
-            
-            .AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
+        var assembblie = typeof(DependencyInjection).Assembly;
 
+        services.Scan(scan => scan.FromAssemblies(assembblie)
+            .AddClasses(classes => classes
+                .AssignableToAny(typeof(ICommandHandler<,>), typeof(ICommandHandler<>)))
+            .AsSelfWithInterfaces()
+            .WithScopedLifetime());
+
+        services.AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
         return services;
     }
 }
