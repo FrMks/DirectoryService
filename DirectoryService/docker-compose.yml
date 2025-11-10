@@ -11,6 +11,20 @@ services:
       - "5434:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_ADMINUSERNAME: "admin"
+      SEQ_FIRSTRUN_ADMINPASSWORD: "YourStrong!Pass1"
+    ports:
+      - "8081:80"    # UI и API
+      - "5431:5341"  # Ingestion endpoint
+    volumes:
+      - seq-data:/data
 
 volumes:
   postgres-data:
+  seq-data:

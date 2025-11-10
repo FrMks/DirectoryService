@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Application;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Shared;
 
 namespace DirectoryService.Web;
@@ -10,12 +11,16 @@ public static class DependencyInjection
     {
         return services
             .AddWebDependencies()
-            .AddApplication();
+            .AddApplication()
+            .AddSerilog();
     }
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services)
     {
         services.AddControllers();
+        
+        services.AddHttpLogging();
+        
         services.AddOpenApi(options =>
         {
             options.AddSchemaTransformer((schema, context, _) =>
