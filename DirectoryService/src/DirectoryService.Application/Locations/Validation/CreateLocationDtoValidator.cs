@@ -19,16 +19,6 @@ public class CreateLocationDtoValidator : AbstractValidator<CreateLocationReques
                     a.Street,
                     a.City,
                     a.Country));
-        
-        RuleFor(c => c.Address.Street)
-            .Custom((street, context) =>
-            {
-                var address = context.InstanceToValidate.Address;
-                var result = Address.Create(address.Street, address.City, address.Country);
-                
-                if (!result.IsSuccess)
-                    context.AddFailure(result.Error.Message);
-            });
             
         RuleFor(c => c.Timezone)
             .MustBeValueObject(Timezone.Create);
