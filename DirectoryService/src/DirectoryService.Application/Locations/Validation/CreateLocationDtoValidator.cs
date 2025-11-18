@@ -13,6 +13,13 @@ public class CreateLocationDtoValidator : AbstractValidator<CreateLocationReques
         RuleFor(c => c.Name)
             .MustBeValueObject(Name.Create);
 
+        RuleFor(c => c.Address)
+            .MustBeValueObject(a =>
+                Address.Create(
+                    a.Street,
+                    a.City,
+                    a.Country));
+        
         RuleFor(c => c.Address.Street)
             .Custom((street, context) =>
             {
