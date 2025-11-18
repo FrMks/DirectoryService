@@ -19,7 +19,7 @@ public sealed class Location
         Timezone = timezone;
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
-        UpdatedAt = DateTime.UtcNow;;
+        UpdatedAt = DateTime.UtcNow;
         DepartmentLocations = departmentLocations.ToList();
     }
 

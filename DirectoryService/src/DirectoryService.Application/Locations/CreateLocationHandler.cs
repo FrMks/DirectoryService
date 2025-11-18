@@ -34,42 +34,15 @@ public class CreateLocationHandler(
         LocationId locationId = LocationId.NewLocationId();
 
         var locationNameResult = Name.Create(locationCommand.LocationRequest.Name);
-        if (locationNameResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location name, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationNameResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
-            // throw new IncorrectCreationOfAClassNameInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
         Name locationName = locationNameResult.Value;
 
         var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
             locationCommand.LocationRequest.Address.Street,
             locationCommand.LocationRequest.Address.City,
             locationCommand.LocationRequest.Address.Country);
-        if (locationAddressResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location address, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationAddressResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
-            // throw new IncorrectCreationOfAClassAddressInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
         var locationAddress = locationAddressResult.Value;
 
         var locationTimezoneResult = Timezone.Create(locationCommand.LocationRequest.Timezone);
-        if (locationTimezoneResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location timezone, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationTimezoneResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
-            // throw new IncorrectCreationOfAClassTimezoneInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
         Timezone locationTimezone = locationTimezoneResult.Value;
 
         Location location = Location.Create(locationId, locationName,
