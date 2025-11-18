@@ -54,6 +54,9 @@ public class CreateLocationHandler(
         // Сохранение сущность Location в БД
         var successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
+        if (successfulId.IsFailure)
+            return Error.Failure(null, successfulId.Error.Message);
+        
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Location with id {successfulId.Value} add to db.", successfulId.Value);
 
