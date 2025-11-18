@@ -11,7 +11,7 @@ using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
-// TODO: Нужно ли реализовывать два интерфейса?
+// TODO: Нужно ли реализовывать два интерфейса? 
 public class CreateLocationHandler(
     ILocationsRepository locationsRepository,
     IValidator<CreateLocationRequest> validator,
