@@ -174,6 +174,9 @@ namespace DirectoryService.Infrastructure.Postgres.Migrations
                     b.HasKey("Id")
                         .HasName("pk_locations");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
                     b.ToTable("locations", (string)null);
                 });
 
