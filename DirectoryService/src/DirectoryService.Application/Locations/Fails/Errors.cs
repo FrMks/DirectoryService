@@ -36,15 +36,9 @@ public partial class Errors
                 "locations.incorrect.name.instance",
                 $"При создании экземпляра класса Name произошла ошибка");
 
-        public static Error IncorrectDtoValidator(Shared.Errors errors)
+        public static Shared.Errors IncorrectDtoValidator(Shared.Errors errors)
         {
-            var errorMessages = errors.Select(er => er.Message);
-
-            var combinedMessage = string.Join(", ", errorMessages);
-
-            return Error.Validation(
-                "location.incorrect.dto.validator",
-                $"При проверке на валидность CreateLocationRequest (dto) произошла ошибка: {combinedMessage}");
+            return errors;
         }
     }
 }

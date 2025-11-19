@@ -11,14 +11,13 @@ using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
-// TODO: Нужно ли реализовывать два интерфейса? 
 public class CreateLocationHandler(
     ILocationsRepository locationsRepository,
     IValidator<CreateLocationRequest> validator,
     ILogger<CreateLocationHandler> logger)
-    : ICreateLocationHandler, ICommandHandler<Guid, CreateLocationCommand>
+    : ICommandHandler<Guid, CreateLocationCommand>
 {
-    public async Task<Result<Guid, Error>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Shared.Errors>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
     {
         // Валидация DTO
         var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
@@ -55,7 +54,7 @@ public class CreateLocationHandler(
         var successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
         if (successfulId.IsFailure)
-            return Error.Failure(null, successfulId.Error.Message);
+            return Error.Failure(null, successfulId.Error.Message).ToErrors();
         
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Location with id {successfulId.Value} add to db.", successfulId.Value);
