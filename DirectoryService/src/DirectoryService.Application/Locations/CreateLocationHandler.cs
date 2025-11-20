@@ -23,6 +23,11 @@ public class CreateLocationHandler(
         var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
+            foreach (var error in validationResult.ToList())
+            {
+                logger.LogInformation("Error when creating location name, error: {error}", error.Message);
+            }
+
             return validationResult.ToList();
         }
 
