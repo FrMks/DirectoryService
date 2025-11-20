@@ -1,6 +1,7 @@
 ﻿using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Locations;
+using DirectoryService.Application.Departments;
 using DirectoryService.Application.Locations.Validation;
+using DirectoryService.Contracts.Departments;
 using DirectoryService.Contracts.Locations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +21,7 @@ public static class DependencyInjection
             .WithScopedLifetime());
 
         services.AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
+        services.AddTransient<IValidator<CreateDepartmentRequest>, CreateDepartmentDtoValidator>();
         return services;
     }
 }
