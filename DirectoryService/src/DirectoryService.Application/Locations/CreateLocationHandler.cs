@@ -1,63 +1,44 @@
-﻿using System.Net.Http.Headers;
-using CSharpFunctionalExtensions;
-using DirectoryService.Application.Locations.Fails.Exceptions;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Extensions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
-using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
 public class CreateLocationHandler(
     ILocationsRepository locationsRepository,
+    IValidator<CreateLocationRequest> validator,
     ILogger<CreateLocationHandler> logger)
-    : ICreateLocationHandler
+    : ICommandHandler<Guid, CreateLocationCommand>
 {
-    public async Task<Result<Guid, Error>> Handle(CreateLocationRequest locationRequest, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Shared.Errors>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
     {
+        // Валидация DTO
+        var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return validationResult.ToList();
+        }
+
         // Создание сущности Location
         LocationId locationId = LocationId.NewLocationId();
 
-        var locationNameResult = Name.Create(locationRequest.Name);
-        if (locationNameResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location name, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationNameResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassNameInstance(locationNameResult.Error);
-            // throw new IncorrectCreationOfAClassNameInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
+        var locationNameResult = Name.Create(locationCommand.LocationRequest.Name);
         Name locationName = locationNameResult.Value;
 
         var locationAddressResult = Domain.Locations.ValueObjects.Address.Create(
-            locationRequest.Address.Street,
-            locationRequest.Address.City,
-            locationRequest.Address.Country);
-        if (locationAddressResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location address, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationAddressResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassAddressInstance(locationAddressResult.Error);
-            // throw new IncorrectCreationOfAClassAddressInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
+            locationCommand.LocationRequest.Address.Street,
+            locationCommand.LocationRequest.Address.City,
+            locationCommand.LocationRequest.Address.Country);
         var locationAddress = locationAddressResult.Value;
 
-        var locationTimezoneResult = Timezone.Create(locationRequest.Timezone);
-        if (locationTimezoneResult.IsFailure)
-        {
-            logger.LogInformation("Error when creating location timezone, error: {locationNameResult.Error.Message}", locationNameResult.Error.Message);
-            // return locationTimezoneResult.Error;
-            return Errors.Locations.IncorrectCreationOfAClassTimezoneInstance(locationTimezoneResult.Error);
-            // throw new IncorrectCreationOfAClassTimezoneInstanceException();
-            // throw new LocationValidationException([locationNameResult.Error]);
-        }
-
+        var locationTimezoneResult = Timezone.Create(locationCommand.LocationRequest.Timezone);
         Timezone locationTimezone = locationTimezoneResult.Value;
 
         Location location = Location.Create(locationId, locationName,
@@ -69,6 +50,9 @@ public class CreateLocationHandler(
         // Сохранение сущность Location в БД
         var successfulId = await locationsRepository.AddAsync(location, cancellationToken);
 
+        if (successfulId.IsFailure)
+            return Error.Failure(null, successfulId.Error.Message).ToErrors();
+        
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Location with id {successfulId.Value} add to db.", successfulId.Value);
 

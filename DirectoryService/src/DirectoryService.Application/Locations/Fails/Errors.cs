@@ -30,10 +30,15 @@ public partial class Errors
             Error.Validation(
                 "locations.incorrect.name.instance",
                 $"При создании экземпляра класса Name произошла ошибка: {error.Message}");
-        
+
         public static Error IncorrectCreationOfAClassNameInstance() =>
             Error.Validation(
                 "locations.incorrect.name.instance",
                 $"При создании экземпляра класса Name произошла ошибка");
+
+        public static Shared.Errors IncorrectDtoValidator(Shared.Errors errors)
+        {
+            return errors;
+        }
     }
 }

@@ -17,13 +17,14 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(l => l.Id)
             .HasConversion(l => l.Value, locationId => LocationId.FromValue(locationId))
             .HasColumnName("id");
-
-        // TODO: Вопрос: мне кажется, что это потенциально опасная операция, потому что,
-        // если у меня не валидные данные, то мне выкенет Exception
+        
         builder.Property(l => l.Name)
             .HasConversion(l => l.Value, name => Name.Create(name).Value)
             .HasColumnName("name")
             .HasMaxLength(LengthConstants.LENGTH120);
+        
+        builder.HasIndex(nameof(Location.Name))
+            .IsUnique();
 
         // builder.OwnsOne(l => l.Address, addressBuilder =>
         builder.ComplexProperty(l => l.Address, addressBuilder =>

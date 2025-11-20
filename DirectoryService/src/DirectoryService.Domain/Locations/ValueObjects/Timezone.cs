@@ -19,12 +19,12 @@ public partial record Timezone
     public static Result<Timezone, Error> Create(string input)
     {
         if (string.IsNullOrWhiteSpace(input))
-            return Error.Validation(null, "Location input cannot be empty");
+            return Error.Validation(null, "Location timezone input cannot be empty");
         
         string trimmed = input.Trim();
         
         if (!ValidFormatRegex().IsMatch(trimmed))
-            return Error.Validation(null, "Location input is not valid");
+            return Error.Validation(null, "Location timezone input is not valid");
         
         Timezone timezone = new(input);
 
