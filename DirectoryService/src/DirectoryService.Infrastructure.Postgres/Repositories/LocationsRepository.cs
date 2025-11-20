@@ -7,7 +7,8 @@ using Shared;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
-public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<LocationsRepository> logger) : ILocationsRepository
+public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<LocationsRepository> logger)
+    : ILocationsRepository
 {
     public async Task<Result<Guid, Error>> AddAsync(Location location, CancellationToken cancellationToken)
     {
