@@ -40,9 +40,9 @@ public sealed class Department
 
     public Identifier Identifier { get; private set; } = null!;
 
-    // ├── IT отдел (ParentId = null - это корень)
-    //     │   ├── Backend команда (ParentId = ID of "IT отдел")
-    // │   └── Frontend команда (ParentId = ID of "IT отдел")
+    /// <summary>
+    /// Идентификатор родителя. null - корневой отдел, иначе родитель существует и активен.
+    /// </summary>
     public Guid? ParentId { get; private set; }
     
     public Path Path { get; private set; } = null!;
