@@ -7,7 +7,6 @@ namespace DirectoryService.Domain.Department.ValueObject;
 
 public partial record Identifier
 {
-
     private Identifier(string identifier)
     {
         Value = identifier;
@@ -25,10 +24,12 @@ public partial record Identifier
         if (trimmedIdentifier == string.Empty)
             return Error.Validation(null, "Department identifier is required.");
 
-        if (trimmedIdentifier.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH150)
-            return Error.Validation("lenght.is.invalid", "Department identifier is invalid.");
+        string normalizedIdentifier = trimmedIdentifier.Replace(' ', '-');
 
-        if (!LatinLettersOnlyRegex().IsMatch(trimmedIdentifier))
+        if (normalizedIdentifier.Length is < LengthConstants.LENGTH3 or > LengthConstants.LENGTH150)
+            return Error.Validation("lenght.is.invalid", "Department identifier cannot contain more than 150 characters and less than 3 characters.");
+
+        if (!LatinLettersAndHyphenRegex().IsMatch(normalizedIdentifier))
             return Error.Validation(null, "Department identifier is invalid.");
 
         Identifier instance = new(identifier);
@@ -36,7 +37,6 @@ public partial record Identifier
         return Result.Success<Identifier, Error>(instance);
     }
 
-    [GeneratedRegex(@"^[a-zA-Z]+$")]
-    private static partial Regex LatinLettersOnlyRegex();
-
+    [GeneratedRegex(@"^[a-zA-Z\-]+$")]
+    private static partial Regex LatinLettersAndHyphenRegex();
 }
