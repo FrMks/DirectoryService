@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Extensions;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
@@ -7,7 +8,6 @@ using DirectoryService.Domain.Locations.ValueObjects;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
-using Errors = DirectoryService.Application.Locations.Fails.Errors;
 
 namespace DirectoryService.Application.Locations;
 
@@ -23,10 +23,7 @@ public class CreateLocationHandler(
         var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            var errors = new Shared.Errors(validationResult.Errors.Select(failure =>
-                Error.Validation(failure.ErrorCode, failure.ErrorMessage, failure.PropertyName)));
-            logger.LogInformation("Error when check validation of dto: {Errors}", errors);
-            return Errors.Locations.IncorrectDtoValidator(errors);
+            return validationResult.ToList();
         }
 
         // Создание сущности Location

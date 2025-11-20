@@ -17,7 +17,13 @@ public static class CustomValidators
             if (result.IsSuccess)
                 return;
 
-            context.AddFailure(result.Error.Message);
+            context.AddFailure(result.Error.Serialize());
         });
+    }
+
+    public static IRuleBuilderOptions<T, TProperty> WithError<T, TProperty>(
+        this IRuleBuilderOptions<T, TProperty> rule, Error error)
+    {
+        return rule.WithMessage(error.Serialize());
     }
 }

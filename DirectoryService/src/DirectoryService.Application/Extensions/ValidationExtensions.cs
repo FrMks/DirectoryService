@@ -5,10 +5,15 @@ namespace DirectoryService.Application.Extensions;
 
 public static class ValidationExtensions
 {
-    public static Error[] ToErrors(this ValidationResult validationResult) =>
-        validationResult.Errors.Select(e => Error.Validation(
-            e.ErrorCode,
-            e.ErrorMessage,
-            e.PropertyName))
-            .ToArray();
+    public static Errors ToList(this ValidationResult validationResult)
+    {
+        var validationErrors = validationResult.Errors;
+        
+        var errors = from validationError in validationErrors
+            let errorMessage = validationError.ErrorMessage
+            let error = Error.Deserialize(errorMessage)
+            select Error.Validation(error.Code, error.Message, validationError.PropertyName);
+
+        return errors.ToList();
+    }
 }
