@@ -25,7 +25,7 @@ public class CreateLocationHandler(
         {
             foreach (var error in validationResult.ToList())
             {
-                logger.LogInformation("Error when creating location name, error: {error}", error.Message);
+                logger.LogInformation("Error when creating location, error: {error}", error.Message);
             }
 
             return validationResult.ToList();
