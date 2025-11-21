@@ -47,12 +47,23 @@ public class CreateDepartmentHandler(
         Path departmentPath;
         Depth departmentDepth;
         Department? parentDepartment = null;
+        // ParentId пустой, следовательно, будем создавать родительский Department.
         if (departmentParentIdResult == null)
         {
+            // Создаем родительский путь
             departmentPath = Path.CreateParent(departmentIdentifier);
+
+            // Устанавливаем Depth в 0, так как является корнем.
             var departmentDepthResult = Depth.Create(0);
+            if (departmentDepthResult.IsFailure)
+            {
+                logger.LogInformation("{parentDepartmentResult.Error}", departmentDepthResult.Error);
+                return departmentDepthResult.Error.ToErrors();
+            }
+
             departmentDepth = departmentDepthResult.Value;
         }
+        // Создаем дочерний Department.
         else
         {
             var parentDepartmentResult = await departmentsRepository
