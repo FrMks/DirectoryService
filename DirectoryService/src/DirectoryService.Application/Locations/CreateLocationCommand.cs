@@ -10,7 +10,7 @@ namespace DirectoryService.Application.Locations;
 /// <summary>
 /// Введен CreateLocationCommand в слое Application
 /// для удаления прямой зависимости от CreateLocationRequest из проекта Contracts.
-///  Это обеспечивает более строгие границы между слоями и соответствует принципам CQRS.
+/// Это обеспечивает более строгие границы между слоями и соответствует принципам CQRS.
 /// </summary>
 /// <param name="LocationRequest"></param>
 public record CreateLocationCommand(CreateLocationRequest LocationRequest) : ICommand;

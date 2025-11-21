@@ -1,3 +1,4 @@
+using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations;
 using DirectoryService.Infrastructure.Postgres;
 using DirectoryService.Infrastructure.Postgres.Repositories;
@@ -24,6 +25,7 @@ builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
     new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
 
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
+builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 
 var app = builder.Build();
 
