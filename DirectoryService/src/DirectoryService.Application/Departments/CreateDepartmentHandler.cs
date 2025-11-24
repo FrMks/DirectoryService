@@ -2,19 +2,24 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
+using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.Locations.ValueObjects;
+using DirectoryService.Domain.ValueObjects;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Name = DirectoryService.Domain.Department.ValueObject.Name;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Application.Departments;
 
 public class CreateDepartmentHandler(
     IDepartmentsRepository departmentsRepository,
+    ILocationsRepository locationsRepository,
     IValidator<CreateDepartmentRequest> validator,
     ILogger<CreateDepartmentHandler> logger)
     : ICommandHandler<Guid, CreateDepartmentCommand>
@@ -40,6 +45,8 @@ public class CreateDepartmentHandler(
         Name departmentName = departmentNameResult.Value;
         
         var departmentIdentifierResult = Identifier.Create(departmentCommand.DepartmentRequest.Identifier);
+        
+        // TODO: проверить, что Identifier уникальный (внутри таблицы department)
         var departmentIdentifier = departmentIdentifierResult.Value;
 
         var departmentParentIdResult = departmentCommand.DepartmentRequest.ParentId;
@@ -90,12 +97,29 @@ public class CreateDepartmentHandler(
             departmentDepth = depthResult.Value;
         }
 
+        var isAllLocationsExist = await locationsRepository.AllExistAsync(
+            departmentCommand.DepartmentRequest.LocationsIds,
+            cancellationToken);
+        if (isAllLocationsExist.IsFailure)
+        {
+            logger.LogInformation("{isAllLocationsExist.Error}", isAllLocationsExist.Error.Message);
+            return isAllLocationsExist.Error.ToErrors();
+        }
+        
+        // Создание department location
+        var departmentLocations =
+            departmentCommand.DepartmentRequest.LocationsIds.Select(li => DepartmentLocation.Create(
+                DepartmentLocationId.FromValue(Guid.NewGuid()),
+                departmentId,
+                LocationId.FromValue(li)).Value);
+        
+        // TODO: как мне правильно проинициализировать свойство departmentPositions?
         var department = Department.Create(
             departmentId,
             departmentName,
             departmentIdentifier,
             departmentPath,
-            new List<DepartmentLocation>(),
+            departmentLocations,
             new List<DepartmentPosition>(),
             departmentDepth,
             departmentParentIdResult.Value).Value;
