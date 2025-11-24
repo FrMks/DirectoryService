@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Extensions;
+using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;

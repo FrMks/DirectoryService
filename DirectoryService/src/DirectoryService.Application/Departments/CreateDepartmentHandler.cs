@@ -3,6 +3,7 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations;
+using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
