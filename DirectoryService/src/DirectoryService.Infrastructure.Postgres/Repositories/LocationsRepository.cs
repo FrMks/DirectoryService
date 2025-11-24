@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -39,5 +40,18 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         }
         
         return Result.Success<Guid, Error>(location.Id.Value);
+    }
+    
+    public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
+    {
+        foreach (var locationId in locationIds)
+        {
+            var location = await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == LocationId.FromValue(locationId), cancellationToken);
+
+            if (location is null)
+                return Error.NotFound("location.not.found", $"Location with id: {locationId} not found.", locationId);
+        }
+        
+        return true;
     }
 }
