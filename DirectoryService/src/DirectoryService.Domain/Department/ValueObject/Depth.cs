@@ -14,10 +14,7 @@ public record Depth
 
     public static Result<Depth, Error> Create(short depth)
     {
-        if (depth == 0)
-            return Error.Failure(null, "Department depth is invalid.");
-        
-        if (depth <= 0 || depth >= 10)
+        if (depth < 0 || depth >= 10)
         {
             return Error.Failure(
                 "lenght.is.invalid",

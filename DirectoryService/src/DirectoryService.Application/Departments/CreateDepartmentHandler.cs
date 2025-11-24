@@ -130,7 +130,7 @@ public class CreateDepartmentHandler(
             departmentLocations,
             new List<DepartmentPosition>(),
             depth,
-            parentIdResult.Value).Value;
+            parentIdResult).Value;
         
         logger.LogInformation("Creating department with id {id}", department.Id.Value);
         

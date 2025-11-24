@@ -44,7 +44,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         var haveDepartmentInDatabaseWithSameIdentifier = await dbContext.Departments
             .AnyAsync(d => d.Identifier == identifier, cancellationToken);
         
-        if (!haveDepartmentInDatabaseWithSameIdentifier)
+        if (haveDepartmentInDatabaseWithSameIdentifier)
         {
             return Error.Failure(
                 "identifier.have.in.database",

@@ -30,7 +30,11 @@ public partial record Identifier
             return Error.Validation("lenght.is.invalid", "Department identifier cannot contain more than 150 characters and less than 3 characters.");
 
         if (!LatinLettersAndHyphenRegex().IsMatch(normalizedIdentifier))
-            return Error.Validation(null, "Department identifier is invalid.");
+        {
+            return Error.Validation(
+                null,
+                "Department identifier is invalid should contain only latin characters and hyphens.");   
+        }
 
         Identifier instance = new(identifier);
 
