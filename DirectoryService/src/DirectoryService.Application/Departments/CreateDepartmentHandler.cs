@@ -24,10 +24,12 @@ public class CreateDepartmentHandler(
     ILogger<CreateDepartmentHandler> logger)
     : ICommandHandler<Guid, CreateDepartmentCommand>
 {
-    public async Task<Result<Guid, Errors>> Handle(CreateDepartmentCommand departmentCommand, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Errors>> Handle(
+        CreateDepartmentCommand command,
+        CancellationToken cancellationToken)
     {
         // Валидация DTO
-        var validationResult = await validator.ValidateAsync(departmentCommand.DepartmentRequest, cancellationToken);
+        var validationResult = await validator.ValidateAsync(command.DepartmentRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
             foreach (var error in validationResult.ToList())
@@ -41,60 +43,57 @@ public class CreateDepartmentHandler(
         // Создание сущности Department
         DepartmentId departmentId = DepartmentId.NewDepartmentId();
         
-        var departmentNameResult = Name.Create(departmentCommand.DepartmentRequest.Name);
-        Name departmentName = departmentNameResult.Value;
+        var nameResult = Name.Create(command.DepartmentRequest.Name);
+        Name departmentName = nameResult.Value;
         
-        var departmentIdentifierResult = Identifier.Create(departmentCommand.DepartmentRequest.Identifier);
-        
+        var identifierResult = Identifier.Create(command.DepartmentRequest.Identifier);
         // Проверяем, что identifier уникальный.
-        var isIdentifierIsUniqueAsync = await departmentsRepository
-            .IsIdentifierIsUniqueAsync(departmentIdentifierResult.Value, cancellationToken);
-        if (isIdentifierIsUniqueAsync.IsFailure)
+        var isUnique = await departmentsRepository
+            .IsIdentifierIsUniqueAsync(identifierResult.Value, cancellationToken);
+        if (isUnique.IsFailure)
         {
-            return Error.Failure(
-                    isIdentifierIsUniqueAsync.Error.Code,
-                    isIdentifierIsUniqueAsync.Error.Message).ToErrors();
+            logger.LogInformation("{isIdentifierIsUniqueAsync.Error.Message}", isUnique.Error.Message);
+            return isUnique.Error.ToErrors();
         }
-        
-        var departmentIdentifier = departmentIdentifierResult.Value;
 
-        var departmentParentIdResult = departmentCommand.DepartmentRequest.ParentId;
+        var identifier = identifierResult.Value;
 
-        Path departmentPath;
-        Depth departmentDepth;
-        Department? parentDepartment = null;
+        var parentIdResult = command.DepartmentRequest.ParentId;
+
+        Path path;
+        Depth depth;
+        Department? parent = null;
         // ParentId пустой, следовательно, будем создавать родительский Department.
-        if (departmentParentIdResult == null)
+        if (parentIdResult == null)
         {
             // Создаем родительский путь
-            departmentPath = Path.CreateParent(departmentIdentifier);
+            path = Path.CreateParent(identifier);
 
             // Устанавливаем Depth в 0, так как является корнем.
-            var departmentDepthResult = Depth.Create(0);
-            if (departmentDepthResult.IsFailure)
+            var depthResult = Depth.Create(0);
+            if (depthResult.IsFailure)
             {
-                logger.LogInformation("{parentDepartmentResult.Error}", departmentDepthResult.Error);
-                return departmentDepthResult.Error.ToErrors();
+                logger.LogInformation("{parentDepartmentResult.Error}", depthResult.Error);
+                return depthResult.Error.ToErrors();
             }
 
-            departmentDepth = departmentDepthResult.Value;
+            depth = depthResult.Value;
         }
-        // Создаем дочерний Department.
-        else
+        else // Создаем дочерний Department.
         {
-            var parentDepartmentResult = await departmentsRepository
-                .GetByIdAsync(DepartmentId.FromValue(departmentParentIdResult.Value), cancellationToken);
+            var parentResult = await departmentsRepository
+                .GetByIdAsync(DepartmentId.FromValue(parentIdResult.Value), cancellationToken);
 
-            if (parentDepartmentResult.IsFailure)
+            if (parentResult.IsFailure)
             {
-                logger.LogInformation("{parentDepartmentResult.Error}", parentDepartmentResult.Error);
-                return parentDepartmentResult.Error;
+                logger.LogInformation("{parentDepartmentResult.Error}", parentResult.Error);
+                return parentResult.Error;
             }
             
-            parentDepartment = parentDepartmentResult.Value;
+            parent = parentResult.Value;
 
-            departmentPath = parentDepartment.Path.CreateChild(departmentIdentifier);
-            short depthCount = (short)(parentDepartment.Depth.Value + 1);
+            path = parent.Path.CreateChild(identifier);
+            short depthCount = (short)(parent.Depth.Value + 1);
             var depthResult = Depth.Create(depthCount);
 
             if (depthResult.IsFailure)
@@ -103,11 +102,11 @@ public class CreateDepartmentHandler(
                 return depthResult.Error.ToErrors();
             }
             
-            departmentDepth = depthResult.Value;
+            depth = depthResult.Value;
         }
 
         var isAllLocationsExist = await locationsRepository.AllExistAsync(
-            departmentCommand.DepartmentRequest.LocationsIds,
+            command.DepartmentRequest.LocationsIds,
             cancellationToken);
         if (isAllLocationsExist.IsFailure)
         {
@@ -117,7 +116,7 @@ public class CreateDepartmentHandler(
         
         // Создание department location
         var departmentLocations =
-            departmentCommand.DepartmentRequest.LocationsIds.Select(li => DepartmentLocation.Create(
+            command.DepartmentRequest.LocationsIds.Select(li => DepartmentLocation.Create(
                 DepartmentLocationId.FromValue(Guid.NewGuid()),
                 departmentId,
                 LocationId.FromValue(li)).Value);
@@ -126,12 +125,12 @@ public class CreateDepartmentHandler(
         var department = Department.Create(
             departmentId,
             departmentName,
-            departmentIdentifier,
-            departmentPath,
+            identifier,
+            path,
             departmentLocations,
             new List<DepartmentPosition>(),
-            departmentDepth,
-            departmentParentIdResult.Value).Value;
+            depth,
+            parentIdResult.Value).Value;
         
         logger.LogInformation("Creating department with id {id}", department.Id.Value);
         
