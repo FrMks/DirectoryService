@@ -46,7 +46,16 @@ public class CreateDepartmentHandler(
         
         var departmentIdentifierResult = Identifier.Create(departmentCommand.DepartmentRequest.Identifier);
         
-        // TODO: проверить, что Identifier уникальный (внутри таблицы department)
+        // Проверяем, что identifier уникальный.
+        var isIdentifierIsUniqueAsync = await departmentsRepository
+            .IsIdentifierIsUniqueAsync(departmentIdentifierResult.Value, cancellationToken);
+        if (isIdentifierIsUniqueAsync.IsFailure)
+        {
+            return Error.Failure(
+                    isIdentifierIsUniqueAsync.Error.Code,
+                    isIdentifierIsUniqueAsync.Error.Message).ToErrors();
+        }
+        
         var departmentIdentifier = departmentIdentifierResult.Value;
 
         var departmentParentIdResult = departmentCommand.DepartmentRequest.ParentId;

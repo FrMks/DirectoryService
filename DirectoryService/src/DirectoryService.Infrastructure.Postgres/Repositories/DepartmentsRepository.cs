@@ -36,4 +36,21 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         return department;
     }
+
+    public async Task<Result<bool, Error>> IsIdentifierIsUniqueAsync(
+        Identifier identifier,
+        CancellationToken cancellationToken)
+    {
+        var haveDepartmentInDatabaseWithSameIdentifier = await dbContext.Departments
+            .AnyAsync(d => d.Identifier == identifier, cancellationToken);
+        
+        if (!haveDepartmentInDatabaseWithSameIdentifier)
+        {
+            return Error.Failure(
+                "identifier.have.in.database",
+                $"Department with {identifier.Value} have in database");
+        }
+
+        return true;
+    }
 }
