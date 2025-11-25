@@ -137,9 +137,9 @@ public class CreateDepartmentHandler(
         
         // Сохранение сущность Department в БД
         var successfulId = await departmentsRepository.AddAsync(department, cancellationToken);
-        
+
         if (successfulId.IsFailure)
-            return Error.Failure(null, successfulId.Error.Message).ToErrors();
+            return successfulId.Error.ToErrors();
         
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Department with id {successfulId.Value} add to db.", successfulId.Value);

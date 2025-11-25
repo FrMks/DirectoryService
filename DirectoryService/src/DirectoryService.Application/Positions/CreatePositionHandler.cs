@@ -4,10 +4,15 @@ using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Contracts.Positions;
+using DirectoryService.Domain;
+using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.DepartmentPositions.ValueObjects;
+using DirectoryService.Domain.Positions;
 using DirectoryService.Domain.Positions.ValueObject;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Name = DirectoryService.Domain.Positions.ValueObject.Name;
 
 namespace DirectoryService.Application.Positions;
 
@@ -53,5 +58,29 @@ public class CreatePositionHandler(
             logger.LogInformation("{isAllDepartmentsExistAndActive}", isAllDepartmentsExistAndActive.Error.Message);
             return isAllDepartmentsExistAndActive.Error.ToErrors();
         }
+
+        var departmentPositions =
+            command.PositionRequest.DepartmentIds.Select(di => DepartmentPosition.Create(
+                DepartmentPositionId.FromValue(Guid.NewGuid()),
+                DepartmentId.FromValue(di),
+                positionId).Value);
+
+        var position = Position.Create(
+            positionId,
+            name,
+            description,
+            departmentPositions).Value;
+        logger.LogInformation("Creating position with id {id}", position.Id.Value);
+        
+        // Сохранение сущности Position в БД
+        var successfulId = await positionsRepository.AddAsync(position, cancellationToken);
+
+        if (successfulId.IsFailure)
+            return successfulId.Error.ToErrors();
+        
+        // Логирование об успешном или неуспешном сохранении
+        logger.LogInformation("Position with id {successfulId.Value} add to db.", successfulId.Value);
+        
+        return successfulId.Value;
     }
 }

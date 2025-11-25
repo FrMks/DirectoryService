@@ -6,9 +6,9 @@ using Shared;
 
 namespace DirectoryService.Application.Positions.Validation;
 
-public class CreatePositionDtoValidation : AbstractValidator<CreatePositionRequest>
+public class CreatePositionDtoValidator : AbstractValidator<CreatePositionRequest>
 {
-    public CreatePositionDtoValidation()
+    public CreatePositionDtoValidator()
     {
         RuleFor(p => p.Name)
             .MustBeValueObject(Name.Create);

@@ -32,11 +32,13 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
 
             await dbContext.SaveChangesAsync(cancellationToken); // Применяем изменения
             
-            logger.LogInformation("Successfully added to the database with {location}", location.Id.Value);
+            logger.LogInformation("Successfully added to the database with id{location}", location.Id.Value);
         }
         catch (Exception e)
         {
-            return Error.Failure(null, "Database error occurred.");
+            return Error.Failure(
+                null,
+                "Database error occurred when added location to a database.");
         }
         
         return Result.Success<Guid, Error>(location.Id.Value);
