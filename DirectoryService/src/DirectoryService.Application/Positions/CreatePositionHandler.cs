@@ -35,7 +35,6 @@ public class CreatePositionHandler(
         // Создание сущности Position
         PositionId positionId = PositionId.NewPositionId();
         
-        // TODO: Name не должен совпадать с активной должностью
         var nameResult = Name.Create(command.PositionRequest.Name);
         Name name = nameResult.Value;
         var isNameExistAndNotActive = await positionsRepository.IsNameExistAndNotActive(name, cancellationToken);
