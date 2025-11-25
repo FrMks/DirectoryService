@@ -18,4 +18,12 @@ public interface IDepartmentsRepository
     /// <returns>True - does not have a department with that identifier in a database.
     /// Error - have in a database.</returns>
     Task<Result<bool, Error>> IsIdentifierIsUniqueAsync(Identifier identifier, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Check that all elements in List<Guid> have in a database and they are active.
+    /// </summary>
+    /// <param name="departmentIds">Guid for a searching element id database.</param>
+    /// <param name="cancellationToken">Token to cancel.</param>
+    /// <returns>Erorr - does not have in database or not active. True - have in database and active.</returns>
+    Task<Result<bool, Error>> AllExistAndActiveAsync(List<Guid> departmentIds, CancellationToken cancellationToken);
 }

@@ -29,6 +29,8 @@ public class CreateDepartmentDtoValidator : AbstractValidator<CreateDepartmentRe
                 "Список идентификаторов локации не должен быть пустым."));
 
         RuleFor(d => d.LocationsIds)
+            .NotNull()
+            .NotEmpty()
             .Must(ids => ids.Distinct().Count() == ids.Count)
             .WithError(Error.Validation(
                 null,
