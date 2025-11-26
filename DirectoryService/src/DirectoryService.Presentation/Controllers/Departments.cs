@@ -25,4 +25,13 @@ public class Departments : ControllerBase
         
         return result;
     }
+
+    [HttpPatch]
+    public async Task<EndpointResult<Guid>> UpdateDepartmentLocations(
+        [FromServices] ICommandHandler<Guid, UpdateDepartmentLocationsCommand> handler,
+        [FromBody] UpdateDepartmentLocationsRequest request,
+        CancellationToken cancellationToken)
+    {
+        
+    }
 }

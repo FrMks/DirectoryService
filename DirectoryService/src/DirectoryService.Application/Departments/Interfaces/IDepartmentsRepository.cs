@@ -1,6 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.Locations.ValueObjects;
+using DirectoryService.Domain.ValueObjects;
 using Shared;
 
 namespace DirectoryService.Application.Departments.Interfaces;
@@ -26,4 +28,17 @@ public interface IDepartmentsRepository
     /// <param name="cancellationToken">Token to cancel.</param>
     /// <returns>Erorr - does not have in database or not active. True - have in database and active.</returns>
     Task<Result<bool, Error>> AllExistAndActiveAsync(List<Guid> departmentIds, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Update list of location in department.
+    /// </summary>
+    /// <param name="departmentId">Identification for search department for updating.</param>
+    /// <param name="locationIds">List locations that should be in the department.</param>
+    /// <param name="cancellationToken">Token to cancel.</param>
+    /// <returns></returns>
+    Task<Result<Guid, Error>> UpdateLocationsAsync(
+        DepartmentId departmentId,
+        List<LocationId> locationIds,
+        DepartmentLocationId departmentLocationId,
+        CancellationToken cancellationToken);
 }
