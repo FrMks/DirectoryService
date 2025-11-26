@@ -4,7 +4,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using FluentValidation;
 using Shared;
 
-namespace DirectoryService.Application.Departments;
+namespace DirectoryService.Application.Departments.Validation;
 
 public class CreateDepartmentDtoValidator : AbstractValidator<CreateDepartmentRequest>
 {

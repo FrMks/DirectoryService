@@ -1,5 +1,6 @@
 ﻿using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
+using DirectoryService.Application.Departments.Validation;
 using DirectoryService.Application.Locations.Validation;
 using DirectoryService.Application.Positions.Validation;
 using DirectoryService.Contracts.Departments;
