@@ -47,7 +47,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
     public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
     {
         var locations = await dbContext.Locations
-            .Where(l => locationIds.Contains(l.Id.Value))
+            .Where(l => locationIds.Contains(l.Id))
             .ToListAsync(cancellationToken);
 
         if (locations.Count != locationIds.Count)

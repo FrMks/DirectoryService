@@ -58,7 +58,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         CancellationToken cancellationToken)
     {
         var departments = await dbContext.Departments
-            .Where(d => departmentIds.Contains(d.Id.Value))
+            .Where(d => departmentIds.Contains(d.Id))
             .ToListAsync(cancellationToken);
 
         if (departments.Count != departmentIds.Count)
