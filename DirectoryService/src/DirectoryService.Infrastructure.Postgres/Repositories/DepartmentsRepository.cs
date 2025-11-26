@@ -64,8 +64,8 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         if (departments.Count != departmentIds.Count)
         {
             return Error.Failure(
-                "department.not.found",
-                $"Department ids does not contains id from database");
+                "department.not.failure",
+                $"Some department id does not have in database");
         }
         
         var departmentsNotActive = departments

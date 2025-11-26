@@ -46,12 +46,15 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
     
     public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
     {
-        foreach (var locationId in locationIds)
-        {
-            var location = await dbContext.Locations.FirstOrDefaultAsync(l => l.Id == LocationId.FromValue(locationId), cancellationToken);
+        var locations = await dbContext.Locations
+            .Where(l => locationIds.Contains(l.Id.Value))
+            .ToListAsync(cancellationToken);
 
-            if (location is null)
-                return Error.NotFound("location.not.found", $"Location with id: {locationId} not found.", locationId);
+        if (locations.Count != locationIds.Count)
+        {
+            return Error.Failure(
+                "location.not.found",
+                $"Some location id does not have in database");
         }
         
         return true;
