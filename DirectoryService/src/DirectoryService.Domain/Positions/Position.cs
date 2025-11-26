@@ -34,7 +34,7 @@ public sealed class Position
 
     #endregion
 
-    public Result<Position> Create(PositionId id, Name name, Description description,
+    public static Result<Position> Create(PositionId id, Name name, Description description,
         IEnumerable<DepartmentPosition> departmentPositions)
     {
         Position position = new(id, name, description,

@@ -6,7 +6,7 @@ namespace DirectoryService.Domain.Department.ValueObject;
 
 public partial record Path
 {
-    private const char SEPARATOR = '/';
+    private const char SEPARATOR = '.';
     
     public string Value { get; }
     
@@ -22,7 +22,10 @@ public partial record Path
 
     public Path CreateChild(Identifier childIdentifier)
     {
-        return new Path(Value + SEPARATOR + childIdentifier.Value);
+        string identifier = childIdentifier.Value;
+        string trimmedIdentifier = identifier.Trim();
+        string replacedTrimmedIdentifier = trimmedIdentifier.Replace(' ', '-');
+        return new Path(Value + SEPARATOR + replacedTrimmedIdentifier);
     }
     
     public static Result<Path, Error> Create(string value)

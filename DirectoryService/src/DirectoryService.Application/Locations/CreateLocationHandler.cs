@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Extensions;
+using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
@@ -17,12 +18,17 @@ public class CreateLocationHandler(
     ILogger<CreateLocationHandler> logger)
     : ICommandHandler<Guid, CreateLocationCommand>
 {
-    public async Task<Result<Guid, Shared.Errors>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Errors>> Handle(CreateLocationCommand locationCommand, CancellationToken cancellationToken)
     {
         // Валидация DTO
         var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
+            foreach (var error in validationResult.ToList())
+            {
+                logger.LogInformation("Error when creating location, error: {error}", error.Message);
+            }
+
             return validationResult.ToList();
         }
 

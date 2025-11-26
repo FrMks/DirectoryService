@@ -1,13 +1,15 @@
 ﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Locations;
+using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
-public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<LocationsRepository> logger) : ILocationsRepository
+public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<LocationsRepository> logger)
+    : ILocationsRepository
 {
     public async Task<Result<Guid, Error>> AddAsync(Location location, CancellationToken cancellationToken)
     {
@@ -30,13 +32,31 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
 
             await dbContext.SaveChangesAsync(cancellationToken); // Применяем изменения
             
-            logger.LogInformation("Successfully added to the database with {location}", location.Id.Value);
+            logger.LogInformation("Successfully added to the database with id{location}", location.Id.Value);
         }
         catch (Exception e)
         {
-            return Error.Failure(null, "Database error occurred.");
+            return Error.Failure(
+                null,
+                "Database error occurred when added location to a database.");
         }
         
         return Result.Success<Guid, Error>(location.Id.Value);
+    }
+    
+    public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
+    {
+        var locations = await dbContext.Locations
+            .Where(l => locationIds.Contains(l.Id))
+            .ToListAsync(cancellationToken);
+
+        if (locations.Count != locationIds.Count)
+        {
+            return Error.Failure(
+                "location.not.found",
+                $"Some location id does not have in database");
+        }
+        
+        return true;
     }
 }
