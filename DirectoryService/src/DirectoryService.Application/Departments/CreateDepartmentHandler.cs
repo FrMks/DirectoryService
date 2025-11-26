@@ -122,14 +122,12 @@ public class CreateDepartmentHandler(
                 departmentId,
                 LocationId.FromValue(li)).Value);
         
-        // TODO: как мне правильно проинициализировать свойство departmentPositions?
         var department = Department.Create(
             departmentId,
             departmentName,
             identifier,
             path,
             departmentLocations,
-            new List<DepartmentPosition>(),
             depth,
             parentIdResult).Value;
         

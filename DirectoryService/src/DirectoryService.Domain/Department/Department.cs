@@ -16,7 +16,6 @@ public sealed class Department
         Identifier identifier,
         Path path,
         IEnumerable<DepartmentLocation> departmentLocations,
-        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Id = id;
@@ -27,7 +26,6 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
         Path = path;
         DepartmentLocations = departmentLocations.ToList();
-        DepartmentPositions = departmentPositions.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -67,10 +65,9 @@ public sealed class Department
         Identifier identifier,
         Path path,
         IEnumerable<DepartmentLocation> departmentLocations,
-        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
-        Department department = new(id, name, identifier, path, departmentLocations, departmentPositions, depth, parentId);
+        Department department = new(id, name, identifier, path, departmentLocations, depth, parentId);
 
         return Result.Success(department);
     }
@@ -99,7 +96,6 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
-            departmentPositions,
             depth,
             parentId
             );
@@ -132,7 +128,6 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
-            departmentPositions,
             depth,
             parentId
         );
