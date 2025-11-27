@@ -7,6 +7,9 @@ namespace DirectoryService.Domain.Department;
 
 public sealed class Department
 {
+    private readonly List<DepartmentLocation> _departmentLocations = [];
+    private readonly List<DepartmentPosition> _departmentPositions = [];
+    
     // EF Core
     private Department() { }
     
@@ -25,7 +28,7 @@ public sealed class Department
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
         Path = path;
-        DepartmentLocations = departmentLocations.ToList();
+        _departmentLocations = departmentLocations.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -53,9 +56,8 @@ public sealed class Department
     
     public DateTime UpdatedAt { get; private set; }
     
-    public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
-
-    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; } = null!;
+    public IReadOnlyList<DepartmentLocation> DepartmentLocations => _departmentLocations;
+    public IReadOnlyList<DepartmentPosition> DepartmentPositions => _departmentPositions;
 
     #endregion
 
@@ -70,6 +72,25 @@ public sealed class Department
         Department department = new(id, name, identifier, path, departmentLocations, depth, parentId);
 
         return Result.Success(department);
+    }
+
+    public UnitResult<Error> UpdateDepartmentLocations(IEnumerable<DepartmentLocation> departmentLocations)
+    {
+        var listOfDepartmentLocations = departmentLocations.ToList();
+        
+        if (listOfDepartmentLocations.Count == 0)
+        {
+            return Error.Validation(
+                "department.location",
+                "Department locations must contain at least one location");
+        }
+        
+        _departmentLocations.Clear();
+        _departmentLocations.AddRange(listOfDepartmentLocations);
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+
     }
 
     public static Result<Department, Error> CreateParent(
