@@ -9,7 +9,6 @@ using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -20,9 +19,9 @@ public class UpdateDepartmentLocationsHandler(
     ILocationsRepository locationsRepository,
     IValidator<UpdateDepartmentLocationsRequest> validator,
     ILogger<CreateDepartmentHandler> logger)
-    : ICommandHandler<Guid, UpdateDepartmentLocationsCommand>
+    : ICommandHandler<UpdateDepartmentLocationsCommand>
 {
-    public async Task<Result<Guid, Errors>> Handle(
+    public async Task<UnitResult<Errors>> Handle(
         UpdateDepartmentLocationsCommand command,
         CancellationToken cancellationToken)
     {
@@ -38,6 +37,7 @@ public class UpdateDepartmentLocationsHandler(
             return validationResult.ToList();
         }
 
+        // Получаем Department из БД по Id
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
         var departmentResult = await departmentsRepository.GetByIdAsync(departmentId, cancellationToken);
         if (departmentResult.IsFailure)
@@ -48,6 +48,7 @@ public class UpdateDepartmentLocationsHandler(
         
         var department = departmentResult.Value;
         
+        // Все Location существуют внутри БД
         var isAllLocationsExist = await locationsRepository.AllExistAsync(
             command.DepartmentLocationsRequest.LocationsIds, cancellationToken);
         if (isAllLocationsExist.IsFailure)
@@ -58,6 +59,7 @@ public class UpdateDepartmentLocationsHandler(
             return isAllLocationsExist.Error.ToErrors();
         }
 
+        // Создаем новый departmentLocations
         var departmentLocations =
             command.DepartmentLocationsRequest.LocationsIds.Select(
                 id => DepartmentLocation.Create(
@@ -65,6 +67,7 @@ public class UpdateDepartmentLocationsHandler(
                     departmentId,
                     LocationId.FromValue(id)).Value);
         
+        // Обновляем БД
         var updateResult = department.UpdateDepartmentLocations(departmentLocations);
         if (updateResult.IsFailure)
         {

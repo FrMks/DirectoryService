@@ -85,25 +85,17 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         return true;
     }
 
-    public Task<Result<Guid, Error>> UpdateLocationsAsync(DepartmentLocationId departmentLocationId, Guid departmentId, List<Guid> locationIds,
-        CancellationToken cancellationToken) =>
-        throw new NotImplementedException();
-
-    public async Task<Result<Guid, Error>> UpdateLocationsAsync(
-        DepartmentId departmentId,
-        List<LocationId> locationIds,
-        DepartmentLocationId departmentLocationId,
-        CancellationToken cancellationToken)
+    public async Task<UnitResult<Errors>> SaveChanges(CancellationToken cancellationToken)
     {
-        // await dbContext.Departments
-        //     .Where(d => d.Id == departmentId)
-        //     .ExecuteUpdateAsync(
-        //         setter =>
-        //             setter.SetProperty(
-        //                 d => d.DepartmentLocations,
-        //                 DepartmentLocation.Create(departmentLocationId, departmentId, locationIds[0]).Value),
-        //         cancellationToken: cancellationToken);
-
-        return departmentId.Value;
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Result.Success<Errors>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error saving changes");
+            return UnitResult.Failure<Errors>(Error.Failure(null, "Database error occurred."));
+        }
     }
 }
