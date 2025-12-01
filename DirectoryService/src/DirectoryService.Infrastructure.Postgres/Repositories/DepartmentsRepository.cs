@@ -85,17 +85,17 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         return true;
     }
 
-    public async Task<UnitResult<Errors>> SaveChanges(CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken)
     {
         try
         {
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Result.Success<Errors>();
+            return Result.Success<Guid, Error>(Guid.NewGuid());
         }
         catch (Exception e)
         {
             logger.LogError(e, "Error saving changes");
-            return UnitResult.Failure<Errors>(Error.Failure(null, "Database error occurred."));
+            return Error.Failure(null, "Database error occurred.");
         }
     }
 }

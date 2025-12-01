@@ -19,9 +19,9 @@ public class UpdateDepartmentLocationsHandler(
     ILocationsRepository locationsRepository,
     IValidator<UpdateDepartmentLocationsRequest> validator,
     ILogger<CreateDepartmentHandler> logger)
-    : ICommandHandler<UpdateDepartmentLocationsCommand>
+    : ICommandHandler<Guid, UpdateDepartmentLocationsCommand>
 {
-    public async Task<UnitResult<Errors>> Handle(
+    public async Task<Result<Guid, Errors>> Handle(
         UpdateDepartmentLocationsCommand command,
         CancellationToken cancellationToken)
     {
@@ -75,6 +75,7 @@ public class UpdateDepartmentLocationsHandler(
             return updateResult.Error.ToErrors();
         }
         
-        return await departmentsRepository.SaveChanges(cancellationToken);
+        await departmentsRepository.SaveChanges(cancellationToken);
+        return Result.Success<Guid, Errors>(departmentId.Value);
     }
 }
