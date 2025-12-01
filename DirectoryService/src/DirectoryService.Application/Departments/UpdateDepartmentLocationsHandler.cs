@@ -39,7 +39,7 @@ public class UpdateDepartmentLocationsHandler(
 
         // Получаем Department из БД по Id
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
-        var departmentResult = await departmentsRepository.GetByIdAsync(departmentId, cancellationToken);
+        var departmentResult = await departmentsRepository.ExistAndActiveAsync(departmentId, cancellationToken);
         if (departmentResult.IsFailure)
         {
             logger.LogInformation("Error when try get by id department, error: {error}", departmentResult.Error);

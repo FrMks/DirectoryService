@@ -1,8 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
-using DirectoryService.Domain.Locations.ValueObjects;
-using DirectoryService.Domain.ValueObjects;
 using Shared;
 
 namespace DirectoryService.Application.Departments.Interfaces;
@@ -28,6 +26,8 @@ public interface IDepartmentsRepository
     /// <param name="cancellationToken">Token to cancel.</param>
     /// <returns>Erorr - does not have in database or not active. True - have in database and active.</returns>
     Task<Result<bool, Error>> AllExistAndActiveAsync(List<Guid> departmentIds, CancellationToken cancellationToken);
+    
+    Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken);
     
     Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken);
 }

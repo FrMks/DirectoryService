@@ -1,10 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
-using DirectoryService.Domain.Locations.ValueObjects;
-using DirectoryService.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -83,6 +80,23 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         }
 
         return true;
+    }
+    
+    public async Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken)
+    {
+        var department = await GetByIdAsync(departmentId, cancellationToken);
+
+        if (department.IsFailure)
+            return department.Error;
+        
+        if (!department.Value.IsActive)
+        {
+            return Error.Failure(
+                "department.is.not.active",
+                $"Department with id: {department.Value.Id} is not active").ToErrors();
+        }
+
+        return department;
     }
 
     public async Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken)
