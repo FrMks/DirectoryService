@@ -90,7 +90,6 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
 
         return UnitResult.Success<Error>();
-
     }
 
     public static Result<Department, Error> CreateParent(
