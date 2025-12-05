@@ -1,8 +1,9 @@
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Infrastructure.Postgres;
+using DirectoryService.Infrastructure.Postgres.Database;
 using DirectoryService.Infrastructure.Postgres.Repositories;
 using DirectoryService.Web;
 using DirectoryService.Web.Middlewares;
@@ -29,6 +30,7 @@ builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionsRepository>();
+builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 var app = builder.Build();
 
