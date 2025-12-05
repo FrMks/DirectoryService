@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
@@ -18,6 +19,7 @@ public class UpdateDepartmentLocationsHandler(
     IDepartmentsRepository departmentsRepository,
     ILocationsRepository locationsRepository,
     IValidator<UpdateDepartmentLocationsRequest> validator,
+    ITransactionManager transactionManager,
     ILogger<CreateDepartmentHandler> logger)
     : ICommandHandler<Guid, UpdateDepartmentLocationsCommand>
 {
@@ -36,12 +38,19 @@ public class UpdateDepartmentLocationsHandler(
 
             return validationResult.ToList();
         }
+        
+        var transactionScopeResult = await transactionManager.BeginTransactionAsTask(cancellationToken);
+        if (transactionScopeResult.IsFailure)
+            return transactionScopeResult.Error.ToErrors();
+
+        using var transactionScope = transactionScopeResult.Value;
 
         // Получаем Department из БД по Id
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
         var departmentResult = await departmentsRepository.ExistAndActiveAsync(departmentId, cancellationToken);
         if (departmentResult.IsFailure)
         {
+            transactionScope.Rollback();
             logger.LogInformation("Error when try get by id department, error: {error}", departmentResult.Error);
             return departmentResult.Error;
         }
@@ -53,6 +62,7 @@ public class UpdateDepartmentLocationsHandler(
             command.DepartmentLocationsRequest.LocationsIds, cancellationToken);
         if (isAllLocationsExist.IsFailure)
         {
+            transactionScope.Rollback();
             logger.LogInformation(
                 "Try check existing locations id database, error: {isAllLocationsExist.Error}",
                 isAllLocationsExist.Error.Message);
@@ -75,7 +85,14 @@ public class UpdateDepartmentLocationsHandler(
             return updateResult.Error.ToErrors();
         }
         
-        await departmentsRepository.SaveChanges(cancellationToken);
+        // await departmentsRepository.SaveChanges(cancellationToken);
+        await transactionManager.SaveChangesAsync(cancellationToken);
+        var commitedResult = transactionScope.Commit();
+        if (commitedResult.IsFailure)
+        {
+            return commitedResult.Error.ToErrors();
+        }
+
         return Result.Success<Guid, Errors>(departmentId.Value);
     }
 }
