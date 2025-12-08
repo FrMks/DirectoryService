@@ -27,6 +27,7 @@ public static class DependencyInjection
         
         services.AddTransient<IValidator<CreateDepartmentRequest>, CreateDepartmentDtoValidator>();
         services.AddTransient<IValidator<UpdateDepartmentLocationsRequest>, UpdateDepartmentLocationsDtoValidator>();
+        services.AddTransient<IValidator<UpdateParentLevelRequest>, UpdateParentLevelDtoValidator>();
         
         services.AddTransient<IValidator<CreatePositionRequest>, CreatePositionDtoValidator>();
         return services;
