@@ -81,4 +81,35 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         return true;
     }
+    
+    public async Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken)
+    {
+        var department = await GetByIdAsync(departmentId, cancellationToken);
+
+        if (department.IsFailure)
+            return department.Error;
+        
+        if (!department.Value.IsActive)
+        {
+            return Error.Failure(
+                "department.is.not.active",
+                $"Department with id: {department.Value.Id} is not active").ToErrors();
+        }
+
+        return department;
+    }
+
+    public async Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Result.Success<Guid, Error>(Guid.NewGuid());
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error saving changes");
+            return Error.Failure(null, "Database error occurred.");
+        }
+    }
 }

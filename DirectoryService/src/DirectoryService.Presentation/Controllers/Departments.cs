@@ -25,4 +25,16 @@ public class Departments : ControllerBase
         
         return result;
     }
+
+    [HttpPut("{departmentId}/locations")]
+    public async Task<EndpointResult<Guid>> UpdateDepartmentLocations(
+        Guid departmentId,
+        [FromServices] ICommandHandler<Guid, UpdateDepartmentLocationsCommand> handler,
+        [FromBody] UpdateDepartmentLocationsRequest request,
+        CancellationToken cancellationToken)
+    {
+        UpdateDepartmentLocationsCommand departmentLocationsCommand = new(departmentId, request);
+
+        return await handler.Handle(departmentLocationsCommand, cancellationToken);
+    }
 }
