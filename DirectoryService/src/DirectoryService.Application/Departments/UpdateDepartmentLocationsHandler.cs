@@ -39,18 +39,18 @@ public class UpdateDepartmentLocationsHandler(
             return validationResult.ToList();
         }
         
-        var transactionScopeResult = await transactionManager.BeginTransactionAsTask(cancellationToken);
-        if (transactionScopeResult.IsFailure)
-            return transactionScopeResult.Error.ToErrors();
+        // var transactionScopeResult = await transactionManager.BeginTransactionAsTask(cancellationToken);
+        // if (transactionScopeResult.IsFailure)
+        //     return transactionScopeResult.Error.ToErrors();
 
-        using var transactionScope = transactionScopeResult.Value;
+        // using var transactionScope = transactionScopeResult.Value;
 
         // Получаем Department из БД по Id
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
         var departmentResult = await departmentsRepository.ExistAndActiveAsync(departmentId, cancellationToken);
         if (departmentResult.IsFailure)
         {
-            transactionScope.Rollback();
+            // transactionScope.Rollback();
             logger.LogInformation("Error when try get by id department, error: {error}", departmentResult.Error);
             return departmentResult.Error;
         }
@@ -62,7 +62,7 @@ public class UpdateDepartmentLocationsHandler(
             command.DepartmentLocationsRequest.LocationsIds, cancellationToken);
         if (isAllLocationsExist.IsFailure)
         {
-            transactionScope.Rollback();
+            // transactionScope.Rollback();
             logger.LogInformation(
                 "Try check existing locations id database, error: {isAllLocationsExist.Error}",
                 isAllLocationsExist.Error.Message);
@@ -85,13 +85,13 @@ public class UpdateDepartmentLocationsHandler(
             return updateResult.Error.ToErrors();
         }
         
-        // await departmentsRepository.SaveChanges(cancellationToken);
-        await transactionManager.SaveChangesAsync(cancellationToken);
-        var commitedResult = transactionScope.Commit();
-        if (commitedResult.IsFailure)
-        {
-            return commitedResult.Error.ToErrors();
-        }
+        await departmentsRepository.SaveChanges(cancellationToken);
+        // await transactionManager.SaveChangesAsync(cancellationToken);
+        // var commitedResult = transactionScope.Commit();
+        // if (commitedResult.IsFailure)
+        // {
+            // return commitedResult.Error.ToErrors();
+        // }
 
         return Result.Success<Guid, Errors>(departmentId.Value);
     }
