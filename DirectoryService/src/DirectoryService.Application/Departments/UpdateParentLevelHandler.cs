@@ -27,7 +27,6 @@ public class UpdateParentLevelHandler(
 
             return validationResult.ToList();
         }
-        
 
         return Result.Success<Guid, Errors>(Guid.NewGuid());
     }
