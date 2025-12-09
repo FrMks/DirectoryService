@@ -112,4 +112,25 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
             return Error.Failure(null, "Database error occurred.");
         }
     }
+
+    public async Task<Result<Department, Error>> GetByIdActiveDepartmentWithLock(
+        DepartmentId departmentId,
+        CancellationToken cancellationToken)
+    {
+        var department = await dbContext.Departments
+            .FromSql($"SELECT * FROM departments WHERE id = {departmentId.Value} FOR UPDATE")
+            .Where(d => d.IsActive)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (department is null)
+        {
+            logger.LogError("Department with id {departmentId} not found", departmentId.Value);
+            return Error.NotFound(
+                "department.not.found",
+                "Department with id: " + departmentId.Value + " not found.",
+                departmentId.Value);
+        }
+        
+        return department;
+    }
 }

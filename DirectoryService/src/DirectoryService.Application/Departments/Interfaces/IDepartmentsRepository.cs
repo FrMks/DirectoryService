@@ -30,4 +30,8 @@ public interface IDepartmentsRepository
     Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken);
     
     Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken);
+
+    Task<Result<Department, Error>> GetByIdActiveDepartmentWithLock(
+        DepartmentId departmentId,
+        CancellationToken cancellationToken);
 }

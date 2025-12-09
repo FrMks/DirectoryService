@@ -55,13 +55,13 @@ public class UpdateParentLevelHandler(
         // Проверили, что id department, который мы хотим переместить на другое место существует
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
         // TODO: должен ли быть активным id департамента, который мы хотим перенести?
-        var actualDepartmentResult = await departmentsRepository.ExistAndActiveAsync(departmentId, cancellationToken);
+        var actualDepartmentResult = await departmentsRepository.GetByIdActiveDepartmentWithLock(departmentId, cancellationToken);
         if (actualDepartmentResult.IsFailure)
         {
             logger.LogInformation(
                 "Error when try get by id actual department, error: {error}",
                 actualDepartmentResult.Error);
-            return actualDepartmentResult.Error;
+            return actualDepartmentResult.Error.ToErrors();
         }
 
         if (command.ParentLevelRequest.ParentDepartmentId == null)
