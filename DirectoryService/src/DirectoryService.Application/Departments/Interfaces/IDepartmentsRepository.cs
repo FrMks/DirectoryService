@@ -2,6 +2,7 @@
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Application.Departments.Interfaces;
 
@@ -31,7 +32,11 @@ public interface IDepartmentsRepository
     
     Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken);
 
-    Task<Result<Department, Error>> GetByIdActiveDepartmentWithLock(
+    Task<Result<Department, Error>> GetByIdWithLock(
         DepartmentId departmentId,
+        CancellationToken cancellationToken);
+
+    Task<Result<List<Department>, Errors>> GetDepartmentWithChildren(
+        Path departmentPath,
         CancellationToken cancellationToken);
 }

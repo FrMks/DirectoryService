@@ -26,7 +26,7 @@ public class UpdateParentLevelHandler(
         {
             foreach (Error error in validationResult.ToList())
             {
-                logger.LogInformation("Error when updating parent level, error: {error}", error.Message);
+                logger.LogError("Error when updating parent level, error: {error}", error.Message);
             }
 
             return validationResult.ToList();
@@ -45,6 +45,7 @@ public class UpdateParentLevelHandler(
         // Проверили, что id места куда хотим поместить не совпадает с тем что хотим перенести
         if (command.DepartmentId == command.ParentLevelRequest.ParentDepartmentId)
         {
+            transactionScope.Rollback();
             var error = Error.Validation(
                 "department.id.equals.level.id",
                 $"department id: {command.DepartmentId} and level id equal to each other");
@@ -54,15 +55,43 @@ public class UpdateParentLevelHandler(
 
         // Проверили, что id department, который мы хотим переместить на другое место существует
         DepartmentId departmentId = DepartmentId.FromValue(command.DepartmentId);
-        // TODO: должен ли быть активным id департамента, который мы хотим перенести?
-        var actualDepartmentResult = await departmentsRepository.GetByIdActiveDepartmentWithLock(departmentId, cancellationToken);
+        var actualDepartmentResult = await departmentsRepository.GetByIdWithLock(departmentId, cancellationToken);
         if (actualDepartmentResult.IsFailure)
         {
-            logger.LogInformation(
+            transactionScope.Rollback();
+            logger.LogError(
                 "Error when try get by id actual department, error: {error}",
                 actualDepartmentResult.Error);
             return actualDepartmentResult.Error.ToErrors();
         }
+        // TODO: должен ли быть активным id департамента, который мы хотим перенести?
+        if (actualDepartmentResult.Value.IsActive == false)
+        {
+            transactionScope.Rollback();
+            logger.LogError(
+                "Error when taking department, because department is not active");
+            return Error.Failure(
+                "department.is.not.active",
+                "Error when taking department, because department is not active").ToErrors();
+        }
+        
+        var actualDepartment = actualDepartmentResult.Value;
+        
+        // Получаем список состоящий из самого департамента и его детей
+        var parentWithChildrenResult = await departmentsRepository.GetDepartmentWithChildren(actualDepartment.Path, cancellationToken);
+        if (parentWithChildrenResult.IsFailure)
+        {
+            transactionScope.Rollback();
+            logger.LogError(
+                "When getting parent with children in from department return error {error}",
+                parentWithChildrenResult.Error);
+            return parentWithChildrenResult.Error;
+        }
+
+        var parentWithChildren = parentWithChildrenResult.Value;
+        
+        var oldPath = actualDepartment.Path;
+        var oldDepth = actualDepartment.Depth;
 
         if (command.ParentLevelRequest.ParentDepartmentId == null)
         {
@@ -71,6 +100,26 @@ public class UpdateParentLevelHandler(
         else
         {
             // Переносим под родителя с всеми его детьми
+            
+            // Проверяем, что куда мы хотим перетащить не находится внутри списка самого департамента и его детей
+            var idWhereToMove = DepartmentId.FromValue(command.ParentLevelRequest.ParentDepartmentId);
+            var departmentWhereToMove = await departmentsRepository.GetByIdWithLock(idWhereToMove, cancellationToken);
+            if (departmentWhereToMove.IsFailure)
+            {
+                logger.LogError("When getting department by id return error: {error}", departmentWhereToMove.Error);
+                return departmentWhereToMove.Error.ToErrors();
+            }
+
+            if (parentWithChildren.Contains(departmentWhereToMove.Value))
+            {
+                logger.LogError(
+                    "Department with id: {departmentWhereToMove.Value.Id} have in collection of children and department",
+                    departmentWhereToMove.Value.Id);
+                return Error.Failure(
+                    "department.have.in.collection",
+                    $"Department with id: {departmentWhereToMove.Value.Id} " +
+                    $"have in collection of children and department").ToErrors();
+            }
         }
 
         transactionScope.Commit();

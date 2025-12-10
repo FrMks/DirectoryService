@@ -5,6 +5,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
@@ -113,24 +114,85 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         }
     }
 
-    public async Task<Result<Department, Error>> GetByIdActiveDepartmentWithLock(
+    public async Task<Result<Department, Error>> GetByIdWithLock(
         DepartmentId departmentId,
         CancellationToken cancellationToken)
     {
-        var department = await dbContext.Departments
-            .FromSql($"SELECT * FROM departments WHERE id = {departmentId.Value} FOR UPDATE")
-            .Where(d => d.IsActive)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (department is null)
+        try
         {
-            logger.LogError("Department with id {departmentId} not found", departmentId.Value);
-            return Error.NotFound(
-                "department.not.found",
-                "Department with id: " + departmentId.Value + " not found.",
-                departmentId.Value);
+            var department = await dbContext.Departments
+                .FromSql($"SELECT * FROM departments WHERE id = {departmentId.Value} FOR UPDATE")
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (department is null)
+            {
+                logger.LogError("Department with id {departmentId} not found", departmentId.Value);
+                return Error.NotFound(
+                    "department.not.found",
+                    "Department with id: " + departmentId.Value + " not found.",
+                    departmentId.Value);
+            }
+
+            return department;
         }
-        
-        return department;
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error getting active department {departmentId}", departmentId.Value);
+            return Error.Failure("department.by.id", $"Department with id: {departmentId} not found.");
+        }
+    }
+
+    public async Task<Result<List<Department>, Errors>> GetDepartmentWithChildren(
+        Path departmentPath,
+        CancellationToken cancellationToken)
+    {
+        var departments = await dbContext.Departments
+            .FromSql($"""
+                      SELECT *
+                      FROM departments d
+                      WHERE d.path <@ {departmentPath.Value}::ltree
+                      ORDER BY d.path
+                      """)
+            .ToListAsync(cancellationToken);
+
+        return departments;
+    }
+
+    public async Task<UnitResult<Error>> MoveDepartmentWithChildren(
+        string oldPath,
+        string newPath,
+        Guid? newParentId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            // subpath(path, nlevel({oldPath}::ltree)) - получаем хвост (it.devops => devops) 
+            await dbContext.Database.ExecuteSqlAsync(
+                $"""
+                     UPDATE departments
+                     SET path = {newPath}::ltree || subpath(path, nlevel({oldPath}::ltree)),
+                         depth = nlevel({newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))) - 1,
+                         parent_id = CASE
+                             WHEN path = {oldPath}::ltree THEN {newParentId} 
+                             ELSE parent_id
+                         END,
+                         updated_at = NOW()
+                     WHERE path <@ {oldPath}::ltree
+                 """,
+                cancellationToken);
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Failed to move department from {oldPath} to {newPath}",
+                oldPath,
+                newPath);
+            return Error.Failure(
+                "department.move.failed",
+                $"Failed to move department: {e.Message}");
+        }
     }
 }
