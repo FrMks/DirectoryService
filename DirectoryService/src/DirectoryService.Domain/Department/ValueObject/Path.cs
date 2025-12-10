@@ -17,7 +17,9 @@ public partial record Path
 
     public static Path CreateParent(Identifier identifier)
     {
-        return new Path(identifier.Value);
+        string trimmedIdentifier = identifier.Value.Trim();
+        string replacesTrimmedIdentifier = trimmedIdentifier.Replace(' ', '-');
+        return new Path(replacesTrimmedIdentifier);
     }
 
     public Path CreateChild(Identifier childIdentifier)
