@@ -150,12 +150,19 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
     {
         try
         {
-            // subpath(path, nlevel({oldPath}::ltree)) - получаем хвост (it.devops => devops) 
             await dbContext.Database.ExecuteSqlAsync(
                 $"""
                      UPDATE departments
-                     SET path = {newPath}::ltree || subpath(path, nlevel({oldPath}::ltree)),
-                         depth = nlevel({newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))) - 1,
+                     SET path = CASE 
+                             WHEN nlevel(path) > nlevel({oldPath}::ltree) 
+                             THEN {newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))
+                             ELSE {newPath}::ltree
+                         END,
+                         depth = CASE 
+                             WHEN nlevel(path) > nlevel({oldPath}::ltree) 
+                             THEN nlevel({newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))) - 1
+                             ELSE nlevel({newPath}::ltree) - 1
+                         END,
                          parent_id = CASE
                              WHEN path = {oldPath}::ltree THEN {newParentId} 
                              ELSE parent_id
