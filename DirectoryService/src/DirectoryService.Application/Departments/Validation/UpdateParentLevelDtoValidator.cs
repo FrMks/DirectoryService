@@ -9,6 +9,7 @@ public class UpdateParentLevelDtoValidator : AbstractValidator<UpdateParentLevel
     {
         // Либо uuid или null (новый родительский отдел), родитель должен существовать и быть активным. 
         RuleFor(d => d.ParentDepartmentId)
-            .NotEmpty();
+            .Must(id => id == null || id != Guid.Empty)
+            .WithMessage("ParentDepartmentId must be null or a valid Guid");
     }
 }
