@@ -1,3 +1,3 @@
 ﻿namespace DirectoryService.Contracts.Departments;
 
-public record UpdateParentLevelRequest(Guid ParentDepartmentId);
+public record UpdateParentLevelRequest(Guid? ParentDepartmentId);
