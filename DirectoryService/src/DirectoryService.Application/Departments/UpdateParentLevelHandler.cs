@@ -10,6 +10,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 public class UpdateParentLevelHandler(
     IDepartmentsRepository departmentsRepository,
@@ -95,7 +96,22 @@ public class UpdateParentLevelHandler(
 
         if (command.ParentLevelRequest.ParentDepartmentId == null)
         {
+            (_, bool isFailure, Path? newValue, Error? error) = Path.Create(actualDepartment.Identifier.Value);
+            if (isFailure)
+            {
+                transactionScope.Rollback();
+                logger.LogError(
+                    "When creating path return error {error}",
+                    error);
+                return error.ToErrors();
+            }
+
             // Ставим как родителя
+            departmentsRepository.MoveDepartmentWithChildren(
+                oldPath.Value,
+                newValue.Value,
+                command.ParentLevelRequest.ParentDepartmentId,
+                cancellationToken);
         }
         else
         {
@@ -103,23 +119,33 @@ public class UpdateParentLevelHandler(
             
             // Проверяем, что куда мы хотим перетащить не находится внутри списка самого департамента и его детей
             var idWhereToMove = DepartmentId.FromValue(command.ParentLevelRequest.ParentDepartmentId);
-            var departmentWhereToMove = await departmentsRepository.GetByIdWithLock(idWhereToMove, cancellationToken);
-            if (departmentWhereToMove.IsFailure)
+            var departmentWhereToMoveResult = await departmentsRepository.GetByIdWithLock(idWhereToMove, cancellationToken);
+            if (departmentWhereToMoveResult.IsFailure)
             {
-                logger.LogError("When getting department by id return error: {error}", departmentWhereToMove.Error);
-                return departmentWhereToMove.Error.ToErrors();
+                logger.LogError("When getting department by id return error: {error}", departmentWhereToMoveResult.Error);
+                return departmentWhereToMoveResult.Error.ToErrors();
             }
 
-            if (parentWithChildren.Contains(departmentWhereToMove.Value))
+            if (parentWithChildren.Contains(departmentWhereToMoveResult.Value))
             {
+                transactionScope.Rollback();
                 logger.LogError(
                     "Department with id: {departmentWhereToMove.Value.Id} have in collection of children and department",
-                    departmentWhereToMove.Value.Id);
+                    departmentWhereToMoveResult.Value.Id);
                 return Error.Failure(
                     "department.have.in.collection",
-                    $"Department with id: {departmentWhereToMove.Value.Id} " +
+                    $"Department with id: {departmentWhereToMoveResult.Value.Id} " +
                     $"have in collection of children and department").ToErrors();
             }
+            
+            var departmentWhereToMove = departmentWhereToMoveResult.Value;
+            var newPath = departmentWhereToMove.Path.CreateChild(actualDepartment.Identifier);
+
+            departmentsRepository.MoveDepartmentWithChildren(
+                oldPath.Value,
+                newPath.Value,
+                departmentWhereToMove.Id,
+                cancellationToken);
         }
 
         transactionScope.Commit();

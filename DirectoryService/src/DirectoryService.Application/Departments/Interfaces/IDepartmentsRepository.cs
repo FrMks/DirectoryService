@@ -39,4 +39,10 @@ public interface IDepartmentsRepository
     Task<Result<List<Department>, Errors>> GetDepartmentWithChildren(
         Path departmentPath,
         CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> MoveDepartmentWithChildren(
+        string oldPath,
+        string newPath,
+        Guid? newParentId,
+        CancellationToken cancellationToken);
 }
