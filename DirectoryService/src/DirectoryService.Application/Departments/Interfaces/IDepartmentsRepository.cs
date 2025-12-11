@@ -36,10 +36,6 @@ public interface IDepartmentsRepository
         DepartmentId departmentId,
         CancellationToken cancellationToken);
 
-    Task<Result<List<Department>, Errors>> GetDepartmentWithChildren(
-        Path departmentPath,
-        CancellationToken cancellationToken);
-
     Task<UnitResult<Error>> MoveDepartmentWithChildren(
         string oldPath,
         string newPath,

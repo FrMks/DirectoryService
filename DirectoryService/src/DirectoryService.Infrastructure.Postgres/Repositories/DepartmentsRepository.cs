@@ -142,22 +142,6 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         }
     }
 
-    public async Task<Result<List<Department>, Errors>> GetDepartmentWithChildren(
-        Path departmentPath,
-        CancellationToken cancellationToken)
-    {
-        var departments = await dbContext.Departments
-            .FromSql($"""
-                      SELECT *
-                      FROM departments d
-                      WHERE d.path <@ {departmentPath.Value}::ltree
-                      ORDER BY d.path
-                      """)
-            .ToListAsync(cancellationToken);
-
-        return departments;
-    }
-
     public async Task<UnitResult<Error>> MoveDepartmentWithChildren(
         string oldPath,
         string newPath,

@@ -34,10 +34,11 @@ public class UpdateParentLevelHandler(
         }
 
         // Работа с транзакциями
-        var transactionScopeResult =
-            await transactionManager.BeginTransactionAsTask(cancellationToken, IsolationLevel.RepeatableRead);
+        var transactionScopeResult = await transactionManager.
+            BeginTransactionAsTask(cancellationToken, IsolationLevel.RepeatableRead);
         if (transactionScopeResult.IsFailure)
         {
+            logger.LogError("Failed to begin transaction: {error}", transactionScopeResult.Error);
             return transactionScopeResult.Error.ToErrors();
         }
 
@@ -65,8 +66,10 @@ public class UpdateParentLevelHandler(
                 actualDepartmentResult.Error);
             return actualDepartmentResult.Error.ToErrors();
         }
-        // TODO: должен ли быть активным id департамента, который мы хотим перенести?
-        if (actualDepartmentResult.Value.IsActive == false)
+
+        var actualDepartment = actualDepartmentResult.Value;
+
+        if (!actualDepartment.IsActive)
         {
             transactionScope.Rollback();
             logger.LogError(
@@ -75,24 +78,8 @@ public class UpdateParentLevelHandler(
                 "department.is.not.active",
                 "Error when taking department, because department is not active").ToErrors();
         }
-        
-        var actualDepartment = actualDepartmentResult.Value;
-        
-        // Получаем список состоящий из самого департамента и его детей
-        var parentWithChildrenResult = await departmentsRepository.GetDepartmentWithChildren(actualDepartment.Path, cancellationToken);
-        if (parentWithChildrenResult.IsFailure)
-        {
-            transactionScope.Rollback();
-            logger.LogError(
-                "When getting parent with children in from department return error {error}",
-                parentWithChildrenResult.Error);
-            return parentWithChildrenResult.Error;
-        }
 
-        var parentWithChildren = parentWithChildrenResult.Value;
-        
         var oldPath = actualDepartment.Path;
-        var oldDepth = actualDepartment.Depth;
 
         if (command.ParentLevelRequest.ParentDepartmentId == null)
         {
@@ -107,45 +94,59 @@ public class UpdateParentLevelHandler(
             }
 
             // Ставим как родителя
-            departmentsRepository.MoveDepartmentWithChildren(
+            var moveResult = await departmentsRepository.MoveDepartmentWithChildren(
                 oldPath.Value,
                 newValue.Value,
                 command.ParentLevelRequest.ParentDepartmentId,
                 cancellationToken);
+            if (moveResult.IsFailure)
+            {
+                transactionScope.Rollback();
+                logger.LogError("Failed to move department: {error}", moveResult.Error);
+                return moveResult.Error.ToErrors();
+            }
         }
         else
         {
             // Переносим под родителя с всеми его детьми
             
             // Проверяем, что куда мы хотим перетащить не находится внутри списка самого департамента и его детей
-            var idWhereToMove = DepartmentId.FromValue(command.ParentLevelRequest.ParentDepartmentId);
-            var departmentWhereToMoveResult = await departmentsRepository.GetByIdWithLock(idWhereToMove, cancellationToken);
-            if (departmentWhereToMoveResult.IsFailure)
+            var newParentId = DepartmentId.FromValue(command.ParentLevelRequest.ParentDepartmentId);
+            var newParentResult = await departmentsRepository.GetByIdWithLock(newParentId, cancellationToken);
+            if (newParentResult.IsFailure)
             {
-                logger.LogError("When getting department by id return error: {error}", departmentWhereToMoveResult.Error);
-                return departmentWhereToMoveResult.Error.ToErrors();
+                transactionScope.Rollback();
+                logger.LogError("When getting department by id return error: {error}", newParentResult.Error);
+                return newParentResult.Error.ToErrors();
             }
 
-            if (parentWithChildren.Contains(departmentWhereToMoveResult.Value))
+            var newParent = newParentResult.Value;
+            
+            if (newParent.Path.Value.StartsWith(oldPath.Value))
             {
                 transactionScope.Rollback();
                 logger.LogError(
-                    "Department with id: {departmentWhereToMove.Value.Id} have in collection of children and department",
-                    departmentWhereToMoveResult.Value.Id);
-                return Error.Failure(
-                    "department.have.in.collection",
-                    $"Department with id: {departmentWhereToMoveResult.Value.Id} " +
-                    $"have in collection of children and department").ToErrors();
+                    "Cannot move department {deptId} to its descendant {parentId}",
+                    departmentId.Value,
+                    newParentId.Value);
+                return Error.Validation(
+                    "department.move.to.descendant",
+                    "Cannot move department to its own descendant").ToErrors();
             }
             
-            var departmentWhereToMove = departmentWhereToMoveResult.Value;
-            var newPath = departmentWhereToMove.Path.CreateChild(actualDepartment.Identifier);
-
-            departmentsRepository.MoveDepartmentWithChildren(
+            var newPathResult = newParent.Path.CreateChild(actualDepartment.Identifier);
+            
+            var moveResult = await departmentsRepository.MoveDepartmentWithChildren(
                 oldPath.Value,
-                newPath.Value,
-                departmentWhereToMove.Id,
+                newPathResult.Value,
+                newParent.Id.Value,
                 cancellationToken);
+            if (moveResult.IsFailure)
+            {
+                transactionScope.Rollback();
+                logger.LogError("Failed to move department: {error}", moveResult.Error);
+                return moveResult.Error.ToErrors();
+            }
         }
 
         transactionScope.Commit();
