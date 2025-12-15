@@ -47,7 +47,6 @@ public class UpdateParentLevelHandler(
         // Проверили, что id места куда хотим поместить не совпадает с тем что хотим перенести
         if (command.DepartmentId == command.ParentLevelRequest.ParentDepartmentId)
         {
-            transactionScope.Rollback();
             var error = Error.Validation(
                 "department.id.equals.level.id",
                 $"department id: {command.DepartmentId} and level id equal to each other");
@@ -60,7 +59,6 @@ public class UpdateParentLevelHandler(
         var actualDepartmentResult = await departmentsRepository.GetByIdWithLock(departmentId, cancellationToken);
         if (actualDepartmentResult.IsFailure)
         {
-            transactionScope.Rollback();
             logger.LogError(
                 "Error when try get by id actual department, error: {error}",
                 actualDepartmentResult.Error);
@@ -71,7 +69,6 @@ public class UpdateParentLevelHandler(
 
         if (!actualDepartment.IsActive)
         {
-            transactionScope.Rollback();
             logger.LogError(
                 "Error when taking department, because department is not active");
             return Error.Failure(
@@ -86,7 +83,6 @@ public class UpdateParentLevelHandler(
             (_, bool isFailure, Path? newValue, Error? error) = Path.Create(actualDepartment.Identifier.Value);
             if (isFailure)
             {
-                transactionScope.Rollback();
                 logger.LogError(
                     "When creating path return error {error}",
                     error);
@@ -101,7 +97,6 @@ public class UpdateParentLevelHandler(
                 cancellationToken);
             if (moveResult.IsFailure)
             {
-                transactionScope.Rollback();
                 logger.LogError("Failed to move department: {error}", moveResult.Error);
                 return moveResult.Error.ToErrors();
             }
@@ -115,7 +110,6 @@ public class UpdateParentLevelHandler(
             var newParentResult = await departmentsRepository.GetByIdWithLock(newParentId, cancellationToken);
             if (newParentResult.IsFailure)
             {
-                transactionScope.Rollback();
                 logger.LogError("When getting department by id return error: {error}", newParentResult.Error);
                 return newParentResult.Error.ToErrors();
             }
@@ -124,7 +118,6 @@ public class UpdateParentLevelHandler(
             
             if (newParent.Path.Value.StartsWith(oldPath.Value))
             {
-                transactionScope.Rollback();
                 logger.LogError(
                     "Cannot move department {deptId} to its descendant {parentId}",
                     departmentId.Value,
@@ -143,7 +136,6 @@ public class UpdateParentLevelHandler(
                 cancellationToken);
             if (moveResult.IsFailure)
             {
-                transactionScope.Rollback();
                 logger.LogError("Failed to move department: {error}", moveResult.Error);
                 return moveResult.Error.ToErrors();
             }
