@@ -13,7 +13,7 @@ public record DepartmentId
     
     public static DepartmentId Empty() => new (Guid.Empty);
     
-    public static DepartmentId FromValue(Guid value) => new(value);
+    public static DepartmentId FromValue(Guid? value) => new((Guid)value);
     
     public static implicit operator Guid(DepartmentId departmentId) => departmentId.Value;
 }

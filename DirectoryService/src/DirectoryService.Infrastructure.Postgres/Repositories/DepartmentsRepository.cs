@@ -5,6 +5,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
@@ -110,6 +111,79 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         {
             logger.LogError(e, "Error saving changes");
             return Error.Failure(null, "Database error occurred.");
+        }
+    }
+
+    public async Task<Result<Department, Error>> GetByIdWithLock(
+        DepartmentId departmentId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var department = await dbContext.Departments
+                .FromSql($"SELECT * FROM departments WHERE id = {departmentId.Value} FOR UPDATE")
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (department is null)
+            {
+                logger.LogError("Department with id {departmentId} not found", departmentId.Value);
+                return Error.NotFound(
+                    "department.not.found",
+                    "Department with id: " + departmentId.Value + " not found.",
+                    departmentId.Value);
+            }
+
+            return department;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Error getting active department {departmentId}", departmentId.Value);
+            return Error.Failure("department.by.id", $"Department with id: {departmentId} not found.");
+        }
+    }
+
+    public async Task<UnitResult<Error>> MoveDepartmentWithChildren(
+        Path oldPath,
+        Path newPath,
+        Guid? newParentId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await dbContext.Database.ExecuteSqlAsync(
+                $"""
+                     UPDATE departments
+                     SET path = CASE 
+                             WHEN nlevel(path) > nlevel({oldPath.Value}::ltree) 
+                             THEN {newPath.Value}::ltree || subpath(path, nlevel({oldPath.Value}::ltree))
+                             ELSE {newPath.Value}::ltree
+                         END,
+                         depth = CASE 
+                             WHEN nlevel(path) > nlevel({oldPath.Value}::ltree) 
+                             THEN nlevel({newPath.Value}::ltree || subpath(path, nlevel({oldPath.Value}::ltree))) - 1
+                             ELSE nlevel({newPath.Value}::ltree) - 1
+                         END,
+                         parent_id = CASE
+                             WHEN path = {oldPath.Value}::ltree THEN {newParentId} 
+                             ELSE parent_id
+                         END,
+                         updated_at = NOW()
+                     WHERE path <@ {oldPath.Value}::ltree
+                 """,
+                cancellationToken);
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Failed to move department from {oldPath} to {newPath}",
+                oldPath,
+                newPath);
+            return Error.Failure(
+                "department.move.failed",
+                $"Failed to move department: {e.Message}");
         }
     }
 }

@@ -35,7 +35,10 @@ public class DepartmentConfiguration : IEntityTypeConfiguration<Department>
 
         builder.Property(d => d.Path)
             .HasConversion(d => d.Value, path => Path.Create(path).Value)
-            .HasColumnName("path");
+            .HasColumnName("path")
+            .HasColumnType("ltree");
+        
+        builder.HasIndex(x => x.Path).HasMethod("gist").HasDatabaseName("idx_departments_path");
         
         builder.Property(d => d.Depth)
             .HasConversion(d => d.Value, depth => Depth.Create(depth).Value)

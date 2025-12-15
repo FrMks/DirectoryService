@@ -37,4 +37,17 @@ public class Departments : ControllerBase
 
         return await handler.Handle(departmentLocationsCommand, cancellationToken);
     }
+
+    // departmentId/parent - какой department мы меняем
+    // request.DepartmentId - к какому родителю приклеить department, который мы меняем
+    [HttpPut("{departmentId}/parent")]
+    public async Task<EndpointResult<Guid>> UpdateParentLevel(
+        Guid departmentId,
+        [FromServices] ICommandHandler<Guid, UpdateParentLevelCommand> handler,
+        [FromBody] UpdateParentLevelRequest request,
+        CancellationToken cancellationToken)
+    {
+        UpdateParentLevelCommand updateParentLevelCommand = new(departmentId, request);
+        return await handler.Handle(updateParentLevelCommand, cancellationToken);
+    }
 }

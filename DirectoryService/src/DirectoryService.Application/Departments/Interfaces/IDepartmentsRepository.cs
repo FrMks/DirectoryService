@@ -2,6 +2,7 @@
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Application.Departments.Interfaces;
 
@@ -30,4 +31,14 @@ public interface IDepartmentsRepository
     Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken);
     
     Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken);
+
+    Task<Result<Department, Error>> GetByIdWithLock(
+        DepartmentId departmentId,
+        CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> MoveDepartmentWithChildren(
+        Path oldPath,
+        Path newPath,
+        Guid? newParentId,
+        CancellationToken cancellationToken);
 }
