@@ -35,7 +35,7 @@ public class UpdateParentLevelHandler(
 
         // Работа с транзакциями
         var transactionScopeResult = await transactionManager.
-            BeginTransactionAsTask(cancellationToken, IsolationLevel.RepeatableRead);
+            BeginTransaction(cancellationToken, IsolationLevel.RepeatableRead);
         if (transactionScopeResult.IsFailure)
         {
             logger.LogError("Failed to begin transaction: {error}", transactionScopeResult.Error);
@@ -95,8 +95,8 @@ public class UpdateParentLevelHandler(
 
             // Ставим как родителя
             var moveResult = await departmentsRepository.MoveDepartmentWithChildren(
-                oldPath.Value,
-                newValue.Value,
+                oldPath,
+                newValue,
                 command.ParentLevelRequest.ParentDepartmentId,
                 cancellationToken);
             if (moveResult.IsFailure)
@@ -137,8 +137,8 @@ public class UpdateParentLevelHandler(
             var newPathResult = newParent.Path.CreateChild(actualDepartment.Identifier);
             
             var moveResult = await departmentsRepository.MoveDepartmentWithChildren(
-                oldPath.Value,
-                newPathResult.Value,
+                oldPath,
+                newPathResult,
                 newParent.Id.Value,
                 cancellationToken);
             if (moveResult.IsFailure)

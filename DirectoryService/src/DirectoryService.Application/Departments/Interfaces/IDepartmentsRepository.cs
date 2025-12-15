@@ -37,8 +37,8 @@ public interface IDepartmentsRepository
         CancellationToken cancellationToken);
 
     Task<UnitResult<Error>> MoveDepartmentWithChildren(
-        string oldPath,
-        string newPath,
+        Path oldPath,
+        Path newPath,
         Guid? newParentId,
         CancellationToken cancellationToken);
 }

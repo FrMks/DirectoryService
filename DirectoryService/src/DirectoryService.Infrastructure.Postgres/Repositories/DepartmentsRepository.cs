@@ -143,8 +143,8 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
     }
 
     public async Task<UnitResult<Error>> MoveDepartmentWithChildren(
-        string oldPath,
-        string newPath,
+        Path oldPath,
+        Path newPath,
         Guid? newParentId,
         CancellationToken cancellationToken)
     {
@@ -154,21 +154,21 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 $"""
                      UPDATE departments
                      SET path = CASE 
-                             WHEN nlevel(path) > nlevel({oldPath}::ltree) 
-                             THEN {newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))
-                             ELSE {newPath}::ltree
+                             WHEN nlevel(path) > nlevel({oldPath.Value}::ltree) 
+                             THEN {newPath.Value}::ltree || subpath(path, nlevel({oldPath.Value}::ltree))
+                             ELSE {newPath.Value}::ltree
                          END,
                          depth = CASE 
-                             WHEN nlevel(path) > nlevel({oldPath}::ltree) 
-                             THEN nlevel({newPath}::ltree || subpath(path, nlevel({oldPath}::ltree))) - 1
-                             ELSE nlevel({newPath}::ltree) - 1
+                             WHEN nlevel(path) > nlevel({oldPath.Value}::ltree) 
+                             THEN nlevel({newPath.Value}::ltree || subpath(path, nlevel({oldPath.Value}::ltree))) - 1
+                             ELSE nlevel({newPath.Value}::ltree) - 1
                          END,
                          parent_id = CASE
-                             WHEN path = {oldPath}::ltree THEN {newParentId} 
+                             WHEN path = {oldPath.Value}::ltree THEN {newParentId} 
                              ELSE parent_id
                          END,
                          updated_at = NOW()
-                     WHERE path <@ {oldPath}::ltree
+                     WHERE path <@ {oldPath.Value}::ltree
                  """,
                 cancellationToken);
 
