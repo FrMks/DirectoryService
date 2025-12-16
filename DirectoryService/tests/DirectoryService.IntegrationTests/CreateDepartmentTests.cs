@@ -1,9 +1,11 @@
 ﻿using DirectoryService.Application.Departments;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain;
+using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Infrastructure.Postgres;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
 
@@ -47,9 +49,17 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
         var result = await sut.Handle(command, cancellationToken);
         
         // Assert
+        await using var assertScope = Services.CreateAsyncScope();
+        var dbContext = assertScope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
+
+        var department = await dbContext.Departments
+            .FirstAsync(d => d.Id == DepartmentId.FromValue(result.Value), cancellationToken);
+        
+        Assert.NotNull(department);
+        Assert.Equal(department.Id.Value, result.Value);
+        
         Assert.True(result.IsSuccess);
         Assert.NotEqual(Guid.Empty, result.Value);
-        
     }
 
     [Fact]
