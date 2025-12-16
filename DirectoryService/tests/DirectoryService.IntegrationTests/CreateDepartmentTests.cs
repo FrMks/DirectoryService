@@ -9,8 +9,24 @@ using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
 
 namespace DirectoryService.IntegrationTests;
 
-public class CreateDepartmentTests : DirectoryTestWebFactory
+// Так как у нас жизненный цикл следующий:
+// Конструктор DirectoryTestWebFactory
+// Конструктор CreateDepartmentTests
+// ПЕРВЫЙ тест
+// Конструктор DirectoryTestWebFactory
+// Конструктор CreateDepartmentTests
+// ВТОРОЙ тест,
+// а мы хотим, чтобы мы один раз запускали контейнер, то используем IClassFixture.
+// Этот интерфейс нужен для объединения несколько классов в один общий контекст
+public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
 {
+    public CreateDepartmentTests(DirectoryTestWebFactory factory)
+    {
+        Services = factory.Services;
+    }
+
+    public IServiceProvider Services { get; set; }
+
     [Fact]
     public async void CreateDepartmentWithValidData()
     {
