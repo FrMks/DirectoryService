@@ -35,31 +35,31 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
         // Arrange
         LocationId locationId = await CreateLocation();
         
-        await using var scope = Services.CreateAsyncScope();
-
-        var sut = scope.ServiceProvider.GetRequiredService<CreateDepartmentHandler>();
         var cancellationToken = CancellationToken.None;
-        var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
-            "Подразделение",
-            "podrazdelenie",
-            null,
-            [locationId.Value]));
 
         // Act
-        var result = await sut.Handle(command, cancellationToken);
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "podrazdelenie",
+                null,
+                [locationId.Value])); 
+            return sut.Handle(command, cancellationToken);
+        });
         
         // Assert
-        await using var assertScope = Services.CreateAsyncScope();
-        var dbContext = assertScope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
-
-        var department = await dbContext.Departments
-            .FirstAsync(d => d.Id == DepartmentId.FromValue(result.Value), cancellationToken);
+        await ExecuteInDb(async dbContext =>
+        {
+            var department = await dbContext.Departments
+                .FirstAsync(d => d.Id == DepartmentId.FromValue(result.Value), cancellationToken);
         
-        Assert.NotNull(department);
-        Assert.Equal(department.Id.Value, result.Value);
+            Assert.NotNull(department);
+            Assert.Equal(department.Id.Value, result.Value);
         
-        Assert.True(result.IsSuccess);
-        Assert.NotEqual(Guid.Empty, result.Value);
+            Assert.True(result.IsSuccess);
+            Assert.NotEqual(Guid.Empty, result.Value); 
+        });
     }
 
     [Fact]
@@ -82,22 +82,49 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
 
     private async Task<LocationId> CreateLocation()
     {
-        await using var initializerScope = Services.CreateAsyncScope();
-        var dbContext = initializerScope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
-
-        LocationId locationId = LocationId.NewLocationId();
+        return await ExecuteInDb(async dbContext =>
+        {
+            LocationId locationId = LocationId.NewLocationId();
             
-        var location = Location.Create(
-            locationId, 
-            Name.Create("Локация").Value,
-            Address.Create("Улица", "Город", "Страна").Value,
-            Timezone.Create("Europe/London").Value,
-            new List<DepartmentLocation>()
-        ).Value;
+            var location = Location.Create(
+                locationId, 
+                Name.Create("Локация").Value,
+                Address.Create("Улица", "Город", "Страна").Value,
+                Timezone.Create("Europe/London").Value,
+                new List<DepartmentLocation>()
+            ).Value;
             
-        dbContext.Locations.Add(location);
-        await dbContext.SaveChangesAsync();
+            dbContext.Locations.Add(location);
+            await dbContext.SaveChangesAsync();
 
-        return locationId;
+            return locationId; 
+        });
+    }
+
+    private async Task<T> ExecuteHandler<T>(Func<CreateDepartmentHandler, Task<T>> action)
+    {
+        var scope = Services.CreateAsyncScope();
+        
+        var sut = scope.ServiceProvider.GetRequiredService<CreateDepartmentHandler>();
+        
+        return await action(sut);
+    }
+    
+    private async Task<T> ExecuteInDb<T>(Func<DirectoryServiceDbContext, Task<T>> action)
+    {
+        var scope = Services.CreateAsyncScope();
+        
+        var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
+        
+        return await action(dbContext);
+    }
+    
+    private async Task ExecuteInDb(Func<DirectoryServiceDbContext, Task> action)
+    {
+        var scope = Services.CreateAsyncScope();
+        
+        var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
+        
+        await action(dbContext);
     }
 }
