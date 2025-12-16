@@ -1,4 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using DirectoryService.Infrastructure.Postgres;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using Program = DirectoryService.Presentation.Program;
 
@@ -13,6 +18,20 @@ public class DirectoryTestWebFactory : WebApplicationFactory<Program>, IAsyncLif
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
+    
+    // Т.к. у нас указывается подключение к БД через connection string внутри Program.cs, нам нужно подменить
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureTestServices(services =>
+        {
+            // Удаляем зарегистрированные в DI в Program.cs 
+            services.RemoveAll<DirectoryServiceDbContext>();
+            
+            // И подменяем
+            services.AddScoped<DirectoryServiceDbContext>(_ =>
+                new DirectoryServiceDbContext(_dbContainer.GetConnectionString()));
+        });
+    }
 
     // Реализую методы из интерфейса IAsyncLifetime,
     // чтобы асинхронно выполнять какие-то методы для инициализации класса
@@ -22,6 +41,13 @@ public class DirectoryTestWebFactory : WebApplicationFactory<Program>, IAsyncLif
     public async Task InitializeAsync()
     {
         await _dbContainer.StartAsync();
+        
+        await using var scope = Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
+        
+        // Создаем миграции, чтобы тесты могли работать с тестовой БД развернутой в контейнере
+        await dbContext.Database.EnsureDeletedAsync();
+        await dbContext.Database.EnsureCreatedAsync();
     }
 
     // Добавили new, чтобы сказать, чтобы именно этот вызывался для dispose этого класса

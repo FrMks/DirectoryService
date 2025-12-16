@@ -30,9 +30,6 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
     [Fact]
     public async void CreateDepartmentWithValidData()
     {
-        // Тут хранятся все зарегистрированный в DI сервисы
-        // var services = Services;
-
         // Arrange
         LocationId locationId = await CreateLocation();
         
