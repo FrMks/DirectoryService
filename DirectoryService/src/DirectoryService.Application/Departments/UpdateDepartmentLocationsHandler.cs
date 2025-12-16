@@ -20,7 +20,7 @@ public class UpdateDepartmentLocationsHandler(
     ILocationsRepository locationsRepository,
     IValidator<UpdateDepartmentLocationsRequest> validator,
     ITransactionManager transactionManager,
-    ILogger<CreateDepartmentHandler> logger)
+    ILogger<UpdateDepartmentLocationsHandler> logger)
     : ICommandHandler<Guid, UpdateDepartmentLocationsCommand>
 {
     public async Task<Result<Guid, Errors>> Handle(
