@@ -20,11 +20,14 @@ namespace DirectoryService.IntegrationTests;
 // ВТОРОЙ тест,
 // а мы хотим, чтобы мы один раз запускали контейнер, то используем IClassFixture.
 // Этот интерфейс нужен для объединения несколько классов в один общий контекст
-public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
+public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>, IAsyncLifetime
 {
+    private readonly Func<Task> _resetDatabase;
+    
     public CreateDepartmentTests(DirectoryTestWebFactory factory)
     {
         Services = factory.Services;
+        _resetDatabase = factory.ResetDatabaseAsync;
     }
 
     public IServiceProvider Services { get; set; }
@@ -78,6 +81,13 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>
     public async void CreateDepartWithUnvalidLocationsIds()
     {
         
+    }
+    
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        await _resetDatabase(); 
     }
 
     private async Task<LocationId> CreateLocation()
