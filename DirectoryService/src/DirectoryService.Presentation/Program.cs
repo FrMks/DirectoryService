@@ -49,3 +49,10 @@ app.UseSerilogRequestLogging();
 app.MapControllers();
 
 app.Run();
+
+// Используется для интеграционных тестов для реализации WebApplicationFactory<Program>
+namespace DirectoryService.Presentation
+{
+    // Partial говорит, что мы можем хранить клас с одним и тем же названием в разных местах
+    public partial class Program;
+}
