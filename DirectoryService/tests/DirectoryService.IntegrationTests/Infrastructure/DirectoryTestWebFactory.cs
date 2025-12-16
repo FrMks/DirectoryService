@@ -10,7 +10,7 @@ using Respawn;
 using Testcontainers.PostgreSql;
 using Program = DirectoryService.Presentation.Program;
 
-namespace DirectoryService.IntegrationTests;
+namespace DirectoryService.IntegrationTests.Infrastructure;
 
 public class DirectoryTestWebFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {

@@ -4,12 +4,12 @@ using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
-using DirectoryService.Infrastructure.Postgres;
+using DirectoryService.IntegrationTests.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Name = DirectoryService.Domain.Locations.ValueObjects.Name;
 
-namespace DirectoryService.IntegrationTests;
+namespace DirectoryService.IntegrationTests.Department;
 
 // Так как у нас жизненный цикл следующий:
 // Конструктор DirectoryTestWebFactory
@@ -20,17 +20,13 @@ namespace DirectoryService.IntegrationTests;
 // ВТОРОЙ тест,
 // а мы хотим, чтобы мы один раз запускали контейнер, то используем IClassFixture.
 // Этот интерфейс нужен для объединения несколько классов в один общий контекст
-public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>, IAsyncLifetime
+public class CreateDepartmentTests : DirectoryBaseTests
 {
-    private readonly Func<Task> _resetDatabase;
     
     public CreateDepartmentTests(DirectoryTestWebFactory factory)
+        : base(factory)
     {
-        Services = factory.Services;
-        _resetDatabase = factory.ResetDatabaseAsync;
     }
-
-    public IServiceProvider Services { get; set; }
 
     [Fact]
     public async void CreateDepartmentWithValidData()
@@ -82,13 +78,6 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>, IAs
     {
         
     }
-    
-    public Task InitializeAsync() => Task.CompletedTask;
-
-    public async Task DisposeAsync()
-    {
-        await _resetDatabase(); 
-    }
 
     private async Task<LocationId> CreateLocation()
     {
@@ -110,7 +99,7 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>, IAs
             return locationId; 
         });
     }
-
+    
     private async Task<T> ExecuteHandler<T>(Func<CreateDepartmentHandler, Task<T>> action)
     {
         var scope = Services.CreateAsyncScope();
@@ -118,23 +107,5 @@ public class CreateDepartmentTests : IClassFixture<DirectoryTestWebFactory>, IAs
         var sut = scope.ServiceProvider.GetRequiredService<CreateDepartmentHandler>();
         
         return await action(sut);
-    }
-    
-    private async Task<T> ExecuteInDb<T>(Func<DirectoryServiceDbContext, Task<T>> action)
-    {
-        var scope = Services.CreateAsyncScope();
-        
-        var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
-        
-        return await action(dbContext);
-    }
-    
-    private async Task ExecuteInDb(Func<DirectoryServiceDbContext, Task> action)
-    {
-        var scope = Services.CreateAsyncScope();
-        
-        var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
-        
-        await action(dbContext);
     }
 }
