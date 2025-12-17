@@ -116,9 +116,84 @@ public class CreateDepartmentTests : DirectoryBaseTests
     }
     
     [Fact]
-    public async void CreateDepartWithUnvalidIdentifier()
+    public async void EmptyIdentifier()
     {
+        // Arrange
+        LocationId locationId = await CreateLocation();
         
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "",
+                null,
+                [locationId.Value])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
+    }
+    
+    [Fact]
+    public async void IdentifierLenghtLessThan3()
+    {
+        // Arrange
+        LocationId locationId = await CreateLocation();
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "    1   ",
+                null,
+                [locationId.Value])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
+    }
+    
+    [Fact]
+    public async void IdentifierWithNotLatinLetters()
+    {
+        // Arrange
+        LocationId locationId = await CreateLocation();
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "    Привет мир   ",
+                null,
+                [locationId.Value])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
     }
     
     [Fact]
