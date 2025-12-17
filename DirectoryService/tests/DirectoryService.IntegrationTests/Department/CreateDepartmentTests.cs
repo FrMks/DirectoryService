@@ -197,9 +197,57 @@ public class CreateDepartmentTests : DirectoryBaseTests
     }
     
     [Fact]
-    public async void CreateDepartWithUnvalidLocationsIds()
+    public async void InvalidLocationsIds()
     {
+        // Arrange
+        LocationId locationId = await CreateLocation();
         
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "    hello world   ",
+                null,
+                [LocationId.NewLocationId()])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
+    }
+    
+    [Fact]
+    public async void RepeatedLocationsIds()
+    {
+        // Arrange
+        LocationId locationId = await CreateLocation();
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "Подразделение",
+                "    hello world   ",
+                null,
+                [locationId, locationId])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
     }
 
     private async Task<LocationId> CreateLocation()
