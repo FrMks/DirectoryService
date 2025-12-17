@@ -62,7 +62,7 @@ public class CreateDepartmentTests : DirectoryBaseTests
     }
 
     [Fact]
-    public async void UnvalidEmptyName()
+    public async void EmptyName()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
@@ -74,6 +74,33 @@ public class CreateDepartmentTests : DirectoryBaseTests
         {
             var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
                 "",
+                "podrazdelenie",
+                null,
+                [locationId.Value])); 
+            return sut.Handle(command, cancellationToken);
+        });
+        
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            Assert.NotEmpty(result.Error);
+            Assert.True(result.IsFailure);
+        });
+    }
+    
+    [Fact]
+    public async void NameLenghtLessThan3()
+    {
+        // Arrange
+        LocationId locationId = await CreateLocation();
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler((sut) =>
+        {
+            var command = new CreateDepartmentCommand(new CreateDepartmentRequest(
+                "1",
                 "podrazdelenie",
                 null,
                 [locationId.Value])); 
