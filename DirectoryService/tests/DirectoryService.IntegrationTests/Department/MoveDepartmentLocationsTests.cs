@@ -49,9 +49,7 @@ public class MoveDepartmentLocationsTests : DirectoryBaseTests
             
             departmentLocations.Should().NotBeEmpty();
             result.IsSuccess.Should().BeTrue();
-            // TODO: Вопрос. Я изначально поставил 5, потому что думал, что у меня полностью обновляется и становится 5
-            // в var updateResult = department.UpdateDepartmentLocations(departmentLocations);
-            departmentLocations.Count.Should().Be(6);
+            departmentLocations.Count.Should().Be(5);
         });
     }
 

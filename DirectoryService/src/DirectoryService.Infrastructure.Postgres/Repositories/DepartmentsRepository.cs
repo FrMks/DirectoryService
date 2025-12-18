@@ -85,16 +85,23 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
     
     public async Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken)
     {
-        var department = await GetByIdAsync(departmentId, cancellationToken);
-
-        if (department.IsFailure)
-            return department.Error;
+        var department = await dbContext.Departments
+            .Include(d => d.DepartmentLocations)
+            .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
         
-        if (!department.Value.IsActive)
+        if (department is null)
+        {
+            return Error.NotFound(
+                "department.not.found",
+                $"Department with id: {departmentId} not found.",
+                departmentId.Value).ToErrors();
+        }
+        
+        if (!department.IsActive)
         {
             return Error.Failure(
                 "department.is.not.active",
-                $"Department with id: {department.Value.Id} is not active").ToErrors();
+                $"Department with id: {department.Id} is not active").ToErrors();
         }
 
         return department;
