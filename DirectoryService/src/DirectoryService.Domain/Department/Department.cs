@@ -74,6 +74,8 @@ public sealed class Department
         return Result.Success(department);
     }
 
+    // TODO: Вопрос. Должно ли у меня тут полностью одно заменяться на другое. Сейчас получается,
+    // что у меня добавляются новые departmentLocations 
     public UnitResult<Error> UpdateDepartmentLocations(IEnumerable<DepartmentLocation> departmentLocations)
     {
         var listOfDepartmentLocations = departmentLocations.ToList();
