@@ -85,6 +85,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
     
     public async Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken)
     {
+        // Без Include у меня достается только таблица departments (не происходит join с department_locations
         var department = await dbContext.Departments
             .Include(d => d.DepartmentLocations)
             .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
