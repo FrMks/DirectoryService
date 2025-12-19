@@ -162,29 +162,48 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         });
     }
     
-    // [Fact]
-    // public async void UpdateChildToParent()
-    // {
-    //     // Arrange
-    //     List<Guid> locationsIds = await CreateLocations(5);
-    //     LocationId locationId = LocationId.FromValue(locationsIds[0]);
-    //     // Создали родительский
-    //     Domain.Department.Department department = await CreateDepartment(locationId);
-    //     
-    //     var cancellationToken = CancellationToken.None;
-    //     
-    //     // Act
-    //     var result = await ExecuteHandler(sut =>
-    //     {
-    //         var command = new UpdateParentLevelCommand(
-    //             departmentToMove.Id,
-    //             new UpdateParentLevelRequest(whereDepartmentToMove.Id));
-    //         return sut.Handle(command, cancellationToken);
-    //     });
-    //
-    //     // Assert
-    //
-    // }
+    [Fact]
+    public async void UpdateChildToParent()
+    {
+        // Arrange
+        List<Guid> locationsIds = await CreateLocations(5);
+        LocationId locationId = LocationId.FromValue(locationsIds[0]);
+        Domain.Department.Department parentDepartment = await CreateDepartment(
+            locationId,
+            null,
+            0,
+            "parent",
+            "parent");
+        Domain.Department.Department childDepartment = await CreateDepartment(
+            locationId,
+            parentDepartment.Id,
+            1,
+            "parent.child",
+            "child");
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateParentLevelCommand(
+                childDepartment.Id,
+                new UpdateParentLevelRequest(null));
+            return sut.Handle(command, cancellationToken);
+        });
+    
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            result.IsSuccess.Should().BeTrue();
+
+            var newParent = dbContext.Departments
+                .First(d => d.Id == childDepartment.Id);
+
+            newParent.Depth.Value.Should().Be(0);
+            newParent.Path.Value.Should().Be("child");
+        });
+    }
     
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
