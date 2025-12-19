@@ -14,9 +14,9 @@ using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.IntegrationTests.Department;
 
-public class MoveDepartmentLocationsTests : DirectoryBaseTests
+public class UpdateDepartmentLocationsTests : DirectoryBaseTests
 {
-    public MoveDepartmentLocationsTests(DirectoryTestWebFactory factory)
+    public UpdateDepartmentLocationsTests(DirectoryTestWebFactory factory)
         : base(factory)
     {
     }
@@ -50,6 +50,62 @@ public class MoveDepartmentLocationsTests : DirectoryBaseTests
             departmentLocations.Should().NotBeEmpty();
             result.IsSuccess.Should().BeTrue();
             departmentLocations.Count.Should().Be(5);
+        });
+    }
+
+    [Fact]
+    public async void RepeatingIdsInLocationsIds()
+    {
+        // Arrange
+        List<Guid> locationsIds = await CreateLocations(5);
+        LocationId locationId = LocationId.FromValue(locationsIds[0]);
+        Domain.Department.Department department = await CreateDepartment(locationId);
+        
+        List<Guid> repeatingIds = [locationsIds[0], locationsIds[0]];
+        
+        var cancellationToken = CancellationToken.None;
+
+        // Act
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateDepartmentLocationsCommand(
+                department.Id,
+                new UpdateDepartmentLocationsRequest(repeatingIds));
+            return sut.Handle(command, cancellationToken);
+        });
+
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            result.Error.Should().NotBeNullOrEmpty();
+            result.IsFailure.Should().BeTrue();
+        });
+    }
+
+    [Fact]
+    public async void DepartmentIsNotActive()
+    {
+        // Arrange
+        List<Guid> locationsIds = await CreateLocations(5);
+        LocationId locationId = LocationId.FromValue(locationsIds[0]);
+        Domain.Department.Department department = await CreateNotActiveDepartment(locationId);
+        
+        var cancellationToken = CancellationToken.None;
+
+        // Act
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateDepartmentLocationsCommand(
+                department.Id,
+                new UpdateDepartmentLocationsRequest(locationsIds));
+            return sut.Handle(command, cancellationToken);
+        });
+
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            result.Error.Should().NotBeNullOrEmpty();
+            result.IsFailure.Should().BeTrue();
         });
     }
 
@@ -102,6 +158,37 @@ public class MoveDepartmentLocationsTests : DirectoryBaseTests
                 [departmentLocation],
                 Depth.Create(0).Value,
                 null).Value;
+            
+            dbContext.Departments.Add(department);
+            await dbContext.SaveChangesAsync();
+
+            return department;
+        });
+    }
+
+    private async Task<Domain.Department.Department> CreateNotActiveDepartment(LocationId locationId)
+    {
+        return await ExecuteInDb(async dbContext =>
+        {
+            var departmentId = DepartmentId.NewDepartmentId();
+
+            var departmentLocation = DepartmentLocation.Create(
+                DepartmentLocationId.NewDepartmentId(),
+                departmentId,
+                locationId).Value;
+
+            var department = Domain.Department.Department.Create(
+                departmentId, 
+                Domain.Department.ValueObject.Name.Create("Подразделение").Value,
+                Identifier.Create("podrazdelenie").Value,
+                Path.Create("path").Value,
+                [departmentLocation],
+                Depth.Create(0).Value,
+                null).Value;
+            
+            // TODO: Правильно ли делать рефлексию для тестов?
+            typeof(Domain.Department.Department).GetProperty(nameof(department.IsActive))!
+                .SetValue(department, false);
             
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
