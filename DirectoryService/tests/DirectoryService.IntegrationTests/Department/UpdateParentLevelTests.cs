@@ -232,6 +232,33 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         });
     }
     
+    [Fact]
+    public async void IdFromWhereToWhereIdAreEqueal()
+    {
+        // Arrange
+        List<Guid> locationsIds = await CreateLocations(5);
+        LocationId locationId = LocationId.FromValue(locationsIds[0]);
+        // Создали родительский
+        Domain.Department.Department departmentToMove = await CreateDepartment(locationId);
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateParentLevelCommand(
+                departmentToMove.Id,
+                new UpdateParentLevelRequest(departmentToMove.Id));
+            return sut.Handle(command, cancellationToken);
+        });
+
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            result.IsFailure.Should().BeTrue();
+        });
+    }
+    
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
         var tempLocationsList = new List<Location>();
@@ -286,6 +313,37 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 [departmentLocation],
                 Depth.Create(depth).Value,
                 parentId).Value;
+            
+            dbContext.Departments.Add(department);
+            await dbContext.SaveChangesAsync();
+
+            return department;
+        });
+    }
+    
+    private async Task<Domain.Department.Department> CreateNotActiveDepartment(LocationId locationId)
+    {
+        return await ExecuteInDb(async dbContext =>
+        {
+            var departmentId = DepartmentId.NewDepartmentId();
+
+            var departmentLocation = DepartmentLocation.Create(
+                DepartmentLocationId.NewDepartmentId(),
+                departmentId,
+                locationId).Value;
+
+            var department = Domain.Department.Department.Create(
+                departmentId, 
+                Domain.Department.ValueObject.Name.Create("Подразделение").Value,
+                Identifier.Create("podrazdelenie").Value,
+                Path.Create("path").Value,
+                [departmentLocation],
+                Depth.Create(0).Value,
+                null).Value;
+            
+            // TODO: Правильно ли делать рефлексию для тестов?
+            typeof(Domain.Department.Department).GetProperty(nameof(department.IsActive))!
+                .SetValue(department, false);
             
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
