@@ -259,6 +259,33 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         });
     }
     
+    [Fact]
+    public async void DepartmentFromWhereIsNotActive()
+    {
+        // Arrange
+        List<Guid> locationsIds = await CreateLocations(5);
+        LocationId locationId = LocationId.FromValue(locationsIds[0]);
+        // Создали родительский
+        Domain.Department.Department departmentToMove = await CreateNotActiveDepartment(locationId);
+        
+        var cancellationToken = CancellationToken.None;
+        
+        // Act
+        var result = await ExecuteHandler(sut =>
+        {
+            var command = new UpdateParentLevelCommand(
+                departmentToMove.Id,
+                new UpdateParentLevelRequest(null));
+            return sut.Handle(command, cancellationToken);
+        });
+
+        // Assert
+        await ExecuteInDb(async dbContext =>
+        {
+            result.IsFailure.Should().BeTrue();
+        });
+    }
+    
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
         var tempLocationsList = new List<Location>();
