@@ -2,10 +2,8 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
-using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
@@ -117,7 +115,7 @@ public class CreateDepartmentHandler(
         
         // Создание department location
         var departmentLocations =
-            command.DepartmentRequest.LocationsIds.Select(li => DepartmentLocation.Create(
+            command.DepartmentRequest.LocationsIds.Select(li => Domain.DepartmentLocation.Create(
                 DepartmentLocationId.FromValue(Guid.NewGuid()),
                 departmentId,
                 LocationId.FromValue(li)).Value);

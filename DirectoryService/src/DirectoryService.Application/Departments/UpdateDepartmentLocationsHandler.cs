@@ -72,7 +72,7 @@ public class UpdateDepartmentLocationsHandler(
         // Создаем новый departmentLocations
         var departmentLocations =
             command.DepartmentLocationsRequest.LocationsIds.Select(
-                id => DepartmentLocation.Create(
+                id => Domain.DepartmentLocation.Create(
                     DepartmentLocationId.NewDepartmentId(),
                     departmentId,
                     LocationId.FromValue(id)).Value);
