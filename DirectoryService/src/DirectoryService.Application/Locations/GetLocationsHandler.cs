@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations.GetLocations;
@@ -10,6 +11,7 @@ namespace DirectoryService.Application.Locations;
 
 public class GetLocationsHandler(
     ILocationsRepository locationsRepository,
+    IDepartmentLocationRepository departmentLocationRepository,
     IValidator<GetLocationsRequest> validator,
     ILogger<CreateLocationHandler> logger)
 {
@@ -25,6 +27,13 @@ public class GetLocationsHandler(
             }
 
             return validationResult.ToList();
+        }
+
+        if (locationsCommand.LocationsRequest.DepartmentIds.Count != 0)
+        {
+            var locationIds = departmentLocationRepository.GetLocationIdsAsync(
+                locationsCommand.LocationsRequest.DepartmentIds,
+                cancellationToken);
         }
         
         return Result.Success<GetLocationsResponse, Errors>(new GetLocationsResponse());

@@ -12,7 +12,8 @@ public class DepartmentLocationRepository(
     ILogger<DepartmentLocationRepository> logger)
     : IDepartmentLocationRepository
 {
-    public async Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(List<Guid> departmentIds)
+    public async Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(List<Guid?> departmentIds,
+        CancellationToken cancellationToken)
     {
         if (departmentIds.Any() == false)
         {

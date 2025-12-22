@@ -6,5 +6,6 @@ namespace DirectoryService.Application.DepartmentLocation.Interfaces;
 
 public interface IDepartmentLocationRepository
 {
-    public Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(List<Guid> departmentIds);
+    public Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(List<Guid?> departmentIds,
+        CancellationToken cancellationToken);
 }
