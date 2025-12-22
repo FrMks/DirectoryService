@@ -1,4 +1,5 @@
 using DirectoryService.Application.Database;
+using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;

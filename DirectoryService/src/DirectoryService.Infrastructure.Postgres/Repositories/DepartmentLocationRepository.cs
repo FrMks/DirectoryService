@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Locations.Interfaces;
+﻿using DirectoryService.Application.DepartmentLocation.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
