@@ -30,7 +30,8 @@ public class DepartmentLocationRepository(
         if (departmentLocations.Count != departmentIds.Count)
         {
             logger.LogError("DepartmentIds are not the same number of department locations");
-            return Error.Failure("some.departmentIds.dont.have.in.db",
+            return Error.Failure(
+                "some.departmentIds.dont.have.in.db",
                 "some departmentIds dont have in DepartmentLocations db");
         }
         
