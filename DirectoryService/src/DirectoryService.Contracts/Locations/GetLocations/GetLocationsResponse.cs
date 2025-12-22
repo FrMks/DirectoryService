@@ -10,7 +10,7 @@ public record GetLocationsResponse
     
     public string City { get; init; } = null!;
     
-    public string State { get; init; } = null!;
+    public string Country { get; init; } = null!;
 
     public string Timezone { get; init; } = null!;
 

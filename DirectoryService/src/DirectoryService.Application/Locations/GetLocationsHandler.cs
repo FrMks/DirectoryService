@@ -15,7 +15,7 @@ public class GetLocationsHandler(
     IValidator<GetLocationsRequest> validator,
     ILogger<CreateLocationHandler> logger)
 {
-    public async Task<Result<GetLocationsResponse, Errors>> Handle(GetLocationsCommand locationsCommand, CancellationToken cancellationToken)
+    public async Task<Result<List<GetLocationsResponse>, Errors>> Handle(GetLocationsCommand locationsCommand, CancellationToken cancellationToken)
     {
         // Валидация DTO
         var validationResult = await validator.ValidateAsync(locationsCommand.LocationsRequest, cancellationToken);
@@ -31,11 +31,41 @@ public class GetLocationsHandler(
 
         if (locationsCommand.LocationsRequest.DepartmentIds.Count != 0)
         {
-            var locationIds = departmentLocationRepository.GetLocationIdsAsync(
+            var locationIds = await departmentLocationRepository.GetLocationIdsAsync(
                 locationsCommand.LocationsRequest.DepartmentIds,
                 cancellationToken);
+
+            if (locationIds.IsFailure)
+                return locationIds.Error.ToErrors();
+
+            var guidLocationIds = locationIds.Value
+                .Select(d => d.Value)
+                .ToList();
+            
+            var locations = await locationsRepository.GetLocationsAsync(
+                guidLocationIds,
+                cancellationToken);
+            
+            if (locations.IsFailure)
+                return locations.Error.ToErrors();
+
+            var mappedLocations = locations.Value
+                .Select(l => new GetLocationsResponse
+                {
+                    Id = l.Id.Value,
+                    Name = l.Name.Value,
+                    Street = l.Address.Street,
+                    City = l.Address.City,
+                    Country = l.Address.Country,
+                    Timezone = l.Timezone.Value,
+                    IsActive = l.IsActive,
+                    CreatedAt = l.CreatedAt,
+                    UpdatedAt = l.UpdatedAt
+                }).ToList();
+            
+            return mappedLocations;
         }
         
-        return Result.Success<GetLocationsResponse, Errors>(new GetLocationsResponse());
+        return Result.Success<List<GetLocationsResponse>, Errors>(new List<GetLocationsResponse>());
     }
 }
