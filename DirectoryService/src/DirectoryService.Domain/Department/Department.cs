@@ -92,6 +92,11 @@ public sealed class Department
         return UnitResult.Success<Error>();
     }
 
+    public void UpdateIsActive(bool isActive)
+    {
+        IsActive = isActive;
+    }
+
     public static Result<Department, Error> CreateParent(
         Name name,
         Identifier identifier,

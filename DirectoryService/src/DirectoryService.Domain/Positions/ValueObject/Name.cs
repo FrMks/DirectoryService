@@ -3,9 +3,6 @@ using Shared;
 
 namespace DirectoryService.Domain.Positions.ValueObject;
 
-// TODO: написано сделать уникальным, но на сколько я понимаю,
-// то уникальность проверяется по сравнению с чем-то
-// (хотя бы есть массив, в котором лежат другие имена позиций)
 public record Name
 {
     private Name(string value)

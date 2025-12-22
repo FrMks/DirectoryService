@@ -368,9 +368,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 Depth.Create(0).Value,
                 null).Value;
             
-            // TODO: Правильно ли делать рефлексию для тестов?
-            typeof(Domain.Department.Department).GetProperty(nameof(department.IsActive))!
-                .SetValue(department, false);
+            department.UpdateIsActive(false);
             
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
