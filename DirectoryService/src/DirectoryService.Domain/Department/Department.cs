@@ -73,7 +73,7 @@ public sealed class Department
 
         return Result.Success(department);
     }
-
+    
     public UnitResult<Error> UpdateDepartmentLocations(IEnumerable<DepartmentLocation> departmentLocations)
     {
         var listOfDepartmentLocations = departmentLocations.ToList();
@@ -90,6 +90,11 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
 
         return UnitResult.Success<Error>();
+    }
+
+    public void UpdateIsActive(bool isActive)
+    {
+        IsActive = isActive;
     }
 
     public static Result<Department, Error> CreateParent(
