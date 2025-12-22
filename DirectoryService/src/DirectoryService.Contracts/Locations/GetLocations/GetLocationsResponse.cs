@@ -6,7 +6,11 @@ public record GetLocationsResponse
 
     public string Name { get; init; } = null!;
 
-    public string Address { get; init; } = null!;
+    public string Street { get; init; } = null!;
+    
+    public string City { get; init; } = null!;
+    
+    public string State { get; init; } = null!;
 
     public string Timezone { get; init; } = null!;
 
