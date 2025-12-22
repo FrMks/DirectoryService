@@ -35,6 +35,13 @@ public class Locations : ControllerBase
         [FromBody] GetLocationsRequest request,
         CancellationToken cancellationToken)
     {
+        GetLocationsCommand locationsCommand = new(request);
         
+        var result = await handler.Handle(locationsCommand, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
     }
 }
