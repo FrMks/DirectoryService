@@ -30,6 +30,7 @@ builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionsRepository>();
+builder.Services.AddScoped<IDepartmentLocationRepository, DepartmentLocationRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 var app = builder.Build();
