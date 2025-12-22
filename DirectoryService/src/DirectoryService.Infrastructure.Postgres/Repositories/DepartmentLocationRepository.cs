@@ -25,7 +25,7 @@ public class DepartmentLocationRepository(
 
         var departmentLocations = await dbContext.DepartmentLocations
             .Where(d => departmentIds.Contains(d.DepartmentId))
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         if (departmentLocations.Count != departmentIds.Count)
         {
