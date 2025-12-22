@@ -29,7 +29,6 @@ public class Locations : ControllerBase
     }
 
     [HttpGet]
-    [Route("api/locations")]
     public async Task<EndpointResult<Guid>> Get(
         [FromServices] ICommandHandler<Guid, GetLocationsCommand> handler,
         [FromBody] GetLocationsRequest request,
