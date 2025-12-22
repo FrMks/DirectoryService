@@ -59,4 +59,31 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         
         return true;
     }
+
+    public async Task<Result<List<Location>, Error>> GetLocationsAsync(
+        List<Guid> locationIds,
+        CancellationToken cancellationToken)
+    {
+        if (locationIds.Any() == false)
+        {
+            logger.LogError("LocationIds are empty when searching locations by location ids");
+            return Error.Failure(
+                "locationIds.are.empty",
+                "LocationIds are empty when searching locations by location ids");
+        }
+
+        var locations = await dbContext.Locations
+            .Where(l => locationIds.Contains(l.Id))
+            .ToListAsync(cancellationToken);
+
+        if (locations.Count != locationIds.Count)
+        {
+            logger.LogError("LocationIds are not the same number of locations");
+            return Error.Failure(
+                "some.locationIds.dont.have.in.db",
+                "some locationIds dont have in Locations db");
+        }
+
+        return locations;
+    }
 }

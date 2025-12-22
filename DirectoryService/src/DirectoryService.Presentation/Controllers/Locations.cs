@@ -1,9 +1,8 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+﻿using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
+using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
-using Shared;
 using Shared.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
@@ -21,6 +20,22 @@ public class Locations : ControllerBase
         CreateLocationCommand locationCommand = new(request);
 
         var result = await handler.Handle(locationCommand, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
+    }
+
+    [HttpGet]
+    public async Task<EndpointResult<Guid>> Get(
+        [FromServices] ICommandHandler<Guid, GetLocationsCommand> handler,
+        [FromBody] GetLocationsRequest request,
+        CancellationToken cancellationToken)
+    {
+        GetLocationsCommand locationsCommand = new(request);
+        
+        var result = await handler.Handle(locationsCommand, cancellationToken);
 
         if (result.IsFailure)
             return result.ConvertFailure<Guid>();

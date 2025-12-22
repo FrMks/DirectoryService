@@ -1,4 +1,5 @@
 using DirectoryService.Application.Database;
+using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
@@ -30,6 +31,7 @@ builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionsRepository>();
+builder.Services.AddScoped<IDepartmentLocationRepository, DepartmentLocationRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 var app = builder.Build();
