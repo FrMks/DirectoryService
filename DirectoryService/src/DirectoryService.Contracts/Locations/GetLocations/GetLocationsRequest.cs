@@ -1,4 +1,4 @@
-﻿namespace DirectoryService.Contracts.Locations;
+﻿namespace DirectoryService.Contracts.Locations.GetLocations;
 
 public record GetLocationsRequest(
     List<Guid?> DepartmentIds = null, // Если список указан, возвращаются только локации связанные с этим подразделением 
