@@ -24,6 +24,7 @@ public static class DependencyInjection
             .WithScopedLifetime());
 
         services.AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
+        services.AddTransient<IValidator<GetLocationsRequest>, GetLocationsDtoValidator>();
         
         services.AddTransient<IValidator<CreateDepartmentRequest>, CreateDepartmentDtoValidator>();
         services.AddTransient<IValidator<UpdateDepartmentLocationsRequest>, UpdateDepartmentLocationsDtoValidator>();
