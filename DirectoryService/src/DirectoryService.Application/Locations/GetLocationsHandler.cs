@@ -32,7 +32,7 @@ public class GetLocationsHandler(
             return validationResult.ToList();
         }
 
-        List<GetLocationsResponse> mappedLocations;
+        List<GetLocationsResponse> mappedLocations = new();
         
         if (locationsCommand.LocationsRequest.DepartmentIds.Count != 0)
         {
@@ -41,6 +41,18 @@ public class GetLocationsHandler(
                 locationsCommand,
                 cancellationToken);
 
+            if (mappedLocationsResult.IsFailure)
+                return mappedLocationsResult.Error.ToErrors();
+            
+            mappedLocations = mappedLocationsResult.Value;
+        }
+
+        if (locationsCommand.LocationsRequest.Search != null)
+        {
+            var mappedLocationsResult = mappedLocations.Any()
+                ? FilterBySearchInMappedLocations(mappedLocations, locationsCommand)
+                : await FilterBySearchInDatabase(locationsRepository, locationsCommand, cancellationToken);
+            
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
             
@@ -86,5 +98,52 @@ public class GetLocationsHandler(
                 CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt
             }).ToList());
+    }
+
+    private Result<List<GetLocationsResponse>, Error> FilterBySearchInMappedLocations(
+        List<GetLocationsResponse> locations,
+        GetLocationsCommand locationsCommand)
+    {
+        var mappedLocations = locations
+            .Where(lr => lr.Name == locationsCommand.LocationsRequest.Search)
+            .ToList();
+
+        if (mappedLocations is null)
+            return Error.Failure(
+                "location.dont.have.in.list",
+                $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");
+        
+        return mappedLocations;
+    }
+    
+    private async Task<Result<List<GetLocationsResponse>, Error>> FilterBySearchInDatabase(
+        ILocationsRepository locationsRepository,
+        GetLocationsCommand locationsCommand,
+        CancellationToken cancellationToken)
+    {
+        var locationResult = await locationsRepository.GetLocationByName(
+            locationsCommand.LocationsRequest.Search,
+            cancellationToken);
+        
+        if (locationResult.IsFailure)
+            return locationResult.Error;
+        
+        var locationResponse = new GetLocationsResponse
+        {
+            Id = locationResult.Value.Id.Value,
+            Name = locationResult.Value.Name.Value,
+            Street = locationResult.Value.Address.Street,
+            City = locationResult.Value.Address.City,
+            Country = locationResult.Value.Address.Country,
+            Timezone = locationResult.Value.Timezone.Value,
+            IsActive = locationResult.Value.IsActive,
+            CreatedAt = locationResult.Value.CreatedAt,
+            UpdatedAt = locationResult.Value.UpdatedAt
+        };
+        
+        var listLocationResponse = new List<GetLocationsResponse>();
+        listLocationResponse.Add(locationResponse);
+        
+        return Result.Success<List<GetLocationsResponse>, Error>(listLocationResponse);
     }
 }
