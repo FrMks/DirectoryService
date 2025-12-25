@@ -58,6 +58,18 @@ public class GetLocationsHandler(
             
             mappedLocations = mappedLocationsResult.Value;
         }
+
+        if (locationsCommand.LocationsRequest.IsActive != null)
+        {
+            var mappedLocationsResult = mappedLocations.Any()
+                ? FilterByIsActiveInMappedLocations(mappedLocations, locationsCommand)
+                : await FilterByIsActiveInDatabase(locationsRepository, locationsCommand, cancellationToken);
+            
+            if (mappedLocationsResult.IsFailure)
+                return mappedLocationsResult.Error.ToErrors();
+            
+            mappedLocations = mappedLocationsResult.Value;
+        }
         
         return Result.Success<List<GetLocationsResponse>, Errors>(new List<GetLocationsResponse>());
     }
@@ -116,7 +128,7 @@ public class GetLocationsHandler(
                 $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");   
         }
         
-        return mappedLocations;
+        return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
     }
     
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterBySearchInDatabase(
@@ -148,5 +160,53 @@ public class GetLocationsHandler(
         listLocationResponse.Add(locationResponse);
         
         return Result.Success<List<GetLocationsResponse>, Error>(listLocationResponse);
+    }
+
+    private Result<List<GetLocationsResponse>, Error> FilterByIsActiveInMappedLocations(
+        List<GetLocationsResponse> locations,
+        GetLocationsCommand locationsCommand)
+    {
+        var mappedLocations = locations
+            .Where(lr => lr.IsActive == locationsCommand.LocationsRequest.IsActive)
+            .ToList();
+
+        if (mappedLocations.Count == 0)
+        {
+            logger.LogError(
+                "Location with isActive: {isActive} not found in mapped locations. And finish list have not elements",
+                locationsCommand.LocationsRequest.IsActive);
+            return Error.Failure(
+                "location.dont.have.in.list",
+                $"Location with isActive: {locationsCommand.LocationsRequest.IsActive} not found in mapped locations");
+        }
+        
+        return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
+    }
+    
+    private async Task<Result<List<GetLocationsResponse>, Error>> FilterByIsActiveInDatabase(
+        ILocationsRepository locationsRepository,
+        GetLocationsCommand locationsCommand,
+        CancellationToken cancellationToken)
+    {
+        var locationsResult = await locationsRepository.GetLocationsByIsActive(
+            (bool)locationsCommand.LocationsRequest.IsActive,
+            cancellationToken);
+        
+        if (locationsResult.IsFailure)
+            return locationsResult.Error;
+        
+        return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
+            .Select(l => new GetLocationsResponse
+            {
+                Id = l.Id.Value,
+                Name = l.Name.Value,
+                Street = l.Address.Street,
+                City = l.Address.City,
+                Country = l.Address.Country,
+                Timezone = l.Timezone.Value,
+                IsActive = l.IsActive,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt
+            }).ToList());
     }
 }

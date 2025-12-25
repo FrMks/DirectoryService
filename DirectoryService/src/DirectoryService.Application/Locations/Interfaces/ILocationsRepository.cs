@@ -19,4 +19,8 @@ public interface ILocationsRepository
     Task<Result<List<Location>, Error>> GetLocationsAsync(List<Guid> locationId, CancellationToken cancellationToken);
     
     Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken);
+    
+    Task<Result<List<Location>, Error>> GetLocationsByIsActive(
+        bool isActive,
+        CancellationToken cancellationToken);
 }

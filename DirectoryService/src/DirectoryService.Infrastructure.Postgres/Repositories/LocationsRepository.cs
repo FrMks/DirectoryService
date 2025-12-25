@@ -97,11 +97,32 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         if (location is null)
         {
             logger.LogError("Location with name {name} not found in database.", name);
-            return Error.Failure(
+            return Error.NotFound(
                 "location.dont.have.in.db",
-                $"Location with name {name} not found in database");
+                $"Location with name {name} not found in database",
+                null);
         }
         
         return location;
+    }
+
+    public async Task<Result<List<Location>, Error>> GetLocationsByIsActive(
+        bool isActive,
+        CancellationToken cancellationToken)
+    {
+        var locations = await dbContext.Locations
+            .Where(l => l.IsActive == isActive)
+            .ToListAsync(cancellationToken);
+
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by is active");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by is active",
+                null);
+        }
+
+        return locations;
     }
 }
