@@ -17,4 +17,6 @@ public interface ILocationsRepository
     Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken);
     
     Task<Result<List<Location>, Error>> GetLocationsAsync(List<Guid> locationId, CancellationToken cancellationToken);
+    
+    Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken);
 }

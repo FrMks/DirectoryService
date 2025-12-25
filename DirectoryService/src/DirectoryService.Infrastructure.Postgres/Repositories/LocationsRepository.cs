@@ -86,4 +86,22 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
 
         return locations;
     }
+
+    public async Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken)
+    {
+        var location = await dbContext.Locations
+            .FirstOrDefaultAsync(
+                l => EF.Functions.ILike(l.Name.Value, $"%{name}%"),
+                cancellationToken);
+
+        if (location is null)
+        {
+            logger.LogError("Location with name {name} not found in database.", name);
+            return Error.Failure(
+                "location.dont.have.in.db",
+                $"Location with name {name} not found in database");
+        }
+        
+        return location;
+    }
 }
