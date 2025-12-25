@@ -73,7 +73,7 @@ public class GetLocationsHandler(
         if (locations.IsFailure)
             return locations.Error;
 
-        return locations.Value
+        return Result.Success<List<GetLocationsResponse>, Error>(locations.Value
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
@@ -85,6 +85,6 @@ public class GetLocationsHandler(
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt
-            }).ToList();
+            }).ToList());
     }
 }
