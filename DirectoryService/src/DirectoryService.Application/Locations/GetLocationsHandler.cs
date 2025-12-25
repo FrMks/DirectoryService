@@ -109,9 +109,12 @@ public class GetLocationsHandler(
             .ToList();
 
         if (mappedLocations is null)
+        {
+            logger.LogError("Location with name {name} not found in mapped locations", locationsCommand.LocationsRequest.Search);
             return Error.Failure(
                 "location.dont.have.in.list",
-                $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");
+                $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");   
+        }
         
         return mappedLocations;
     }
