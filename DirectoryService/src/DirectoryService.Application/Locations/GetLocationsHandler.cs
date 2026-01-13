@@ -70,8 +70,21 @@ public class GetLocationsHandler(
             
             mappedLocations = mappedLocationsResult.Value;
         }
-        
-        return Result.Success<List<GetLocationsResponse>, Errors>(new List<GetLocationsResponse>());
+
+        if (locationsCommand.LocationsRequest.PageSize != null &&
+            locationsCommand.LocationsRequest.Page != null)
+        {
+            var mappedLocationsRequest = mappedLocations.Any()
+                ? FilterByPaginationInMappedLocations(mappedLocations, locationsCommand)
+                : await FilterByPaginationInDatabase(locationsRepository, locationsCommand, cancellationToken);
+            
+            if (mappedLocationsRequest.IsFailure)
+                return mappedLocationsRequest.Error.ToErrors();
+            
+            mappedLocations = mappedLocationsRequest.Value;
+        }
+
+        return mappedLocations;
     }
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByDepartmentIds(
@@ -190,6 +203,69 @@ public class GetLocationsHandler(
     {
         var locationsResult = await locationsRepository.GetLocationsByIsActive(
             (bool)locationsCommand.LocationsRequest.IsActive,
+            cancellationToken);
+        
+        if (locationsResult.IsFailure)
+            return locationsResult.Error;
+        
+        return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
+            .Select(l => new GetLocationsResponse
+            {
+                Id = l.Id.Value,
+                Name = l.Name.Value,
+                Street = l.Address.Street,
+                City = l.Address.City,
+                Country = l.Address.Country,
+                Timezone = l.Timezone.Value,
+                IsActive = l.IsActive,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt
+            }).ToList());
+    }
+    
+    private Result<List<GetLocationsResponse>, Error> FilterByPaginationInMappedLocations(
+        List<GetLocationsResponse> locations,
+        GetLocationsCommand locationsCommand)
+    {
+        if (locationsCommand.LocationsRequest.PageSize < 1)
+        {
+            logger.LogError("Request with page size < 1 cannot be executed. Page size must be >= 1");
+        }
+        
+        if (locationsCommand.LocationsRequest.Page < 1)
+        {
+            logger.LogError("Request with page number < 1 cannot be executed. Page number must be >= 1");
+        }
+        
+        int skipCount = (int)((locationsCommand.LocationsRequest.PageSize - 1) * locationsCommand.LocationsRequest.PageSize);
+        var mappedLocations = locations
+            .Skip(skipCount)
+            .Take((int)locationsCommand.LocationsRequest.PageSize)
+            .ToList();
+
+        if (mappedLocations.Count == 0)
+        {
+            logger.LogError(
+                "Location with page size {pageSize} and page count {pageCount} not found in mapped locations." +
+                " And finish list have not elements",
+                locationsCommand.LocationsRequest.PageSize, locationsCommand.LocationsRequest.Page);
+            return Error.Failure(
+                "location.dont.have.in.list",
+                $"Location with page size {locationsCommand.LocationsRequest.PageSize} and" +
+                $" page count {locationsCommand.LocationsRequest.Page} not found in mapped locations");
+        }
+        
+        return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
+    }
+    
+    private async Task<Result<List<GetLocationsResponse>, Error>> FilterByPaginationInDatabase(
+        ILocationsRepository locationsRepository,
+        GetLocationsCommand locationsCommand,
+        CancellationToken cancellationToken)
+    {
+        var locationsResult = await locationsRepository.GetLocationsByPagination(
+            (int)locationsCommand.LocationsRequest.Page,
+            (int)locationsCommand.LocationsRequest.PageSize,
             cancellationToken);
         
         if (locationsResult.IsFailure)

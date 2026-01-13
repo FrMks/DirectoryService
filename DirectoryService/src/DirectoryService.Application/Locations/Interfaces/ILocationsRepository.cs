@@ -23,4 +23,9 @@ public interface ILocationsRepository
     Task<Result<List<Location>, Error>> GetLocationsByIsActive(
         bool isActive,
         CancellationToken cancellationToken);
+
+    Task<Result<List<Location>, Error>> GetLocationsByPagination(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken);
 }
