@@ -17,11 +17,11 @@ public class GetLocationsHandler(
     ILogger<CreateLocationHandler> logger)
 {
     public async Task<Result<List<GetLocationsResponse>, Errors>> Handle(
-        GetLocationsCommand locationsCommand,
+        GetLocationsQuery locationsQuery,
         CancellationToken cancellationToken)
     {
         // Валидация DTO
-        var validationResult = await validator.ValidateAsync(locationsCommand.LocationsRequest, cancellationToken);
+        var validationResult = await validator.ValidateAsync(locationsQuery.LocationsRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
             foreach (var error in validationResult.ToList())
@@ -33,54 +33,54 @@ public class GetLocationsHandler(
         }
 
         List<GetLocationsResponse> mappedLocations = new();
-        
-        if (locationsCommand.LocationsRequest.DepartmentIds.Count != 0)
+
+        if (locationsQuery.LocationsRequest.DepartmentIds.Count != 0)
         {
             var mappedLocationsResult = await FilterByDepartmentIds(
                 departmentLocationRepository,
-                locationsCommand,
+                locationsQuery,
                 cancellationToken);
 
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
-            
+
             mappedLocations = mappedLocationsResult.Value;
         }
 
-        if (locationsCommand.LocationsRequest.Search != null)
+        if (locationsQuery.LocationsRequest.Search != null)
         {
             var mappedLocationsResult = mappedLocations.Any()
-                ? FilterBySearchInMappedLocations(mappedLocations, locationsCommand)
-                : await FilterBySearchInDatabase(locationsRepository, locationsCommand, cancellationToken);
-            
+                ? FilterBySearchInMappedLocations(mappedLocations, locationsQuery)
+                : await FilterBySearchInDatabase(locationsRepository, locationsQuery, cancellationToken);
+
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
-            
+
             mappedLocations = mappedLocationsResult.Value;
         }
 
-        if (locationsCommand.LocationsRequest.IsActive != null)
+        if (locationsQuery.LocationsRequest.IsActive != null)
         {
             var mappedLocationsResult = mappedLocations.Any()
-                ? FilterByIsActiveInMappedLocations(mappedLocations, locationsCommand)
-                : await FilterByIsActiveInDatabase(locationsRepository, locationsCommand, cancellationToken);
-            
+                ? FilterByIsActiveInMappedLocations(mappedLocations, locationsQuery)
+                : await FilterByIsActiveInDatabase(locationsRepository, locationsQuery, cancellationToken);
+
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
-            
+
             mappedLocations = mappedLocationsResult.Value;
         }
 
-        if (locationsCommand.LocationsRequest.PageSize != null &&
-            locationsCommand.LocationsRequest.Page != null)
+        if (locationsQuery.LocationsRequest.PageSize != null &&
+            locationsQuery.LocationsRequest.Page != null)
         {
             var mappedLocationsRequest = mappedLocations.Any()
-                ? FilterByPaginationInMappedLocations(mappedLocations, locationsCommand)
-                : await FilterByPaginationInDatabase(locationsRepository, locationsCommand, cancellationToken);
-            
+                ? FilterByPaginationInMappedLocations(mappedLocations, locationsQuery)
+                : await FilterByPaginationInDatabase(locationsRepository, locationsQuery, cancellationToken);
+
             if (mappedLocationsRequest.IsFailure)
                 return mappedLocationsRequest.Error.ToErrors();
-            
+
             mappedLocations = mappedLocationsRequest.Value;
         }
 
@@ -89,7 +89,7 @@ public class GetLocationsHandler(
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByDepartmentIds(
         IDepartmentLocationRepository departmentLocationRepository,
-        GetLocationsCommand locationsCommand,
+        GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
         var locationIds = await departmentLocationRepository.GetLocationIdsAsync(
@@ -102,11 +102,11 @@ public class GetLocationsHandler(
         var guidLocationIds = locationIds.Value
             .Select(d => d.Value)
             .ToList();
-            
+
         var locations = await locationsRepository.GetLocationsAsync(
             guidLocationIds,
             cancellationToken);
-            
+
         if (locations.IsFailure)
             return locations.Error;
 
@@ -127,7 +127,7 @@ public class GetLocationsHandler(
 
     private Result<List<GetLocationsResponse>, Error> FilterBySearchInMappedLocations(
         List<GetLocationsResponse> locations,
-        GetLocationsCommand locationsCommand)
+        GetLocationsQuery locationsCommand)
     {
         var mappedLocations = locations
             .Where(lr => lr.Name == locationsCommand.LocationsRequest.Search)
@@ -138,24 +138,24 @@ public class GetLocationsHandler(
             logger.LogError("Location with name {name} not found in mapped locations", locationsCommand.LocationsRequest.Search);
             return Error.Failure(
                 "location.dont.have.in.list",
-                $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");   
+                $"Location with name {locationsCommand.LocationsRequest.Search} not found in mapped locations");
         }
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
     }
-    
+
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterBySearchInDatabase(
         ILocationsRepository locationsRepository,
-        GetLocationsCommand locationsCommand,
+        GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
         var locationResult = await locationsRepository.GetLocationByName(
             locationsCommand.LocationsRequest.Search,
             cancellationToken);
-        
+
         if (locationResult.IsFailure)
             return locationResult.Error;
-        
+
         var locationResponse = new GetLocationsResponse
         {
             Id = locationResult.Value.Id.Value,
@@ -168,16 +168,16 @@ public class GetLocationsHandler(
             CreatedAt = locationResult.Value.CreatedAt,
             UpdatedAt = locationResult.Value.UpdatedAt
         };
-        
+
         var listLocationResponse = new List<GetLocationsResponse>();
         listLocationResponse.Add(locationResponse);
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(listLocationResponse);
     }
 
     private Result<List<GetLocationsResponse>, Error> FilterByIsActiveInMappedLocations(
         List<GetLocationsResponse> locations,
-        GetLocationsCommand locationsCommand)
+        GetLocationsQuery locationsCommand)
     {
         var mappedLocations = locations
             .Where(lr => lr.IsActive == locationsCommand.LocationsRequest.IsActive)
@@ -192,22 +192,22 @@ public class GetLocationsHandler(
                 "location.dont.have.in.list",
                 $"Location with isActive: {locationsCommand.LocationsRequest.IsActive} not found in mapped locations");
         }
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
     }
-    
+
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByIsActiveInDatabase(
         ILocationsRepository locationsRepository,
-        GetLocationsCommand locationsCommand,
+        GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
         var locationsResult = await locationsRepository.GetLocationsByIsActive(
             (bool)locationsCommand.LocationsRequest.IsActive,
             cancellationToken);
-        
+
         if (locationsResult.IsFailure)
             return locationsResult.Error;
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
             .Select(l => new GetLocationsResponse
             {
@@ -222,21 +222,21 @@ public class GetLocationsHandler(
                 UpdatedAt = l.UpdatedAt
             }).ToList());
     }
-    
+
     private Result<List<GetLocationsResponse>, Error> FilterByPaginationInMappedLocations(
         List<GetLocationsResponse> locations,
-        GetLocationsCommand locationsCommand)
+        GetLocationsQuery locationsCommand)
     {
         if (locationsCommand.LocationsRequest.PageSize < 1)
         {
             logger.LogError("Request with page size < 1 cannot be executed. Page size must be >= 1");
         }
-        
+
         if (locationsCommand.LocationsRequest.Page < 1)
         {
             logger.LogError("Request with page number < 1 cannot be executed. Page number must be >= 1");
         }
-        
+
         int skipCount = (int)((locationsCommand.LocationsRequest.PageSize - 1) * locationsCommand.LocationsRequest.PageSize);
         var mappedLocations = locations
             .Skip(skipCount)
@@ -254,23 +254,23 @@ public class GetLocationsHandler(
                 $"Location with page size {locationsCommand.LocationsRequest.PageSize} and" +
                 $" page count {locationsCommand.LocationsRequest.Page} not found in mapped locations");
         }
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(mappedLocations);
     }
-    
+
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByPaginationInDatabase(
         ILocationsRepository locationsRepository,
-        GetLocationsCommand locationsCommand,
+        GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
         var locationsResult = await locationsRepository.GetLocationsByPagination(
             (int)locationsCommand.LocationsRequest.Page,
             (int)locationsCommand.LocationsRequest.PageSize,
             cancellationToken);
-        
+
         if (locationsResult.IsFailure)
             return locationsResult.Error;
-        
+
         return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
             .Select(l => new GetLocationsResponse
             {

@@ -29,12 +29,12 @@ public class Locations : ControllerBase
 
     [HttpGet]
     public async Task<EndpointResult<Guid>> Get(
-        [FromServices] ICommandHandler<Guid, GetLocationsCommand> handler,
+        [FromServices] ICommandHandler<Guid, GetLocationsQuery> handler,
         [FromBody] GetLocationsRequest request,
         CancellationToken cancellationToken)
     {
-        GetLocationsCommand locationsCommand = new(request);
-        
+        GetLocationsQuery locationsCommand = new(request);
+
         var result = await handler.Handle(locationsCommand, cancellationToken);
 
         if (result.IsFailure)
