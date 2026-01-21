@@ -1,5 +1,5 @@
-﻿using System.Net;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
@@ -11,6 +11,7 @@ using Shared;
 namespace DirectoryService.Application.Locations;
 
 public class GetLocationsHandler(
+    IReadDbContext readDbContext,
     ILocationsRepository locationsRepository,
     IDepartmentLocationRepository departmentLocationRepository,
     IValidator<GetLocationsRequest> validator,
@@ -51,7 +52,7 @@ public class GetLocationsHandler(
         {
             var mappedLocationsResult = mappedLocations.Any()
                 ? FilterBySearchInMappedLocations(mappedLocations, locationsQuery)
-                : await FilterBySearchInDatabase(locationsRepository, locationsQuery, cancellationToken);
+                : await FilterBySearchInDatabase(readDbContext, locationsRepository, locationsQuery, cancellationToken);
 
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
@@ -145,10 +146,18 @@ public class GetLocationsHandler(
     }
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterBySearchInDatabase(
+        IReadDbContext readDbContext,
         ILocationsRepository locationsRepository,
         GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
+        // TODO: перенести логику из репозиториев сюда
+        // var location = readDbContext.LocationsRead
+        // if (Location is null)
+        // {
+        //     return null;
+        // }
+
         var locationResult = await locationsRepository.GetLocationByName(
             locationsCommand.LocationsRequest.Search,
             cancellationToken);

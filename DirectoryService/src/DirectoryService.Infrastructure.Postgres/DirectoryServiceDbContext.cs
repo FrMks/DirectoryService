@@ -1,4 +1,5 @@
-﻿using DirectoryService.Domain;
+﻿using DirectoryService.Application.Database;
+using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Positions;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DirectoryService.Infrastructure.Postgres;
 
-public class DirectoryServiceDbContext : DbContext
+public class DirectoryServiceDbContext : DbContext, IReadDbContext
 {
     private readonly string _connectionString;
 
@@ -14,7 +15,7 @@ public class DirectoryServiceDbContext : DbContext
     {
         _connectionString = connectionString;
     }
-    
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseNpgsql(_connectionString); // Используй Npgsql в качестве бд
@@ -31,4 +32,6 @@ public class DirectoryServiceDbContext : DbContext
     public DbSet<Department> Departments => Set<Department>();
     public DbSet<Position> Positions => Set<Position>();
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
+
+    public IQueryable<Location> LocationsRead => Set<Location>().AsQueryable().AsNoTracking();
 }
