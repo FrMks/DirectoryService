@@ -27,11 +27,11 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                     location.Address.Street, location.Address.City, location.Address.Country);
                 return Error.Failure(null, "Address already exists in database.");
             }
-            
+
             await dbContext.Locations.AddAsync(location, cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken); // Применяем изменения
-            
+
             logger.LogInformation("Successfully added to the database with id{location}", location.Id.Value);
         }
         catch (Exception e)
@@ -40,10 +40,10 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                 null,
                 "Database error occurred when added location to a database.");
         }
-        
+
         return Result.Success<Guid, Error>(location.Id.Value);
     }
-    
+
     public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
     {
         var locations = await dbContext.Locations
@@ -56,7 +56,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                 "location.not.found",
                 $"Some location id does not have in database");
         }
-        
+
         return true;
     }
 
@@ -73,6 +73,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         }
 
         var locations = await dbContext.Locations
+            .AsNoTracking()
             .Where(l => locationIds.Contains(l.Id))
             .ToListAsync(cancellationToken);
 
@@ -90,6 +91,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
     public async Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken)
     {
         var location = await dbContext.Locations
+            .AsNoTracking()
             .FirstOrDefaultAsync(
                 l => EF.Functions.ILike(l.Name.Value, $"%{name}%"),
                 cancellationToken);
@@ -102,7 +104,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                 $"Location with name {name} not found in database",
                 null);
         }
-        
+
         return location;
     }
 
@@ -111,6 +113,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         CancellationToken cancellationToken)
     {
         var locations = await dbContext.Locations
+            .AsNoTracking()
             .Where(l => l.IsActive == isActive)
             .ToListAsync(cancellationToken);
 
@@ -132,13 +135,14 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         CancellationToken cancellationToken)
     {
         int skipCount = (page - 1) * pageSize;
-        
+
         var locations = await dbContext.Locations
+            .AsNoTracking()
             .OrderBy(l => l.Name) // TODO: Я подумал, что сначала надо сделать сортировку по имени, так надо?
             .Skip(skipCount)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
-        
+
         if (locations is null)
         {
             logger.LogError("Locations are empty when using pagination");

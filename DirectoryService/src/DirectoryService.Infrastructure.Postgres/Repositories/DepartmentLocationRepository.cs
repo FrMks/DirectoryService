@@ -12,18 +12,20 @@ public class DepartmentLocationRepository(
     ILogger<DepartmentLocationRepository> logger)
     : IDepartmentLocationRepository
 {
-    public async Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(List<Guid?> departmentIds,
+    public async Task<Result<List<LocationId>, Error>> GetLocationIdsAsync(
+        List<Guid?> departmentIds,
         CancellationToken cancellationToken)
     {
         if (departmentIds.Any() == false)
         {
             logger.LogError("DepartmentIds are empty when searching locations by department ids");
             return Error.Failure(
-                "departmentIds.are.empty", 
-                "departmentIds are empty when searching locations by department ids");   
+                "departmentIds.are.empty",
+                "departmentIds are empty when searching locations by department ids");
         }
 
         var departmentLocations = await dbContext.DepartmentLocations
+            .AsNoTracking()
             .Where(d => departmentIds.Contains(d.DepartmentId))
             .ToListAsync(cancellationToken);
 
@@ -34,12 +36,12 @@ public class DepartmentLocationRepository(
                 "some.departmentIds.dont.have.in.db",
                 "some departmentIds dont have in DepartmentLocations db");
         }
-        
+
         var locationIds = departmentLocations
             .Select(dl => dl.LocationId)
             .Distinct() // Без дубликатов
             .ToList();
-        
+
         return locationIds;
     }
 }
