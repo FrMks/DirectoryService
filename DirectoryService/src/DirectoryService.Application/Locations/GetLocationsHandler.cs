@@ -159,7 +159,7 @@ public class GetLocationsHandler(
                 Timezone = l.Timezone.Value,
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
+                UpdatedAt = l.UpdatedAt,
             }).ToList());
     }
 
