@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Database;
-using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Contracts.Locations.GetLocations;
 using FluentValidation;
@@ -12,7 +11,6 @@ namespace DirectoryService.Application.Locations;
 
 public class GetLocationsHandler(
     IReadDbContext readDbContext,
-    IDepartmentLocationRepository departmentLocationRepository,
     IValidator<GetLocationsRequest> validator,
     ILogger<CreateLocationHandler> logger)
 {
@@ -92,14 +90,32 @@ public class GetLocationsHandler(
         GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
-        var locationIds = await departmentLocationRepository.GetLocationIdsAsync(
-            locationsCommand.LocationsRequest.DepartmentIds,
-            cancellationToken);
+        if (locationsCommand.LocationsRequest.DepartmentIds.Any() == false)
+        {
+            logger.LogError("DepartmentIds are empty when searching locations by department ids");
+            return Error.Failure(
+                "departmentIds.are.empty",
+                "departmentIds are empty when searching locations by department ids");
+        }
 
-        if (locationIds.IsFailure)
-            return locationIds.Error;
+        var departmentLocations = await readDbContext.DepartmentLocationsRead
+            .Where(d => locationsCommand.LocationsRequest.DepartmentIds.Contains(d.DepartmentId))
+            .ToListAsync(cancellationToken);
 
-        var guidLocationIds = locationIds.Value
+        if (departmentLocations.Count != locationsCommand.LocationsRequest.DepartmentIds.Count)
+        {
+            logger.LogError("DepartmentIds are not the same number of department locations");
+            return Error.Failure(
+                "some.departmentIds.dont.have.in.db",
+                "some departmentIds dont have in DepartmentLocations db");
+        }
+
+        var locationIds = departmentLocations
+           .Select(dl => dl.LocationId)
+           .Distinct() // Без дубликатов
+           .ToList();
+
+        var guidLocationIds = locationIds
             .Select(d => d.Value)
             .ToList();
 

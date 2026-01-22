@@ -1,7 +1,7 @@
 ﻿using DirectoryService.Application.Departments;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
@@ -29,9 +29,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         // Создали родительский
         Domain.Department.Department departmentToMove = await CreateDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -53,7 +53,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             department.Path.Value.Should().Be("podrazdelenie");
         });
     }
-    
+
     [Fact]
     public async void UpdateParentToChild()
     {
@@ -72,9 +72,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             0,
             "where-department-to-move",
             "department-to-move");
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -83,7 +83,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 new UpdateParentLevelRequest(whereDepartmentToMove.Id));
             return sut.Handle(command, cancellationToken);
         });
-    
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -96,12 +96,12 @@ public class UpdateParentLevelTests : DirectoryBaseTests
 
             childDepartment.Depth.Value.Should().Be(1);
             childDepartment.Path.Value.Should().Be("where-department-to-move.department-to-move");
-            
+
             parentDepartment.Depth.Value.Should().Be(0);
             parentDepartment.Path.Value.Should().Be("where-department-to-move");
         });
     }
-    
+
     [Fact]
     public async void UpdateChildToChild()
     {
@@ -120,7 +120,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             1,
             "first-parent.first-child",
             "first-child");
-        
+
         Domain.Department.Department secondParentDepartment = await CreateDepartment(
             locationId,
             null,
@@ -133,9 +133,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             1,
             "second-parent.first-child-from-second-parent",
             "first-child-from-second-parent");
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -144,7 +144,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 new UpdateParentLevelRequest(firstChildDepartmentFromFirstParent.Id));
             return sut.Handle(command, cancellationToken);
         });
-    
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -161,7 +161,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 .Be("first-parent.first-child.first-child-from-second-parent");
         });
     }
-    
+
     [Fact]
     public async void UpdateChildToParent()
     {
@@ -180,9 +180,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             1,
             "parent.child",
             "child");
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -191,7 +191,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 new UpdateParentLevelRequest(null));
             return sut.Handle(command, cancellationToken);
         });
-    
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -204,7 +204,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             newParent.Path.Value.Should().Be("child");
         });
     }
-    
+
     [Fact]
     public async void InvalidParentDepartmentId()
     {
@@ -213,9 +213,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         // Создали родительский
         Domain.Department.Department departmentToMove = await CreateDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -231,7 +231,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             result.IsFailure.Should().BeTrue();
         });
     }
-    
+
     [Fact]
     public async void IdFromWhereToWhereIdAreEqueal()
     {
@@ -240,9 +240,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         // Создали родительский
         Domain.Department.Department departmentToMove = await CreateDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -258,7 +258,7 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             result.IsFailure.Should().BeTrue();
         });
     }
-    
+
     [Fact]
     public async void DepartmentFromWhereIsNotActive()
     {
@@ -267,9 +267,9 @@ public class UpdateParentLevelTests : DirectoryBaseTests
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         // Создали родительский
         Domain.Department.Department departmentToMove = await CreateNotActiveDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -285,17 +285,17 @@ public class UpdateParentLevelTests : DirectoryBaseTests
             result.IsFailure.Should().BeTrue();
         });
     }
-    
+
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
         var tempLocationsList = new List<Location>();
-        
+
         return await ExecuteInDb(async dbContext =>
         {
             for (int i = 0; i < countOfLocations; i++)
             {
                 LocationId locationId = LocationId.NewLocationId();
-                
+
                 var location = Location.Create(
                     locationId,
                     Name.Create($"Локация {i}").Value,
@@ -303,19 +303,19 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                     Timezone.Create("Europe/London").Value,
                     new List<DepartmentLocation>()
                 ).Value;
-                
+
                 tempLocationsList.Add(location);
             }
-            
+
             dbContext.Locations.AddRange(tempLocationsList);
             await dbContext.SaveChangesAsync();
-            
+
             var locationIdsResult = tempLocationsList.Select(l => l.Id.Value).ToList();
-            
+
             return locationIdsResult;
         });
     }
-    
+
     private async Task<Domain.Department.Department> CreateDepartment(
         LocationId locationId,
         Guid? parentId = null,
@@ -333,21 +333,21 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 locationId).Value;
 
             var department = Domain.Department.Department.Create(
-                departmentId, 
+                departmentId,
                 Domain.Department.ValueObject.Name.Create("Подразделение").Value,
                 Identifier.Create(identifier).Value,
                 Path.Create(path).Value,
                 [departmentLocation],
                 Depth.Create(depth).Value,
                 parentId).Value;
-            
+
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
 
             return department;
         });
     }
-    
+
     private async Task<Domain.Department.Department> CreateNotActiveDepartment(LocationId locationId)
     {
         return await ExecuteInDb(async dbContext =>
@@ -360,29 +360,29 @@ public class UpdateParentLevelTests : DirectoryBaseTests
                 locationId).Value;
 
             var department = Domain.Department.Department.Create(
-                departmentId, 
+                departmentId,
                 Domain.Department.ValueObject.Name.Create("Подразделение").Value,
                 Identifier.Create("podrazdelenie").Value,
                 Path.Create("path").Value,
                 [departmentLocation],
                 Depth.Create(0).Value,
                 null).Value;
-            
+
             department.UpdateIsActive(false);
-            
+
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
 
             return department;
         });
     }
-    
+
     private async Task<T> ExecuteHandler<T>(Func<UpdateParentLevelHandler, Task<T>> action)
     {
         var scope = Services.CreateAsyncScope();
-        
+
         var sut = scope.ServiceProvider.GetRequiredService<UpdateParentLevelHandler>();
-        
+
         return await action(sut);
     }
 }

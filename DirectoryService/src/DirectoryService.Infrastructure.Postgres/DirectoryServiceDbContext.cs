@@ -1,6 +1,7 @@
 ﻿using DirectoryService.Application.Database;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Positions;
 using Microsoft.EntityFrameworkCore;
@@ -34,4 +35,5 @@ public class DirectoryServiceDbContext : DbContext, IReadDbContext
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
 
     public IQueryable<Location> LocationsRead => Set<Location>().AsQueryable().AsNoTracking();
+    public IQueryable<DepartmentLocation> DepartmentLocationsRead => Set<DepartmentLocation>().AsQueryable().AsNoTracking();
 }

@@ -1,7 +1,7 @@
 ﻿using DirectoryService.Application.Departments;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.IntegrationTests.Infrastructure;
@@ -22,7 +22,7 @@ namespace DirectoryService.IntegrationTests.Department;
 // Этот интерфейс нужен для объединения несколько классов в один общий контекст
 public class CreateDepartmentTests : DirectoryBaseTests
 {
-    
+
     public CreateDepartmentTests(DirectoryTestWebFactory factory)
         : base(factory)
     {
@@ -33,7 +33,7 @@ public class CreateDepartmentTests : DirectoryBaseTests
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
 
         // Act
@@ -43,21 +43,21 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "podrazdelenie",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
             var department = await dbContext.Departments
                 .FirstAsync(d => d.Id == DepartmentId.FromValue(result.Value), cancellationToken);
-        
+
             Assert.NotNull(department);
             Assert.Equal(department.Id.Value, result.Value);
-        
+
             Assert.True(result.IsSuccess);
-            Assert.NotEqual(Guid.Empty, result.Value); 
+            Assert.NotEqual(Guid.Empty, result.Value);
         });
     }
 
@@ -66,9 +66,9 @@ public class CreateDepartmentTests : DirectoryBaseTests
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -76,10 +76,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "",
                 "podrazdelenie",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -87,15 +87,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void NameLenghtLessThan3()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -103,10 +103,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "1",
                 "podrazdelenie",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -114,15 +114,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void EmptyIdentifier()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -130,10 +130,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -141,15 +141,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void IdentifierLenghtLessThan3()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -157,10 +157,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "    1   ",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -168,15 +168,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void IdentifierWithNotLatinLetters()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -184,10 +184,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "    Привет мир   ",
                 null,
-                [locationId.Value])); 
+                [locationId.Value]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -195,15 +195,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void InvalidLocationsIds()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -211,10 +211,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "    hello world   ",
                 null,
-                [LocationId.NewLocationId()])); 
+                [LocationId.NewLocationId()]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -222,15 +222,15 @@ public class CreateDepartmentTests : DirectoryBaseTests
             Assert.True(result.IsFailure);
         });
     }
-    
+
     [Fact]
     public async void RepeatedLocationsIds()
     {
         // Arrange
         LocationId locationId = await CreateLocation();
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler((sut) =>
         {
@@ -238,10 +238,10 @@ public class CreateDepartmentTests : DirectoryBaseTests
                 "Подразделение",
                 "    hello world   ",
                 null,
-                [locationId, locationId])); 
+                [locationId, locationId]));
             return sut.Handle(command, cancellationToken);
         });
-        
+
         // Assert
         await ExecuteInDb(async dbContext =>
         {
@@ -255,28 +255,28 @@ public class CreateDepartmentTests : DirectoryBaseTests
         return await ExecuteInDb(async dbContext =>
         {
             LocationId locationId = LocationId.NewLocationId();
-            
+
             var location = Location.Create(
-                locationId, 
+                locationId,
                 Name.Create("Локация").Value,
                 Address.Create("Улица", "Город", "Страна").Value,
                 Timezone.Create("Europe/London").Value,
                 new List<DepartmentLocation>()
             ).Value;
-            
+
             dbContext.Locations.Add(location);
             await dbContext.SaveChangesAsync();
 
-            return locationId; 
+            return locationId;
         });
     }
-    
+
     private async Task<T> ExecuteHandler<T>(Func<CreateDepartmentHandler, Task<T>> action)
     {
         var scope = Services.CreateAsyncScope();
-        
+
         var sut = scope.ServiceProvider.GetRequiredService<CreateDepartmentHandler>();
-        
+
         return await action(sut);
     }
 }

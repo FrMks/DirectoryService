@@ -38,13 +38,13 @@ public class CreateDepartmentHandler(
 
             return validationResult.ToList();
         }
-        
+
         // Создание сущности Department
         DepartmentId departmentId = DepartmentId.NewDepartmentId();
-        
+
         var nameResult = Name.Create(command.DepartmentRequest.Name);
         Name departmentName = nameResult.Value;
-        
+
         var identifierResult = Identifier.Create(command.DepartmentRequest.Identifier);
         // Проверяем, что identifier уникальный.
         var isUnique = await departmentsRepository
@@ -88,7 +88,7 @@ public class CreateDepartmentHandler(
                 logger.LogInformation("{parentDepartmentResult.Error}", parentResult.Error);
                 return parentResult.Error;
             }
-            
+
             parent = parentResult.Value;
 
             path = parent.Path.CreateChild(identifier);
@@ -100,7 +100,7 @@ public class CreateDepartmentHandler(
                 logger.LogInformation(depthResult.Error.Message);
                 return depthResult.Error.ToErrors();
             }
-            
+
             depth = depthResult.Value;
         }
 
@@ -112,14 +112,14 @@ public class CreateDepartmentHandler(
             logger.LogInformation("{isAllLocationsExist.Error}", isAllLocationsExist.Error.Message);
             return isAllLocationsExist.Error.ToErrors();
         }
-        
+
         // Создание department location
         var departmentLocations =
-            command.DepartmentRequest.LocationsIds.Select(li => Domain.DepartmentLocation.Create(
+            command.DepartmentRequest.LocationsIds.Select(li => Domain.DepartmentLocations.DepartmentLocation.Create(
                 DepartmentLocationId.FromValue(Guid.NewGuid()),
                 departmentId,
                 LocationId.FromValue(li)).Value);
-        
+
         var department = Department.Create(
             departmentId,
             departmentName,
@@ -128,18 +128,18 @@ public class CreateDepartmentHandler(
             departmentLocations,
             depth,
             parentIdResult).Value;
-        
+
         logger.LogInformation("Creating department with id {id}", department.Id.Value);
-        
+
         // Сохранение сущность Department в БД
         var successfulId = await departmentsRepository.AddAsync(department, cancellationToken);
 
         if (successfulId.IsFailure)
             return successfulId.Error.ToErrors();
-        
+
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Department with id {successfulId.Value} add to db.", successfulId.Value);
-        
+
         return successfulId.Value;
     }
 }

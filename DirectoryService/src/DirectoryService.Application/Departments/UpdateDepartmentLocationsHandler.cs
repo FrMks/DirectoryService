@@ -5,7 +5,6 @@ using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
@@ -38,7 +37,7 @@ public class UpdateDepartmentLocationsHandler(
 
             return validationResult.ToList();
         }
-        
+
         // var transactionScopeResult = await transactionManager.BeginTransactionAsTask(cancellationToken);
         // if (transactionScopeResult.IsFailure)
         //     return transactionScopeResult.Error.ToErrors();
@@ -54,9 +53,9 @@ public class UpdateDepartmentLocationsHandler(
             logger.LogInformation("Error when try get by id department, error: {error}", departmentResult.Error);
             return departmentResult.Error;
         }
-        
+
         var department = departmentResult.Value;
-        
+
         // Все Location существуют внутри БД
         var isAllLocationsExist = await locationsRepository.AllExistAsync(
             command.DepartmentLocationsRequest.LocationsIds, cancellationToken);
@@ -72,11 +71,11 @@ public class UpdateDepartmentLocationsHandler(
         // Создаем новый departmentLocations
         var departmentLocations =
             command.DepartmentLocationsRequest.LocationsIds.Select(
-                id => Domain.DepartmentLocation.Create(
+                id => Domain.DepartmentLocations.DepartmentLocation.Create(
                     DepartmentLocationId.NewDepartmentId(),
                     departmentId,
                     LocationId.FromValue(id)).Value);
-        
+
         // Обновляем БД
         var updateResult = department.UpdateDepartmentLocations(departmentLocations);
         if (updateResult.IsFailure)
@@ -84,13 +83,13 @@ public class UpdateDepartmentLocationsHandler(
             logger.LogInformation("Error when updating department locations, error: {error}", updateResult.Error);
             return updateResult.Error.ToErrors();
         }
-        
+
         await departmentsRepository.SaveChanges(cancellationToken);
         // await transactionManager.SaveChangesAsync(cancellationToken);
         // var commitedResult = transactionScope.Commit();
         // if (commitedResult.IsFailure)
         // {
-            // return commitedResult.Error.ToErrors();
+        // return commitedResult.Error.ToErrors();
         // }
 
         return Result.Success<Guid, Errors>(departmentId.Value);
