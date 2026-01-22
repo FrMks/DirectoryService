@@ -87,27 +87,6 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         return locations;
     }
 
-    public async Task<Result<List<Location>, Error>> GetLocationsByIsActive(
-        bool isActive,
-        CancellationToken cancellationToken)
-    {
-        var locations = await dbContext.Locations
-            .AsNoTracking()
-            .Where(l => l.IsActive == isActive)
-            .ToListAsync(cancellationToken);
-
-        if (locations is null)
-        {
-            logger.LogError("Locations are empty when searching locations by is active");
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                "Locations are empty when searching locations by is active",
-                null);
-        }
-
-        return locations;
-    }
-
     public async Task<Result<List<Location>, Error>> GetLocationsByPagination(
         int page,
         int pageSize,

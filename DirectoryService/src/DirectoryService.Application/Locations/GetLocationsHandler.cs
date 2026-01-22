@@ -65,7 +65,7 @@ public class GetLocationsHandler(
         {
             var mappedLocationsResult = mappedLocations.Any()
                 ? FilterByIsActiveInMappedLocations(mappedLocations, locationsQuery)
-                : await FilterByIsActiveInDatabase(locationsRepository, locationsQuery, cancellationToken);
+                : await FilterByIsActiveInDatabase(readDbContext, locationsQuery, cancellationToken);
 
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
@@ -210,18 +210,24 @@ public class GetLocationsHandler(
     }
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByIsActiveInDatabase(
-        ILocationsRepository locationsRepository,
-        GetLocationsQuery locationsCommand,
+        IReadDbContext readDbContext,
+        GetLocationsQuery locationsQuery,
         CancellationToken cancellationToken)
     {
-        var locationsResult = await locationsRepository.GetLocationsByIsActive(
-            (bool)locationsCommand.LocationsRequest.IsActive,
-            cancellationToken);
+        var locations = await readDbContext.LocationsRead
+            .Where(l => l.IsActive == locationsQuery.LocationsRequest.IsActive)
+            .ToListAsync(cancellationToken);
 
-        if (locationsResult.IsFailure)
-            return locationsResult.Error;
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by is active");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by is active",
+                null);
+        }
 
-        return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
+        return Result.Success<List<GetLocationsResponse>, Error>(locations
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
@@ -232,7 +238,7 @@ public class GetLocationsHandler(
                 Timezone = l.Timezone.Value,
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
+                UpdatedAt = l.UpdatedAt,
             }).ToList());
     }
 
