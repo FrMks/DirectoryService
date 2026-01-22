@@ -5,6 +5,7 @@ using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations.GetLocations;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -52,7 +53,7 @@ public class GetLocationsHandler(
         {
             var mappedLocationsResult = mappedLocations.Any()
                 ? FilterBySearchInMappedLocations(mappedLocations, locationsQuery)
-                : await FilterBySearchInDatabase(readDbContext, locationsRepository, locationsQuery, cancellationToken);
+                : await FilterBySearchInDatabase(readDbContext, locationsQuery, cancellationToken);
 
             if (mappedLocationsResult.IsFailure)
                 return mappedLocationsResult.Error.ToErrors();
@@ -147,39 +148,42 @@ public class GetLocationsHandler(
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterBySearchInDatabase(
         IReadDbContext readDbContext,
-        ILocationsRepository locationsRepository,
-        GetLocationsQuery locationsCommand,
+        GetLocationsQuery locationsQuery,
         CancellationToken cancellationToken)
     {
-        // TODO: перенести логику из репозиториев сюда
-        // var location = readDbContext.LocationsRead
-        // if (Location is null)
-        // {
-        //     return null;
-        // }
+        var location = await readDbContext.LocationsRead
+            .FirstOrDefaultAsync(
+                l => EF.Functions.ILike(l.Name.Value, $"%{locationsQuery.LocationsRequest.Search}%"),
+                cancellationToken);
 
-        var locationResult = await locationsRepository.GetLocationByName(
-            locationsCommand.LocationsRequest.Search,
-            cancellationToken);
-
-        if (locationResult.IsFailure)
-            return locationResult.Error;
+        if (location is null)
+        {
+            logger.LogError(
+                "Location with name {name} not found in database.",
+                locationsQuery.LocationsRequest.Search);
+            return Error.NotFound(
+                "location.not.found",
+                $"Location with name {locationsQuery.LocationsRequest.Search} not found",
+                null);
+        }
 
         var locationResponse = new GetLocationsResponse
         {
-            Id = locationResult.Value.Id.Value,
-            Name = locationResult.Value.Name.Value,
-            Street = locationResult.Value.Address.Street,
-            City = locationResult.Value.Address.City,
-            Country = locationResult.Value.Address.Country,
-            Timezone = locationResult.Value.Timezone.Value,
-            IsActive = locationResult.Value.IsActive,
-            CreatedAt = locationResult.Value.CreatedAt,
-            UpdatedAt = locationResult.Value.UpdatedAt
+            Id = location.Id.Value,
+            Name = location.Name.Value,
+            Street = location.Address.Street,
+            City = location.Address.City,
+            Country = location.Address.Country,
+            Timezone = location.Timezone.Value,
+            IsActive = location.IsActive,
+            CreatedAt = location.CreatedAt,
+            UpdatedAt = location.UpdatedAt,
         };
 
-        var listLocationResponse = new List<GetLocationsResponse>();
-        listLocationResponse.Add(locationResponse);
+        var listLocationResponse = new List<GetLocationsResponse>
+        {
+            locationResponse,
+        };
 
         return Result.Success<List<GetLocationsResponse>, Error>(listLocationResponse);
     }

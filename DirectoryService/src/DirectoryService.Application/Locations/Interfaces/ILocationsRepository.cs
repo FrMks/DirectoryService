@@ -15,11 +15,9 @@ public interface ILocationsRepository
     /// <param name="cancellationToken">Токен для отмены операции.</param>
     /// <returns>True если все идентификаторы есть в БД. Error если какого-то идентификатора нету.</returns>
     Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken);
-    
+
     Task<Result<List<Location>, Error>> GetLocationsAsync(List<Guid> locationId, CancellationToken cancellationToken);
-    
-    Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken);
-    
+
     Task<Result<List<Location>, Error>> GetLocationsByIsActive(
         bool isActive,
         CancellationToken cancellationToken);

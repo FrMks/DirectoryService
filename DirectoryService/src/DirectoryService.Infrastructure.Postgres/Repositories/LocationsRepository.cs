@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Domain.Locations;
-using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -86,26 +85,6 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         }
 
         return locations;
-    }
-
-    public async Task<Result<Location, Error>> GetLocationByName(string name, CancellationToken cancellationToken)
-    {
-        var location = await dbContext.Locations
-            .AsNoTracking()
-            .FirstOrDefaultAsync(
-                l => EF.Functions.ILike(l.Name.Value, $"%{name}%"),
-                cancellationToken);
-
-        if (location is null)
-        {
-            logger.LogError("Location with name {name} not found in database.", name);
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                $"Location with name {name} not found in database",
-                null);
-        }
-
-        return location;
     }
 
     public async Task<Result<List<Location>, Error>> GetLocationsByIsActive(
