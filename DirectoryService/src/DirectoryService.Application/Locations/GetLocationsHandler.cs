@@ -78,7 +78,7 @@ public class GetLocationsHandler(
         {
             var mappedLocationsRequest = mappedLocations.Any()
                 ? FilterByPaginationInMappedLocations(mappedLocations, locationsQuery)
-                : await FilterByPaginationInDatabase(locationsRepository, locationsQuery, cancellationToken);
+                : await FilterByPaginationInDatabase(readDbContext, locationsQuery, cancellationToken);
 
             if (mappedLocationsRequest.IsFailure)
                 return mappedLocationsRequest.Error.ToErrors();
@@ -278,19 +278,46 @@ public class GetLocationsHandler(
     }
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByPaginationInDatabase(
-        ILocationsRepository locationsRepository,
-        GetLocationsQuery locationsCommand,
+        IReadDbContext readDbContext,
+        GetLocationsQuery locationsQuery,
         CancellationToken cancellationToken)
     {
-        var locationsResult = await locationsRepository.GetLocationsByPagination(
-            (int)locationsCommand.LocationsRequest.Page,
-            (int)locationsCommand.LocationsRequest.PageSize,
-            cancellationToken);
+        if (locationsQuery.LocationsRequest.Page is null)
+        {
+            logger.LogError("In location request PAGE is null");
+            return Error.Failure("location.request.page", "In location request PAGE is null");
+        }
 
-        if (locationsResult.IsFailure)
-            return locationsResult.Error;
+        if (locationsQuery.LocationsRequest.PageSize is null)
+        {
+            logger.LogError("In location request PAGE SIZE is null");
+            return Error.Failure("location.request.page", "In location request PAGE SIZE is null");
+        }
 
-        return Result.Success<List<GetLocationsResponse>, Error>(locationsResult.Value
+        int page = locationsQuery.LocationsRequest.Page < 1
+            ? 1 : (int)locationsQuery.LocationsRequest.Page;
+
+        int pageSize = locationsQuery.LocationsRequest.PageSize < 1
+            ? 1 : (int)locationsQuery.LocationsRequest.PageSize;
+
+        int skipCount = (page - 1) * pageSize;
+
+        var locations = await readDbContext.LocationsRead
+            .OrderBy(l => l.Name) // TODO: Я подумал, что сначала надо сделать сортировку по имени, так надо?
+            .Skip(skipCount)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by pagination");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by pagination",
+                null);
+        }
+
+        return Result.Success<List<GetLocationsResponse>, Error>(locations
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,

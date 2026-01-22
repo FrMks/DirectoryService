@@ -86,30 +86,4 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
 
         return locations;
     }
-
-    public async Task<Result<List<Location>, Error>> GetLocationsByPagination(
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken)
-    {
-        int skipCount = (page - 1) * pageSize;
-
-        var locations = await dbContext.Locations
-            .AsNoTracking()
-            .OrderBy(l => l.Name) // TODO: Я подумал, что сначала надо сделать сортировку по имени, так надо?
-            .Skip(skipCount)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        if (locations is null)
-        {
-            logger.LogError("Locations are empty when using pagination");
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                "Locations are empty when using pagination",
-                null);
-        }
-
-        return locations;
-    }
 }

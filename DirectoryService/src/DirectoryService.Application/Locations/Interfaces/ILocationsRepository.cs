@@ -17,9 +17,4 @@ public interface ILocationsRepository
     Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken);
 
     Task<Result<List<Location>, Error>> GetLocationsAsync(List<Guid> locationId, CancellationToken cancellationToken);
-
-    Task<Result<List<Location>, Error>> GetLocationsByPagination(
-        int page,
-        int pageSize,
-        CancellationToken cancellationToken);
 }
