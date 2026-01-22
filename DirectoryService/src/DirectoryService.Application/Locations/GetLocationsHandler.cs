@@ -2,7 +2,6 @@
 using DirectoryService.Application.Database;
 using DirectoryService.Application.DepartmentLocation.Interfaces;
 using DirectoryService.Application.Extensions;
-using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations.GetLocations;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +12,6 @@ namespace DirectoryService.Application.Locations;
 
 public class GetLocationsHandler(
     IReadDbContext readDbContext,
-    ILocationsRepository locationsRepository,
     IDepartmentLocationRepository departmentLocationRepository,
     IValidator<GetLocationsRequest> validator,
     ILogger<CreateLocationHandler> logger)
@@ -39,7 +37,7 @@ public class GetLocationsHandler(
         if (locationsQuery.LocationsRequest.DepartmentIds.Count != 0)
         {
             var mappedLocationsResult = await FilterByDepartmentIds(
-                departmentLocationRepository,
+                readDbContext,
                 locationsQuery,
                 cancellationToken);
 
@@ -90,7 +88,7 @@ public class GetLocationsHandler(
     }
 
     private async Task<Result<List<GetLocationsResponse>, Error>> FilterByDepartmentIds(
-        IDepartmentLocationRepository departmentLocationRepository,
+        IReadDbContext readDbContext,
         GetLocationsQuery locationsCommand,
         CancellationToken cancellationToken)
     {
@@ -105,14 +103,36 @@ public class GetLocationsHandler(
             .Select(d => d.Value)
             .ToList();
 
-        var locations = await locationsRepository.GetLocationsAsync(
-            guidLocationIds,
-            cancellationToken);
+        if (guidLocationIds.Any() == false)
+        {
+            logger.LogError("LocationIds are empty when searching locations by location ids");
+            return Error.Failure(
+                "locationIds.are.empty",
+                "LocationIds are empty when searching locations by location ids");
+        }
 
-        if (locations.IsFailure)
-            return locations.Error;
+        var locations = await readDbContext.LocationsRead
+            .Where(l => guidLocationIds.Contains(l.Id))
+            .ToListAsync(cancellationToken);
 
-        return Result.Success<List<GetLocationsResponse>, Error>(locations.Value
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by ids");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by ids",
+                null);
+        }
+
+        if (locations.Count != guidLocationIds.Count)
+        {
+            logger.LogError("LocationIds are not the same number of locations");
+            return Error.Failure(
+                "some.locationIds.dont.have.in.db",
+                "some locationIds dont have in Locations db");
+        }
+
+        return Result.Success<List<GetLocationsResponse>, Error>(locations
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
