@@ -30,7 +30,7 @@ public class Locations : ControllerBase
     [HttpGet]
     public async Task<EndpointResult<Guid>> Get(
         [FromServices] ICommandHandler<Guid, GetLocationsQuery> handler,
-        [FromBody] GetLocationsRequest request,
+        [FromQuery] GetLocationsRequest request,
         CancellationToken cancellationToken)
     {
         GetLocationsQuery locationsCommand = new(request);
