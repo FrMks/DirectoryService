@@ -98,57 +98,13 @@ public class GetLocationsHandler(
                 "departmentIds are empty when searching locations by department ids");
         }
 
-        var departmentLocations = await readDbContext.DepartmentLocationsRead
-            .Where(d => locationsCommand.LocationsRequest.DepartmentIds.Contains(d.DepartmentId))
-            .ToListAsync(cancellationToken);
-
-        if (departmentLocations.Count != locationsCommand.LocationsRequest.DepartmentIds.Count)
-        {
-            logger.LogError("DepartmentIds are not the same number of department locations");
-            return Error.Failure(
-                "some.departmentIds.dont.have.in.db",
-                "some departmentIds dont have in DepartmentLocations db");
-        }
-
-        var locationIds = departmentLocations
-           .Select(dl => dl.LocationId)
-           .Distinct() // Без дубликатов
-           .ToList();
-
-        var guidLocationIds = locationIds
-            .Select(d => d.Value)
-            .ToList();
-
-        if (guidLocationIds.Any() == false)
-        {
-            logger.LogError("LocationIds are empty when searching locations by location ids");
-            return Error.Failure(
-                "locationIds.are.empty",
-                "LocationIds are empty when searching locations by location ids");
-        }
-
-        var locations = await readDbContext.LocationsRead
-            .Where(l => guidLocationIds.Contains(l.Id))
-            .ToListAsync(cancellationToken);
-
-        if (locations is null)
-        {
-            logger.LogError("Locations are empty when searching locations by ids");
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                "Locations are empty when searching locations by ids",
-                null);
-        }
-
-        if (locations.Count != guidLocationIds.Count)
-        {
-            logger.LogError("LocationIds are not the same number of locations");
-            return Error.Failure(
-                "some.locationIds.dont.have.in.db",
-                "some locationIds dont have in Locations db");
-        }
-
-        return Result.Success<List<GetLocationsResponse>, Error>(locations
+        var locations = await readDbContext.DepartmentLocationsRead
+            .Where(dl => locationsCommand.LocationsRequest.DepartmentIds.Contains(dl.DepartmentId))
+            .Join(readDbContext.LocationsRead,
+                dl => dl.LocationId,
+                l => l.Id,
+                (dl, l) => l)
+            .Distinct() // Без дубликатов
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
@@ -160,7 +116,19 @@ public class GetLocationsHandler(
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt,
-            }).ToList());
+            })
+            .ToListAsync(cancellationToken);
+
+        if (locations.Count == 0)
+        {
+            logger.LogError("No locations found for the given department ids");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "No locations found for the given department ids",
+                null);
+        }
+
+        return Result.Success<List<GetLocationsResponse>, Error>(locations);
     }
 
     private Result<List<GetLocationsResponse>, Error> FilterBySearchInMappedLocations(
@@ -188,9 +156,20 @@ public class GetLocationsHandler(
         CancellationToken cancellationToken)
     {
         var location = await readDbContext.LocationsRead
-            .FirstOrDefaultAsync(
-                l => EF.Functions.ILike(l.Name.Value, $"%{locationsQuery.LocationsRequest.Search}%"),
-                cancellationToken);
+            .Where(l => EF.Functions.ILike(l.Name.Value, $"%{locationsQuery.LocationsRequest.Search}%"))
+            .Select(l => new GetLocationsResponse
+            {
+                Id = l.Id.Value,
+                Name = l.Name.Value,
+                Street = l.Address.Street,
+                City = l.Address.City,
+                Country = l.Address.Country,
+                Timezone = l.Timezone.Value,
+                IsActive = l.IsActive,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt,
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (location is null)
         {
@@ -203,25 +182,7 @@ public class GetLocationsHandler(
                 null);
         }
 
-        var locationResponse = new GetLocationsResponse
-        {
-            Id = location.Id.Value,
-            Name = location.Name.Value,
-            Street = location.Address.Street,
-            City = location.Address.City,
-            Country = location.Address.Country,
-            Timezone = location.Timezone.Value,
-            IsActive = location.IsActive,
-            CreatedAt = location.CreatedAt,
-            UpdatedAt = location.UpdatedAt,
-        };
-
-        var listLocationResponse = new List<GetLocationsResponse>
-        {
-            locationResponse,
-        };
-
-        return Result.Success<List<GetLocationsResponse>, Error>(listLocationResponse);
+        return Result.Success<List<GetLocationsResponse>, Error>(new List<GetLocationsResponse> { location });
     }
 
     private Result<List<GetLocationsResponse>, Error> FilterByIsActiveInMappedLocations(
@@ -252,18 +213,6 @@ public class GetLocationsHandler(
     {
         var locations = await readDbContext.LocationsRead
             .Where(l => l.IsActive == locationsQuery.LocationsRequest.IsActive)
-            .ToListAsync(cancellationToken);
-
-        if (locations is null)
-        {
-            logger.LogError("Locations are empty when searching locations by is active");
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                "Locations are empty when searching locations by is active",
-                null);
-        }
-
-        return Result.Success<List<GetLocationsResponse>, Error>(locations
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
@@ -275,7 +224,19 @@ public class GetLocationsHandler(
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt,
-            }).ToList());
+            })
+            .ToListAsync(cancellationToken);
+
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by is active");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by is active",
+                null);
+        }
+
+        return Result.Success<List<GetLocationsResponse>, Error>(locations);
     }
 
     private Result<List<GetLocationsResponse>, Error> FilterByPaginationInMappedLocations(
@@ -342,18 +303,6 @@ public class GetLocationsHandler(
             .OrderBy(l => l.Name) // TODO: Я подумал, что сначала надо сделать сортировку по имени, так надо?
             .Skip(skipCount)
             .Take(pageSize)
-            .ToListAsync(cancellationToken);
-
-        if (locations is null)
-        {
-            logger.LogError("Locations are empty when searching locations by pagination");
-            return Error.NotFound(
-                "location.dont.have.in.db",
-                "Locations are empty when searching locations by pagination",
-                null);
-        }
-
-        return Result.Success<List<GetLocationsResponse>, Error>(locations
             .Select(l => new GetLocationsResponse
             {
                 Id = l.Id.Value,
@@ -365,6 +314,18 @@ public class GetLocationsHandler(
                 IsActive = l.IsActive,
                 CreatedAt = l.CreatedAt,
                 UpdatedAt = l.UpdatedAt
-            }).ToList());
+            })
+            .ToListAsync(cancellationToken);
+
+        if (locations is null)
+        {
+            logger.LogError("Locations are empty when searching locations by pagination");
+            return Error.NotFound(
+                "location.dont.have.in.db",
+                "Locations are empty when searching locations by pagination",
+                null);
+        }
+
+        return Result.Success<List<GetLocationsResponse>, Error>(locations);
     }
 }
