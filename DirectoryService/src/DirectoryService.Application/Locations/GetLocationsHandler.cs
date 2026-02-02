@@ -57,7 +57,8 @@ public class GetLocationsHandler(
 
         long totalCount = await locationsQueryResponse.CountAsync(cancellationToken);
 
-        if (locationsQuery.LocationsRequest.Pagination is not null && locationsQuery.LocationsRequest.Pagination.PageSize.HasValue
+        if (locationsQuery.LocationsRequest.Pagination is not null
+            && locationsQuery.LocationsRequest.Pagination.PageSize.HasValue
             && locationsQuery.LocationsRequest.Pagination.Page.HasValue)
         {
             if (locationsQuery.LocationsRequest.Pagination.PageSize < 1)
