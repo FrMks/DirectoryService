@@ -23,13 +23,19 @@ public static class DependencyInjection
             .AsSelfWithInterfaces()
             .WithScopedLifetime());
 
+        services.Scan(scan => scan.FromAssemblies(assembblie)
+            .AddClasses(classes => classes
+                .AssignableTo(typeof(IQueryHandler<,>)))
+            .AsSelfWithInterfaces()
+            .WithScopedLifetime());
+
         services.AddTransient<IValidator<CreateLocationRequest>, CreateLocationDtoValidator>();
         services.AddTransient<IValidator<GetLocationsRequest>, GetLocationsDtoValidator>();
-        
+
         services.AddTransient<IValidator<CreateDepartmentRequest>, CreateDepartmentDtoValidator>();
         services.AddTransient<IValidator<UpdateDepartmentLocationsRequest>, UpdateDepartmentLocationsDtoValidator>();
         services.AddTransient<IValidator<UpdateParentLevelRequest>, UpdateParentLevelDtoValidator>();
-        
+
         services.AddTransient<IValidator<CreatePositionRequest>, CreatePositionDtoValidator>();
         return services;
     }

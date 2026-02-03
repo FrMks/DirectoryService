@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Contracts.Locations.GetLocations;
@@ -14,7 +15,8 @@ namespace DirectoryService.Application.Locations;
 public class GetLocationsHandler(
     IReadDbContext readDbContext,
     IValidator<GetLocationsRequest> validator,
-    ILogger<CreateLocationHandler> logger)
+    ILogger<GetLocationsHandler> logger)
+    : IQueryHandler<GetLocationsQuery, Result<(List<GetLocationsResponse>, long TotalCount), Errors>>
 {
     public async Task<Result<(List<GetLocationsResponse>, long TotalCount), Errors>> Handle(
         GetLocationsQuery locationsQuery,
@@ -34,21 +36,22 @@ public class GetLocationsHandler(
 
         var locationsQueryResponse = readDbContext.LocationsRead;
 
-        if (locationsQuery.LocationsRequest.DepartmentIds is not null && locationsQuery.LocationsRequest.DepartmentIds.Count != 0)
+        if (locationsQuery.LocationsRequest.DepartmentIds is not null
+            && locationsQuery.LocationsRequest.DepartmentIds.Count != 0)
         {
-            locationsQueryResponse = readDbContext.DepartmentLocationsRead
-                .Where(dl => locationsQuery.LocationsRequest.DepartmentIds.Contains(dl.DepartmentId))
-            .Join(readDbContext.LocationsRead,
-                dl => dl.LocationId,
-                l => l.Id,
-                (dl, l) => l)
-            .Distinct(); // Без дубликатов
+            var locationIdsQuery = readDbContext.DepartmentLocationsRead
+             .Where(dl => locationsQuery.LocationsRequest.DepartmentIds.Contains(dl.DepartmentId))
+             .Select(dl => dl.LocationId)
+             .Distinct();
+
+            locationsQueryResponse = locationsQueryResponse
+                 .Where(l => locationIdsQuery.Contains(l.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(locationsQuery.LocationsRequest.Search))
         {
             locationsQueryResponse = locationsQueryResponse
-                .Where(l => EF.Functions.Like(l.Name.Value.ToLower(), $"%{locationsQuery.LocationsRequest.Search.ToLower()}%"));
+                .Where(l => EF.Functions.Like(l.Name, $"%{locationsQuery.LocationsRequest.Search}%"));
         }
 
         if (locationsQuery.LocationsRequest.IsActive.HasValue)
@@ -59,14 +62,14 @@ public class GetLocationsHandler(
 
         Expression<Func<Location, object>> keySelector = locationsQuery.LocationsRequest.SortBy?.ToLower() switch
         {
-            "name" => l => l.Name.Value,
+            "name" => l => l.Name,
             "street" => l => l.Address.Street,
             "city" => l => l.Address.City,
             "country" => l => l.Address.Country,
             "isactive" => l => l.IsActive,
             "createdat" => l => l.CreatedAt,
             "updatedat" => l => l.UpdatedAt,
-            _ => l => l.Name.Value,
+            _ => l => l.Name,
         };
 
         locationsQueryResponse = locationsQuery.LocationsRequest.SortDirection == "asc"
@@ -93,7 +96,6 @@ public class GetLocationsHandler(
 
             int skipCount = (int)((locationsQuery.LocationsRequest.Pagination.Page - 1) * locationsQuery.LocationsRequest.Pagination.PageSize);
             locationsQueryResponse = locationsQueryResponse
-                .OrderBy(l => l.CreatedAt)
                 .Skip(skipCount)
                 .Take((int)locationsQuery.LocationsRequest.Pagination.PageSize);
         }
