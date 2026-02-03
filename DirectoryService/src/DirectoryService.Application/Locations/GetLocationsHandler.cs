@@ -48,7 +48,7 @@ public class GetLocationsHandler(
         if (!string.IsNullOrWhiteSpace(locationsQuery.LocationsRequest.Search))
         {
             locationsQueryResponse = locationsQueryResponse
-                .Where(l => EF.Functions.ILike(l.Name.Value, $"%{locationsQuery.LocationsRequest.Search}%"));
+                .Where(l => EF.Functions.Like(l.Name.Value.ToLower(), $"%{locationsQuery.LocationsRequest.Search.ToLower()}%"));
         }
 
         if (locationsQuery.LocationsRequest.IsActive.HasValue)
