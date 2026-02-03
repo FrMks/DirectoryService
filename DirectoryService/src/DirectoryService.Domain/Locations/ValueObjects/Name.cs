@@ -26,4 +26,6 @@ public record Name
 
         return Result.Success<Name, Error>(name);
     }
+
+    public static implicit operator string(Name name) => name.Value;
 }
