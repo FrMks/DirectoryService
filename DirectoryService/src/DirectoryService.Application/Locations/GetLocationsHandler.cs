@@ -65,7 +65,9 @@ public class GetLocationsHandler(
             _ => l => l.Name.Value,
         };
 
-        locationsQueryResponse = locationsQueryResponse.OrderBy(keySelector);
+        locationsQueryResponse = locationsQuery.LocationsRequest.SortDirection == "asc"
+            ? locationsQueryResponse.OrderBy(keySelector)
+            : locationsQueryResponse.OrderByDescending(keySelector);
 
         long totalCount = await locationsQueryResponse.CountAsync(cancellationToken);
 
