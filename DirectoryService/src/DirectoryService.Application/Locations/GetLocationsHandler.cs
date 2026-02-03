@@ -1,7 +1,9 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Contracts.Locations.GetLocations;
+using DirectoryService.Domain.Locations;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -54,6 +56,16 @@ public class GetLocationsHandler(
             locationsQueryResponse = locationsQueryResponse
                 .Where(lr => lr.IsActive == locationsQuery.LocationsRequest.IsActive);
         }
+
+        Expression<Func<Location, object>> keySelector = locationsQuery.LocationsRequest.SortBy?.ToLower() switch
+        {
+            "name" => l => l.Name.Value,
+            "createdat" => l => l.CreatedAt,
+            "updatedat" => l => l.UpdatedAt,
+            _ => l => l.Name.Value,
+        };
+
+        locationsQueryResponse = locationsQueryResponse.OrderBy(keySelector);
 
         long totalCount = await locationsQueryResponse.CountAsync(cancellationToken);
 
