@@ -60,6 +60,10 @@ public class GetLocationsHandler(
         Expression<Func<Location, object>> keySelector = locationsQuery.LocationsRequest.SortBy?.ToLower() switch
         {
             "name" => l => l.Name.Value,
+            "street" => l => l.Address.Street,
+            "city" => l => l.Address.City,
+            "country" => l => l.Address.Country,
+            "isactive" => l => l.IsActive,
             "createdat" => l => l.CreatedAt,
             "updatedat" => l => l.UpdatedAt,
             _ => l => l.Name.Value,
