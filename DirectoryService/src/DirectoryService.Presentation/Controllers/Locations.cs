@@ -1,8 +1,10 @@
-﻿using DirectoryService.Application.Abstractions;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 using Shared.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
@@ -28,17 +30,16 @@ public class Locations : ControllerBase
     }
 
     [HttpGet]
-    public async Task<EndpointResult<Guid>> Get(
-        [FromServices] ICommandHandler<Guid, GetLocationsQuery> handler,
+    public async Task<EndpointResult<(List<GetLocationsResponse> Locations, long TotalCount)>> Get(
+        [FromServices] IQueryHandler<GetLocationsQuery, Result<(List<GetLocationsResponse>, long TotalCount), Errors>> handler,
         [FromQuery] GetLocationsRequest request,
         CancellationToken cancellationToken)
     {
-        GetLocationsQuery locationsCommand = new(request);
-
-        var result = await handler.Handle(locationsCommand, cancellationToken);
+        GetLocationsQuery locationsQuery = new(request);
+        var result = await handler.Handle(locationsQuery, cancellationToken);
 
         if (result.IsFailure)
-            return result.ConvertFailure<Guid>();
+            return result.ConvertFailure<(List<GetLocationsResponse>, long)>();
 
         return result;
     }
