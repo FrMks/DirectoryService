@@ -36,6 +36,7 @@ public class GetLocationsHandler(
 
         var locationsQueryResponse = readDbContext.LocationsRead;
 
+        // Фильтруем в зависимости от переданных данных в LocationsRequest
         if (locationsQuery.LocationsRequest.DepartmentIds is not null
             && locationsQuery.LocationsRequest.DepartmentIds.Count != 0)
         {
@@ -60,6 +61,7 @@ public class GetLocationsHandler(
                 .Where(lr => lr.IsActive == locationsQuery.LocationsRequest.IsActive);
         }
 
+        // Сортировка
         Expression<Func<Location, object>> keySelector = locationsQuery.LocationsRequest.SortBy?.ToLower() switch
         {
             "name" => l => l.Name,
@@ -78,6 +80,7 @@ public class GetLocationsHandler(
 
         long totalCount = await locationsQueryResponse.CountAsync(cancellationToken);
 
+        // Пагинация
         if (locationsQuery.LocationsRequest.Pagination is not null
             && locationsQuery.LocationsRequest.Pagination.PageSize.HasValue
             && locationsQuery.LocationsRequest.Pagination.Page.HasValue)
@@ -100,6 +103,7 @@ public class GetLocationsHandler(
                 .Take((int)locationsQuery.LocationsRequest.Pagination.PageSize);
         }
 
+        // Проекция в DTO
         List<GetLocationsResponse> locations = await locationsQueryResponse
             .Select(l => new GetLocationsResponse
             {
