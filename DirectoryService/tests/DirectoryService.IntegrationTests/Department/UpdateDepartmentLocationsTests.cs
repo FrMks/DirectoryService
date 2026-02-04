@@ -111,7 +111,7 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
 
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
-        var tempLocationsList = new List<Location>();
+        var tempLocationsList = new List<Domain.Locations.Location>();
 
         return await ExecuteInDb(async dbContext =>
         {
@@ -119,7 +119,7 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
             {
                 LocationId locationId = LocationId.NewLocationId();
 
-                var location = Location.Create(
+                var location = Domain.Locations.Location.Create(
                     locationId,
                     Name.Create($"Локация {i}").Value,
                     Address.Create($"Улица {i}", $"Город {i}", $"Страна {i}").Value,

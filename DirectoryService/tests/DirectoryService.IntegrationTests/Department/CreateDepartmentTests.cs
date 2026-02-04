@@ -256,7 +256,7 @@ public class CreateDepartmentTests : DirectoryBaseTests
         {
             LocationId locationId = LocationId.NewLocationId();
 
-            var location = Location.Create(
+            var location = Domain.Locations.Location.Create(
                 locationId,
                 Name.Create("Локация").Value,
                 Address.Create("Улица", "Город", "Страна").Value,
