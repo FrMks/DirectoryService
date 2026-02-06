@@ -30,8 +30,8 @@ public class Locations : ControllerBase
     }
 
     [HttpGet]
-    public async Task<EndpointResult<(List<GetLocationsResponse> Locations, long TotalCount)>> Get(
-        [FromServices] IQueryHandler<GetLocationsQuery, Result<(List<GetLocationsResponse>, long TotalCount), Errors>> handler,
+    public async Task<EndpointResult<GetLocationsResult>> Get(
+        [FromServices] IQueryHandler<GetLocationsQuery, Result<GetLocationsResult, Errors>> handler,
         [FromQuery] GetLocationsRequest request,
         CancellationToken cancellationToken)
     {
@@ -39,7 +39,7 @@ public class Locations : ControllerBase
         var result = await handler.Handle(locationsQuery, cancellationToken);
 
         if (result.IsFailure)
-            return result.ConvertFailure<(List<GetLocationsResponse>, long)>();
+            return result.ConvertFailure<GetLocationsResult>();
 
         return result;
     }

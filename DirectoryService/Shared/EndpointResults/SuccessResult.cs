@@ -19,19 +19,9 @@ public class SuccessResult<TValue> : IResult
         ArgumentNullException.ThrowIfNull(httpContext);
 
         var envelope = Envelope.Ok(_value);
+
         httpContext.Response.StatusCode = (int)HttpStatusCode.OK;
 
-        // Получаем настройки JSON из DI
-        var jsonOptions = httpContext.RequestServices
-            .GetService<Microsoft.AspNetCore.Http.Json.JsonOptions>();
-
-        // Используем глобальные настройки или дефолтные с IncludeFields
-        var options = jsonOptions?.SerializerOptions ?? new JsonSerializerOptions
-        {
-            IncludeFields = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        return httpContext.Response.WriteAsJsonAsync(envelope, options);
+        return httpContext.Response.WriteAsJsonAsync(envelope);
     }
 }

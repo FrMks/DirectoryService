@@ -16,9 +16,9 @@ public class GetLocationsHandler(
     IReadDbContext readDbContext,
     IValidator<GetLocationsRequest> validator,
     ILogger<GetLocationsHandler> logger)
-    : IQueryHandler<GetLocationsQuery, Result<(List<GetLocationsResponse>, long TotalCount), Errors>>
+    : IQueryHandler<GetLocationsQuery, Result<GetLocationsResult, Errors>>
 {
-    public async Task<Result<(List<GetLocationsResponse>, long TotalCount), Errors>> Handle(
+    public async Task<Result<GetLocationsResult, Errors>> Handle(
         GetLocationsQuery locationsQuery,
         CancellationToken cancellationToken)
     {
@@ -119,6 +119,6 @@ public class GetLocationsHandler(
             })
             .ToListAsync(cancellationToken);
 
-        return (locations, totalCount);
+        return new GetLocationsResult(locations, totalCount);
     }
 }
