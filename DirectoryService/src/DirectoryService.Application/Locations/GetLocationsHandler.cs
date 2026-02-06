@@ -52,7 +52,7 @@ public class GetLocationsHandler(
         if (!string.IsNullOrWhiteSpace(locationsQuery.LocationsRequest.Search))
         {
             locationsQueryResponse = locationsQueryResponse
-                .Where(l => EF.Functions.Like(l.Name, $"%{locationsQuery.LocationsRequest.Search}%"));
+                .Where(l => EF.Functions.Like(((string)(object)l.Name).ToLower(), $"%{locationsQuery.LocationsRequest.Search.ToLower()}%"));
         }
 
         if (locationsQuery.LocationsRequest.IsActive.HasValue)
