@@ -57,11 +57,10 @@ public class Departments : ControllerBase
 
     [HttpGet("/top-positions")]
     public async Task<EndpointResult<TopDepartmentsResponse>> GetTopDepartments(
-        [FromServices] IQueryHandler<GetTopDepartmentsQuery, Result<TopDepartmentsResponse, Errors>> handler,
+        [FromServices] IQueryHandler<Result<TopDepartmentsResponse, Errors>> handler,
         CancellationToken cancellationToken)
     {
-        GetTopDepartmentsQuery query = new();
-        var response = await handler.Handle(query, cancellationToken);
+        var response = await handler.Handle(cancellationToken);
 
         if (response.IsFailure)
             return response.ConvertFailure<TopDepartmentsResponse>();
