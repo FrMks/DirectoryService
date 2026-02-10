@@ -17,10 +17,14 @@ public static class DependencyInjection
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services)
     {
-        services.AddControllers();
-        
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.IncludeFields = true;
+            });
+
         services.AddHttpLogging();
-        
+
         services.AddOpenApi(options =>
         {
             options.AddSchemaTransformer((schema, context, _) =>
@@ -31,7 +35,8 @@ public static class DependencyInjection
                     {
                         errorsProp.Items.Reference = new OpenApiReference
                         {
-                            Type = ReferenceType.Schema, Id = "Error",
+                            Type = ReferenceType.Schema,
+                            Id = "Error",
                         };
                     }
                 }
@@ -39,7 +44,7 @@ public static class DependencyInjection
                 return Task.CompletedTask;
             });
         });
-        
+
         return services;
     }
 }

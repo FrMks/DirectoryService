@@ -1,7 +1,7 @@
 ﻿using DirectoryService.Application.Departments;
 using DirectoryService.Contracts.Departments;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
@@ -28,9 +28,9 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
         List<Guid> locationsIds = await CreateLocations(5);
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         Domain.Department.Department department = await CreateDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
-        
+
         // Act
         var result = await ExecuteHandler(sut =>
         {
@@ -46,7 +46,7 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
             var departmentLocations = await dbContext.DepartmentLocations
                 .Where(dl => dl.DepartmentId == department.Id)
                 .ToListAsync(cancellationToken);
-            
+
             departmentLocations.Should().NotBeEmpty();
             result.IsSuccess.Should().BeTrue();
             departmentLocations.Count.Should().Be(5);
@@ -60,9 +60,9 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
         List<Guid> locationsIds = await CreateLocations(5);
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         Domain.Department.Department department = await CreateDepartment(locationId);
-        
+
         List<Guid> repeatingIds = [locationsIds[0], locationsIds[0]];
-        
+
         var cancellationToken = CancellationToken.None;
 
         // Act
@@ -89,7 +89,7 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
         List<Guid> locationsIds = await CreateLocations(5);
         LocationId locationId = LocationId.FromValue(locationsIds[0]);
         Domain.Department.Department department = await CreateNotActiveDepartment(locationId);
-        
+
         var cancellationToken = CancellationToken.None;
 
         // Act
@@ -111,30 +111,30 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
 
     private async Task<List<Guid>> CreateLocations(int countOfLocations)
     {
-        var tempLocationsList = new List<Location>();
-        
+        var tempLocationsList = new List<Domain.Locations.Location>();
+
         return await ExecuteInDb(async dbContext =>
         {
             for (int i = 0; i < countOfLocations; i++)
             {
                 LocationId locationId = LocationId.NewLocationId();
-                
-                var location = Location.Create(
+
+                var location = Domain.Locations.Location.Create(
                     locationId,
                     Name.Create($"Локация {i}").Value,
                     Address.Create($"Улица {i}", $"Город {i}", $"Страна {i}").Value,
                     Timezone.Create("Europe/London").Value,
                     new List<DepartmentLocation>()
                 ).Value;
-                
+
                 tempLocationsList.Add(location);
             }
-            
+
             dbContext.Locations.AddRange(tempLocationsList);
             await dbContext.SaveChangesAsync();
-            
+
             var locationIdsResult = tempLocationsList.Select(l => l.Id.Value).ToList();
-            
+
             return locationIdsResult;
         });
     }
@@ -151,14 +151,14 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
                 locationId).Value;
 
             var department = Domain.Department.Department.Create(
-                departmentId, 
+                departmentId,
                 Domain.Department.ValueObject.Name.Create("Подразделение").Value,
                 Identifier.Create("podrazdelenie").Value,
                 Path.Create("path").Value,
                 [departmentLocation],
                 Depth.Create(0).Value,
                 null).Value;
-            
+
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
 
@@ -178,16 +178,16 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
                 locationId).Value;
 
             var department = Domain.Department.Department.Create(
-                departmentId, 
+                departmentId,
                 Domain.Department.ValueObject.Name.Create("Подразделение").Value,
                 Identifier.Create("podrazdelenie").Value,
                 Path.Create("path").Value,
                 [departmentLocation],
                 Depth.Create(0).Value,
                 null).Value;
-            
+
             department.UpdateIsActive(false);
-            
+
             dbContext.Departments.Add(department);
             await dbContext.SaveChangesAsync();
 
@@ -198,9 +198,9 @@ public class UpdateDepartmentLocationsTests : DirectoryBaseTests
     private async Task<T> ExecuteHandler<T>(Func<UpdateDepartmentLocationsHandler, Task<T>> action)
     {
         var scope = Services.CreateAsyncScope();
-        
+
         var sut = scope.ServiceProvider.GetRequiredService<UpdateDepartmentLocationsHandler>();
-        
+
         return await action(sut);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Domain.DepartmentLocations;
 using Shared;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
@@ -9,10 +10,10 @@ public sealed class Department
 {
     private readonly List<DepartmentLocation> _departmentLocations = [];
     private readonly List<DepartmentPosition> _departmentPositions = [];
-    
+
     // EF Core
     private Department() { }
-    
+
     private Department(
         DepartmentId id,
         Name name,
@@ -36,7 +37,7 @@ public sealed class Department
     #region Properties
 
     public DepartmentId Id { get; private set; }
-    
+
     public Name Name { get; private set; } = null!;
 
     public Identifier Identifier { get; private set; } = null!;
@@ -45,17 +46,17 @@ public sealed class Department
     /// Идентификатор родителя. null - корневой отдел, иначе родитель существует и активен.
     /// </summary>
     public Guid? ParentId { get; private set; }
-    
+
     public Path Path { get; private set; } = null!;
 
     public Depth Depth { get; private set; } = null!;
 
     public bool IsActive { get; private set; }
-    
+
     public DateTime CreatedAt { get; private set; }
-    
+
     public DateTime UpdatedAt { get; private set; }
-    
+
     public IReadOnlyList<DepartmentLocation> DepartmentLocations => _departmentLocations;
     public IReadOnlyList<DepartmentPosition> DepartmentPositions => _departmentPositions;
 
@@ -73,18 +74,18 @@ public sealed class Department
 
         return Result.Success(department);
     }
-    
+
     public UnitResult<Error> UpdateDepartmentLocations(IEnumerable<DepartmentLocation> departmentLocations)
     {
         var listOfDepartmentLocations = departmentLocations.ToList();
-        
+
         if (listOfDepartmentLocations.Count == 0)
         {
             return Error.Validation(
                 "department.location",
                 "Department locations must contain at least one location");
         }
-        
+
         _departmentLocations.Clear();
         _departmentLocations.AddRange(listOfDepartmentLocations);
         UpdatedAt = DateTime.UtcNow;

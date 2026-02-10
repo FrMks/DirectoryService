@@ -1,4 +1,4 @@
-using DirectoryService.Application.Database;
+﻿using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
@@ -25,6 +25,9 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
+    new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
+
+builder.Services.AddScoped<IReadDbContext, DirectoryServiceDbContext>(_ =>
     new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
 
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();

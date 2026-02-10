@@ -1,7 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Domain.Locations;
-using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -27,11 +26,11 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                     location.Address.Street, location.Address.City, location.Address.Country);
                 return Error.Failure(null, "Address already exists in database.");
             }
-            
+
             await dbContext.Locations.AddAsync(location, cancellationToken);
 
             await dbContext.SaveChangesAsync(cancellationToken); // Применяем изменения
-            
+
             logger.LogInformation("Successfully added to the database with id{location}", location.Id.Value);
         }
         catch (Exception e)
@@ -40,10 +39,10 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                 null,
                 "Database error occurred when added location to a database.");
         }
-        
+
         return Result.Success<Guid, Error>(location.Id.Value);
     }
-    
+
     public async Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken)
     {
         var locations = await dbContext.Locations
@@ -56,7 +55,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
                 "location.not.found",
                 $"Some location id does not have in database");
         }
-        
+
         return true;
     }
 }

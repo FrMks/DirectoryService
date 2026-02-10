@@ -3,13 +3,13 @@ using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
 
-namespace DirectoryService.Domain;
+namespace DirectoryService.Domain.DepartmentLocations;
 
 public sealed class DepartmentLocation
 {
     // EF Core
     private DepartmentLocation() { }
-    
+
     private DepartmentLocation(DepartmentLocationId id, DepartmentId departmentId, LocationId locationId)
     {
         Id = id;

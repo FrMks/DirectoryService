@@ -2,6 +2,7 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
+using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
 using Shared.EndpointResults;
@@ -24,6 +25,21 @@ public class Locations : ControllerBase
 
         if (result.IsFailure)
             return result.ConvertFailure<Guid>();
+
+        return result;
+    }
+
+    [HttpGet]
+    public async Task<EndpointResult<GetLocationsResult>> Get(
+        [FromServices] IQueryHandler<GetLocationsQuery, Result<GetLocationsResult, Errors>> handler,
+        [FromQuery] GetLocationsRequest request,
+        CancellationToken cancellationToken)
+    {
+        GetLocationsQuery locationsQuery = new(request);
+        var result = await handler.Handle(locationsQuery, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<GetLocationsResult>();
 
         return result;
     }

@@ -3,7 +3,6 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations;
-using DirectoryService.Domain;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using FluentValidation;
@@ -49,7 +48,7 @@ public class CreateLocationHandler(
 
         Location location = Location.Create(locationId, locationName,
             locationAddress, locationTimezone,
-            new List<DepartmentLocation>()).Value;
+            new List<Domain.DepartmentLocations.DepartmentLocation>()).Value;
 
         logger.LogInformation("Creating location with id {successfulId.Value}", location.Name);
 
@@ -58,7 +57,7 @@ public class CreateLocationHandler(
 
         if (successfulId.IsFailure)
             return Error.Failure(null, successfulId.Error.Message).ToErrors();
-        
+
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Location with id {successfulId.Value} add to db.", successfulId.Value);
 
