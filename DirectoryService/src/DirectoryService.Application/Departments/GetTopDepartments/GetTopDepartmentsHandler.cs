@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
-using DirectoryService.Domain.Department;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -18,8 +14,22 @@ public class GetTopDepartmentsHandler(
 {
     public async Task<Result<TopDepartmentsResponse, Errors>> Handle(CancellationToken cancellationToken)
     {
-        var emptyList = Enumerable.Empty<Department>();
-        var response = new TopDepartmentsResponse(emptyList.ToList());
+        var departments = readDbContext.DepartmentsRead;
+
+        var topDepartments = departments
+            .Select(d => new
+            {
+                Department = d,
+                PositionsCount = d.DepartmentPositions.Count(),
+            })
+            .OrderByDescending(d => d.PositionsCount)
+            .Take(5);
+
+        List<DepartmentWithPositionsDto> topDepartmentsList = await topDepartments
+            .Select(d => new DepartmentWithPositionsDto(d.Department, d.PositionsCount))
+            .ToListAsync(cancellationToken);
+
+        var response = new TopDepartmentsResponse(topDepartmentsList);
 
         return Result.Success<TopDepartmentsResponse, Errors>(response);
     }

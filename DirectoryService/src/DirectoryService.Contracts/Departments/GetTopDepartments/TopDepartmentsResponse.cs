@@ -6,4 +6,4 @@ using DirectoryService.Domain.Department;
 
 namespace DirectoryService.Contracts.Departments.GetTopDepartments;
 
-public record TopDepartmentsResponse(List<Department> Departments);
+public record TopDepartmentsResponse(List<DepartmentWithPositionsDto> Departments);
