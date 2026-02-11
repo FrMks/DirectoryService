@@ -67,4 +67,17 @@ public class Departments : ControllerBase
 
         return response;
     }
+
+    [HttpGet("/top-positions/dapper")]
+    public async Task<EndpointResult<TopDepartmentsDapperResponse>> GetTopDepartmentsDapper(
+        [FromServices] IQueryHandler<Result<TopDepartmentsDapperResponse, Errors>> handler,
+        CancellationToken cancellationToken)
+    {
+        var response = await handler.Handle(cancellationToken);
+
+        if (response.IsFailure)
+            return response.ConvertFailure<TopDepartmentsDapperResponse>();
+
+        return response;
+    }
 }

@@ -9,6 +9,7 @@ using DirectoryService.Web;
 using DirectoryService.Web.Middlewares;
 using Serilog;
 using Serilog.Events;
+using Shared.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,9 @@ builder.Services.AddScoped<DirectoryServiceDbContext>(_ =>
     new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
 
 builder.Services.AddScoped<IReadDbContext, DirectoryServiceDbContext>(_ =>
+    new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
+
+builder.Services.AddScoped<IDbConnectionFactory, DirectoryServiceDbContext>(_ =>
     new DirectoryServiceDbContext(builder.Configuration.GetConnectionString("DirectoryServiceDb")!));
 
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
