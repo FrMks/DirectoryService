@@ -14,20 +14,25 @@ public class GetTopDepartmentsHandler(
 {
     public async Task<Result<TopDepartmentsResponse, Errors>> Handle(CancellationToken cancellationToken)
     {
-        var departments = readDbContext.DepartmentsRead;
-
-        var topDepartments = departments
-            .Select(d => new
+        var topDepartmentsList = await readDbContext.DepartmentsRead
+        .OrderByDescending(d => d.DepartmentPositions.Count())
+        .Take(5)
+        .Select(d => new DepartmentWithPositionsDto(
+            new DepartmentDto
             {
-                Department = d,
-                PositionsCount = d.DepartmentPositions.Count(),
-            })
-            .OrderByDescending(d => d.PositionsCount)
-            .Take(5);
-
-        List<DepartmentWithPositionsDto> topDepartmentsList = await topDepartments
-            .Select(d => new DepartmentWithPositionsDto(d.Department, d.PositionsCount))
-            .ToListAsync(cancellationToken);
+                Id = d.Id.Value,
+                Name = d.Name.Value,
+                Identifier = d.Identifier.Value,
+                ParentId = d.ParentId,
+                Path = d.Path.Value,
+                Depth = d.Depth.Value,
+                IsActive = d.IsActive,
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
+            },
+            d.DepartmentPositions.Count()
+        ))
+        .ToListAsync(cancellationToken);
 
         var response = new TopDepartmentsResponse(topDepartmentsList);
 

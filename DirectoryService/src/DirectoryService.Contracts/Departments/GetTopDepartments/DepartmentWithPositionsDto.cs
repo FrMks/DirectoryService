@@ -1,5 +1,3 @@
-﻿using DirectoryService.Domain.Department;
+﻿namespace DirectoryService.Contracts.Departments.GetTopDepartments;
 
-namespace DirectoryService.Contracts.Departments.GetTopDepartments;
-
-public record DepartmentWithPositionsDto(Department Department, int PositionsCount);
+public record DepartmentWithPositionsDto(DepartmentDto Department, int PositionsCount);

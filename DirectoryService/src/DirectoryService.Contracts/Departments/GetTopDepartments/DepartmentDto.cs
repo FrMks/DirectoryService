@@ -1,8 +1,10 @@
-﻿namespace DirectoryService.Contracts.Departments.GetTopDepartments;
+﻿using System.Security.Cryptography.X509Certificates;
 
-public class DepartmentDapperDto
+namespace DirectoryService.Contracts.Departments.GetTopDepartments;
+
+public record DepartmentDto
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
     public string Name { get; set; } = string.Empty;
     public string Identifier { get; set; } = string.Empty;
     public Guid? ParentId { get; set; }
@@ -11,5 +13,4 @@ public class DepartmentDapperDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public int PositionsCount { get; set; }
 }

@@ -2,12 +2,8 @@
 using Dapper;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
-using DirectoryService.Domain.Department;
-using DirectoryService.Domain.Department.ValueObject;
-using DirectoryService.Domain.DepartmentLocations;
 using Shared;
 using Shared.Database;
-using DepartmentPath = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Application.Departments.GetTopDepartments;
 
@@ -28,7 +24,7 @@ public class GetTopDepartmentsDapperHandler(
                 d.depth,
                 d.created_at,
                 d.updated_at,
-                COUNT(dp.id) as PositionsCount
+                CAST(COUNT(dp.id) AS INTEGER) as PositionsCount
             FROM departments d
             LEFT JOIN department_positions dp ON d.id = dp.department_id
             GROUP BY 
@@ -44,28 +40,13 @@ public class GetTopDepartmentsDapperHandler(
             ORDER BY PositionsCount DESC
             LIMIT 5;";
 
-        var queryResult = await dbConnection.QueryAsync<DepartmentDapperDto>(sql);
+        var queryResult = await dbConnection.QueryAsync<DepartmentDto, int, DepartmentWithPositionsDto>(
+            sql,
+            (department, positionsCount) => new DepartmentWithPositionsDto(department, positionsCount),
+            splitOn: "PositionsCount");
 
-        var topDepartments = queryResult
-            .Select(dto => new DepartmentWithPositionsDto(
-                Department: MapToDepartment(dto),
-                PositionsCount: dto.PositionsCount))
-            .ToList();
-
-        var response = new TopDepartmentsDapperResponse(topDepartments);
+        var response = new TopDepartmentsDapperResponse(queryResult.ToList());
 
         return response;
-    }
-
-    private Department MapToDepartment(DepartmentDapperDto dto)
-    {
-        return Department.Create(
-            DepartmentId.FromValue(dto.Id),
-            Name.Create(dto.Name).Value,
-            Identifier.Create(dto.Identifier).Value,
-            DepartmentPath.Create(dto.Path).Value,
-            Enumerable.Empty<DepartmentLocation>(),
-            Depth.Create(dto.Depth).Value,
-            dto.ParentId).Value;
     }
 }
