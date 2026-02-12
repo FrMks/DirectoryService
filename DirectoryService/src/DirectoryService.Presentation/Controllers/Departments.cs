@@ -56,27 +56,27 @@ public class Departments : ControllerBase
     }
 
     [HttpGet("/top-positions")]
-    public async Task<EndpointResult<TopDepartmentsResponse>> GetTopDepartments(
-        [FromServices] IQueryHandler<Result<TopDepartmentsResponse, Errors>> handler,
+    public async Task<EndpointResult<DepartmentWithPositionsDto[]>> GetTopDepartments(
+        [FromServices] IQueryHandler<Result<DepartmentWithPositionsDto[], Errors>> handler,
         CancellationToken cancellationToken)
     {
         var response = await handler.Handle(cancellationToken);
 
         if (response.IsFailure)
-            return response.ConvertFailure<TopDepartmentsResponse>();
+            return response.ConvertFailure<DepartmentWithPositionsDto[]>();
 
         return response;
     }
 
     [HttpGet("/top-positions/dapper")]
-    public async Task<EndpointResult<TopDepartmentsDapperResponse>> GetTopDepartmentsDapper(
-        [FromServices] IQueryHandler<Result<TopDepartmentsDapperResponse, Errors>> handler,
+    public async Task<EndpointResult<DepartmentWithPositionsDapperDto[]>> GetTopDepartmentsDapper(
+        [FromServices] IQueryHandler<Result<DepartmentWithPositionsDapperDto[], Errors>> handler,
         CancellationToken cancellationToken)
     {
         var response = await handler.Handle(cancellationToken);
 
         if (response.IsFailure)
-            return response.ConvertFailure<TopDepartmentsDapperResponse>();
+            return response.ConvertFailure<DepartmentWithPositionsDapperDto[]>();
 
         return response;
     }

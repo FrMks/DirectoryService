@@ -10,9 +10,9 @@ namespace DirectoryService.Application.Departments.GetTopDepartments;
 
 public class GetTopDepartmentsHandler(
     IReadDbContext readDbContext,
-    ILogger<GetTopDepartmentsHandler> logger) : IQueryHandler<Result<TopDepartmentsResponse, Errors>>
+    ILogger<GetTopDepartmentsHandler> logger) : IQueryHandler<Result<DepartmentWithPositionsDto[], Errors>>
 {
-    public async Task<Result<TopDepartmentsResponse, Errors>> Handle(CancellationToken cancellationToken)
+    public async Task<Result<DepartmentWithPositionsDto[], Errors>> Handle(CancellationToken cancellationToken)
     {
         var topDepartmentsList = await readDbContext.DepartmentsRead
         .OrderByDescending(d => d.DepartmentPositions.Count())
@@ -34,8 +34,6 @@ public class GetTopDepartmentsHandler(
         ))
         .ToListAsync(cancellationToken);
 
-        var response = new TopDepartmentsResponse(topDepartmentsList);
-
-        return Result.Success<TopDepartmentsResponse, Errors>(response);
+        return Result.Success<DepartmentWithPositionsDto[], Errors>(topDepartmentsList.ToArray());
     }
 }

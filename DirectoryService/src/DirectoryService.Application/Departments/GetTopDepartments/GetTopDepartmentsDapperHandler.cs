@@ -8,9 +8,9 @@ using Shared.Database;
 namespace DirectoryService.Application.Departments.GetTopDepartments;
 
 public class GetTopDepartmentsDapperHandler(
-    IDbConnectionFactory dbConnectionFactory) : IQueryHandler<Result<TopDepartmentsDapperResponse, Errors>>
+    IDbConnectionFactory dbConnectionFactory) : IQueryHandler<Result<DepartmentWithPositionsDapperDto[], Errors>>
 {
-    public async Task<Result<TopDepartmentsDapperResponse, Errors>> Handle(CancellationToken cancellationToken)
+    public async Task<Result<DepartmentWithPositionsDapperDto[], Errors>> Handle(CancellationToken cancellationToken)
     {
         var dbConnection = dbConnectionFactory.GetDbConnection();
 
@@ -40,13 +40,11 @@ public class GetTopDepartmentsDapperHandler(
             ORDER BY PositionsCount DESC
             LIMIT 5;";
 
-        var queryResult = await dbConnection.QueryAsync<DepartmentDto, int, DepartmentWithPositionsDto>(
+        var queryResult = await dbConnection.QueryAsync<DepartmentDto, int, DepartmentWithPositionsDapperDto>(
             sql,
-            (department, positionsCount) => new DepartmentWithPositionsDto(department, positionsCount),
+            (department, positionsCount) => new DepartmentWithPositionsDapperDto(department, positionsCount),
             splitOn: "PositionsCount");
 
-        var response = new TopDepartmentsDapperResponse(queryResult.ToList());
-
-        return response;
+        return Result.Success<DepartmentWithPositionsDapperDto[], Errors>(queryResult.ToArray());
     }
 }
