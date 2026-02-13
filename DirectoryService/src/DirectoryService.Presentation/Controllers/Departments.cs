@@ -1,7 +1,11 @@
-﻿using DirectoryService.Application.Abstractions;
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
+using DirectoryService.Application.Departments.GetTopDepartments;
 using DirectoryService.Contracts.Departments;
+using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 using Shared.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
@@ -17,12 +21,12 @@ public class Departments : ControllerBase
         CancellationToken cancellationToken)
     {
         CreateDepartmentCommand departmentCommand = new(request);
-        
+
         var result = await handler.Handle(departmentCommand, cancellationToken);
-        
+
         if (result.IsFailure)
             return result.ConvertFailure<Guid>();
-        
+
         return result;
     }
 
@@ -49,5 +53,31 @@ public class Departments : ControllerBase
     {
         UpdateParentLevelCommand updateParentLevelCommand = new(departmentId, request);
         return await handler.Handle(updateParentLevelCommand, cancellationToken);
+    }
+
+    [HttpGet("/top-positions")]
+    public async Task<EndpointResult<DepartmentWithPositionsDto[]>> GetTopDepartments(
+        [FromServices] IQueryHandler<Result<DepartmentWithPositionsDto[], Errors>> handler,
+        CancellationToken cancellationToken)
+    {
+        var response = await handler.Handle(cancellationToken);
+
+        if (response.IsFailure)
+            return response.ConvertFailure<DepartmentWithPositionsDto[]>();
+
+        return response;
+    }
+
+    [HttpGet("/top-positions/dapper")]
+    public async Task<EndpointResult<DepartmentWithPositionsDapperDto[]>> GetTopDepartmentsDapper(
+        [FromServices] IQueryHandler<Result<DepartmentWithPositionsDapperDto[], Errors>> handler,
+        CancellationToken cancellationToken)
+    {
+        var response = await handler.Handle(cancellationToken);
+
+        if (response.IsFailure)
+            return response.ConvertFailure<DepartmentWithPositionsDapperDto[]>();
+
+        return response;
     }
 }

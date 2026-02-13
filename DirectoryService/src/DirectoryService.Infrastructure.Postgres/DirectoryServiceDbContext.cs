@@ -1,14 +1,16 @@
-﻿using DirectoryService.Application.Database;
+﻿using System.Data.Common;
+using DirectoryService.Application.Database;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Positions;
 using Microsoft.EntityFrameworkCore;
+using Shared.Database;
 
 namespace DirectoryService.Infrastructure.Postgres;
 
-public class DirectoryServiceDbContext : DbContext, IReadDbContext
+public class DirectoryServiceDbContext : DbContext, IReadDbContext, IDbConnectionFactory
 {
     private readonly string _connectionString;
 
@@ -35,5 +37,9 @@ public class DirectoryServiceDbContext : DbContext, IReadDbContext
     public DbSet<DepartmentPosition> DepartmentPositions => Set<DepartmentPosition>();
 
     public IQueryable<Location> LocationsRead => Set<Location>().AsQueryable().AsNoTracking();
+
     public IQueryable<DepartmentLocation> DepartmentLocationsRead => Set<DepartmentLocation>().AsQueryable().AsNoTracking();
+    public IQueryable<Department> DepartmentsRead => Set<Department>().AsQueryable().AsNoTracking();
+
+    public DbConnection GetDbConnection() => Database.GetDbConnection();
 }
