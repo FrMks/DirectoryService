@@ -2,4 +2,6 @@
 
 namespace DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 
-public record DepartmentDtoWithPreloadingChildren(DepartmentDto Department, DepartmentDto[] Children);
+public record DepartmentDtoWithPreloadingChildren(
+    DepartmentDto Department,
+    bool HasMoreChildren);

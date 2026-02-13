@@ -84,11 +84,12 @@ public class Departments : ControllerBase
 
     [HttpGet("roots")]
     public async Task<EndpointResult<DepartmentDtoWithPreloadingChildren[]>> GetRootSectionsWithPreloadingChildren(
-        [FromServices] IQueryHandler<Result<DepartmentDtoWithPreloadingChildren[], Errors>> handler,
+        [FromServices] IQueryHandler<GettingRootSectionsWithPreloadingChildrenRequest,
+            Result<DepartmentDtoWithPreloadingChildren[], Errors>> handler,
         [FromQuery] GettingRootSectionsWithPreloadingChildrenRequest filter,
         CancellationToken cancellationToken)
     {
-        var response = await handler.Handle(cancellationToken);
+        var response = await handler.Handle(filter, cancellationToken);
 
         if (response.IsFailure)
             return response.ConvertFailure<DepartmentDtoWithPreloadingChildren[]>();
