@@ -2,4 +2,4 @@
 
 namespace DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 
-public class DepartmentDtoWithLazyLoadingOfChildren(DepartmentDto Department, DepartmentDto[] Children);
+public record DepartmentDtoWithLazyLoadingOfChildren(DepartmentDto Department, bool HasMoreChildren);

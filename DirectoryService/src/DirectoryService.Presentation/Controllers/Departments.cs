@@ -99,12 +99,13 @@ public class Departments : ControllerBase
 
     [HttpGet("{parentId}/children")]
     public async Task<EndpointResult<DepartmentDtoWithLazyLoadingOfChildren[]>> GetDepartmentsWithLazyLoadingOfChildren(
-        [FromServices] IQueryHandler<Result<DepartmentDtoWithLazyLoadingOfChildren[], Errors>> handler,
+        [FromServices] IQueryHandler<GetDepartmentWithLazyLoadingOfChildrenRequest, Result<DepartmentDtoWithLazyLoadingOfChildren[], Errors>> handler,
         [FromRoute] Guid parentId,
         [FromQuery] PaginationRequest? pagination,
         CancellationToken cancellationToken = default)
     {
-        var response = await handler.Handle(cancellationToken);
+        var request = new GetDepartmentWithLazyLoadingOfChildrenRequest(parentId, pagination);
+        var response = await handler.Handle(request, cancellationToken);
 
         if (response.IsFailure)
             return response.ConvertFailure<DepartmentDtoWithLazyLoadingOfChildren[]>();
