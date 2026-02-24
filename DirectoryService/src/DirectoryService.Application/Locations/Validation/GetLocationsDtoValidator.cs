@@ -23,7 +23,7 @@ public class GetLocationsDtoValidator : AbstractValidator<GetLocationsRequest>
                 "SortDirection must be either 'asc' or 'desc'."));
 
         RuleFor(x => x.Pagination)
-            .Must(pagination => pagination is null || (pagination.Page.HasValue && pagination.Page > 0 && pagination.PageSize.HasValue && pagination.PageSize > 0))
+            .Must(pagination => pagination is null || (pagination.Page > 0 && pagination.PageSize > 0))
             .WithError(Error.Validation(
                 "invalid.pagination",
                 "If Pagination is provided, both Page and PageSize must be greater than 0."));

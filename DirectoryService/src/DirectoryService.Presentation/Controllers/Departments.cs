@@ -1,9 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Departments;
-using DirectoryService.Application.Departments.GetTopDepartments;
 using DirectoryService.Contracts.Departments;
+using DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
+using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
 using Shared.EndpointResults;
@@ -77,6 +78,37 @@ public class Departments : ControllerBase
 
         if (response.IsFailure)
             return response.ConvertFailure<DepartmentWithPositionsDapperDto[]>();
+
+        return response;
+    }
+
+    [HttpGet("roots")]
+    public async Task<EndpointResult<DepartmentDtoWithPreloadingChildren[]>> GetRootSectionsWithPreloadingChildren(
+        [FromServices] IQueryHandler<GettingRootSectionsWithPreloadingChildrenRequest,
+            Result<DepartmentDtoWithPreloadingChildren[], Errors>> handler,
+        [FromQuery] GettingRootSectionsWithPreloadingChildrenRequest filter,
+        CancellationToken cancellationToken)
+    {
+        var response = await handler.Handle(filter, cancellationToken);
+
+        if (response.IsFailure)
+            return response.ConvertFailure<DepartmentDtoWithPreloadingChildren[]>();
+
+        return response;
+    }
+
+    [HttpGet("{parentId}/children")]
+    public async Task<EndpointResult<DepartmentDtoWithLazyLoadingOfChildren[]>> GetDepartmentsWithLazyLoadingOfChildren(
+        [FromServices] IQueryHandler<GetDepartmentWithLazyLoadingOfChildrenRequest, Result<DepartmentDtoWithLazyLoadingOfChildren[], Errors>> handler,
+        [FromRoute] Guid parentId,
+        [FromQuery] PaginationRequest? pagination,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new GetDepartmentWithLazyLoadingOfChildrenRequest(parentId, pagination);
+        var response = await handler.Handle(request, cancellationToken);
+
+        if (response.IsFailure)
+            return response.ConvertFailure<DepartmentDtoWithLazyLoadingOfChildren[]>();
 
         return response;
     }
