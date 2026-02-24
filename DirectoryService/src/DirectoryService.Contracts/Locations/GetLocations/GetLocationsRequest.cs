@@ -9,4 +9,4 @@ public record GetLocationsRequest(
     string? SortDirection = "asc"
 );
 
-public record PaginationRequest(int? Page = 1, int? PageSize = 20);
+public record PaginationRequest(int Page = 1, int PageSize = 20);

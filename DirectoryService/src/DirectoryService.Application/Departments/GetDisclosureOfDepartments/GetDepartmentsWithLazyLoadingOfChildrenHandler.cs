@@ -17,8 +17,8 @@ public class GetDepartmentsWithLazyLoadingOfChildrenHandler(
         GetDepartmentWithLazyLoadingOfChildrenRequest query,
         CancellationToken cancellationToken)
     {
-        var page = query.Pagination?.Page < 1 ? 1 : query.Pagination?.Page ?? 1;
-        var pageSize = query.Pagination?.PageSize < 1 ? 20 : query.Pagination?.PageSize ?? 20;
+        var page = query.Pagination?.Page < 1 ? 1 : query.Pagination?.Page;
+        var pageSize = query.Pagination?.PageSize < 1 ? 20 : query.Pagination?.PageSize;
         var offset = (page - 1) * pageSize;
 
         var dbConnection = dbConnectionFactory.GetDbConnection();
