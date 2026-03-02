@@ -18,7 +18,15 @@ public class SoftDeleteDepartmentHandler(
         SoftDeleteDepartmentCommand command,
         CancellationToken cancellationToken)
     {
-        await transactionManager.BeginTransaction(cancellationToken);
+        var transactionResult = await transactionManager.BeginTransaction(cancellationToken);
+
+        if (transactionResult.IsFailure)
+        {
+            logger.LogError("Failed to begin transaction: {error}", transactionResult.Error);
+            return transactionResult.Error.ToErrors();
+        }
+
+        using var transactionScope = transactionResult.Value;
 
         var departmentResult = await departmentsRepository.GetBy(d => d.Id == command.DepartmentId && d.IsActive, cancellationToken);
 
