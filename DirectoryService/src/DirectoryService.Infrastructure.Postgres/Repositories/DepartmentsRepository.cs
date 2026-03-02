@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
@@ -24,7 +25,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         {
             return Error.Failure(null, "Database error occurred.");
         }
-        
+
         return Result.Success<Guid, Error>(department.Id.Value);
     }
 
@@ -44,7 +45,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
     {
         var haveDepartmentInDatabaseWithSameIdentifier = await dbContext.Departments
             .AnyAsync(d => d.Identifier == identifier, cancellationToken);
-        
+
         if (haveDepartmentInDatabaseWithSameIdentifier)
         {
             return Error.Failure(
@@ -68,7 +69,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 "department.not.failure",
                 $"Some department id does not have in database");
         }
-        
+
         var departmentsNotActive = departments
             .Where(d => !d.IsActive)
             .ToList();
@@ -82,14 +83,14 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         return true;
     }
-    
+
     public async Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken)
     {
         // Без Include у меня достается только таблица departments (не происходит join с department_locations
         var department = await dbContext.Departments
             .Include(d => d.DepartmentLocations)
             .FirstOrDefaultAsync(d => d.Id == departmentId, cancellationToken);
-        
+
         if (department is null)
         {
             return Error.NotFound(
@@ -97,7 +98,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 $"Department with id: {departmentId} not found.",
                 departmentId.Value).ToErrors();
         }
-        
+
         if (!department.IsActive)
         {
             return Error.Failure(
@@ -193,5 +194,23 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 "department.move.failed",
                 $"Failed to move department: {e.Message}");
         }
+    }
+
+    public async Task<Result<Department, Error>> GetBy(
+        Expression<Func<Department, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        var department = await dbContext.Departments.FirstOrDefaultAsync(predicate, cancellationToken);
+
+        if (department is null)
+        {
+            logger.LogError("Department not found with given predicate");
+            return Error.NotFound(
+                "department.not.found",
+                $"Department not found.",
+                null);
+        }
+
+        return department;
     }
 }
