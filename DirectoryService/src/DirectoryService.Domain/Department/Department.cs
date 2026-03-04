@@ -165,6 +165,7 @@ public sealed class Department
     public void SoftDelete()
     {
         IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
         DeletedAt = DateTime.UtcNow;
     }
 }
