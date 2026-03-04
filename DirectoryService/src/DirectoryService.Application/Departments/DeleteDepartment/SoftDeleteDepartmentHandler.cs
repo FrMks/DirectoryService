@@ -4,7 +4,6 @@ using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
-using DirectoryService.Domain.DepartmentLocations;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -22,6 +21,7 @@ public class SoftDeleteDepartmentHandler(
         SoftDeleteDepartmentCommand command,
         CancellationToken cancellationToken)
     {
+        // Начинаем транзакцию для атомарности операции
         var transactionResult = await transactionManager.BeginTransaction(cancellationToken);
 
         if (transactionResult.IsFailure)
@@ -32,6 +32,7 @@ public class SoftDeleteDepartmentHandler(
 
         using var transactionScope = transactionResult.Value;
 
+        // Получаем активный департамент по ID
         var departmentResult = await departmentsRepository.GetBy(d => d.Id == command.DepartmentId && d.IsActive, cancellationToken);
 
         if (departmentResult.IsFailure)
@@ -42,9 +43,11 @@ public class SoftDeleteDepartmentHandler(
 
         var department = departmentResult.Value;
 
+        // Выполняем мягкое удаление департамента
         department.SoftDelete();
 
-        // Если у department есть только одно место, то при удалении department мы удаляем и это место, так как оно не может существовать без department.
+        // Обработка удаления связанного места, если оно единственное
+        // Место не может существовать без департамента
         if (department.DepartmentLocations.Count <= 1)
         {
             var departmentLocation = department.DepartmentLocations.First();
@@ -63,6 +66,8 @@ public class SoftDeleteDepartmentHandler(
             location.SoftDelete();
         }
         
+        // Обработка удаления связанной должности, если она единственная
+        // Должность не может существовать без департамента
         if (department.DepartmentPositions.Count <= 1)
         {
             var departmentPosition = department.DepartmentPositions.First();
@@ -81,8 +86,45 @@ public class SoftDeleteDepartmentHandler(
             position.SoftDelete();
         }
 
+        var identifier = department.Identifier.Value;
+
+        // Получаем дочерние департаменты, которые нужно обновить
+        var departmentsToChangePathResult = await departmentsRepository
+            .GetListBy(
+                d => d.Path.Value == identifier
+                || d.Path.Value.StartsWith(identifier + ".")
+                || d.Path.Value.EndsWith("." + identifier)
+                || d.Path.Value.Contains("." + identifier + "."),
+                cancellationToken);
+        
+        if (departmentsToChangePathResult.IsFailure)
+        {
+            logger.LogError("Failed to retrieve child departments for department with id {DepartmentId}.", command.DepartmentId);
+            return departmentsToChangePathResult.Error.ToErrors();
+        }
+
+        var departmentsToChangePath = departmentsToChangePathResult.Value;
+
+        // Обновляем пути для удаленного департамента и его дочерних элементов
+        var parentNewPath = department.Path.Value.Replace(identifier, $"deleted-{identifier}");
+        var parentUpdateResult = department.UpdatePath(parentNewPath);
+
+        if (parentUpdateResult.IsFailure)
+        {
+            logger.LogError("Failed to update path in parent department.");
+            return parentUpdateResult.Error.ToErrors();
+        }
+
+        // Обновляем пути для всех дочерних департаментов
+        foreach (var childDepartment in departmentsToChangePath)
+        {
+            var childNewPath = childDepartment.Path.Value.Replace(identifier, $"deleted-{identifier}");
+            childDepartment.UpdatePath(childNewPath);
+        }
+
         logger.LogInformation("Department with id {DepartmentId} has been soft deleted.", command.DepartmentId);
 
+        // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);
     }
 }
