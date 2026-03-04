@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Domain.Positions;
 using DirectoryService.Domain.Positions.ValueObject;
@@ -41,5 +42,23 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
             return Error.Failure("position.failure", $"Position with id: {position.Id.Value} is active.");
 
         return true;
+    }
+
+    public async Task<Result<Position, Error>> GetBy(
+        Expression<Func<Position, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        var position = await dbContext.Positions.FirstOrDefaultAsync(predicate, cancellationToken);
+
+        if (position is null)
+        {
+            logger.LogError("Position not found with given predicate");
+            return Error.NotFound(
+                "position.not.found",
+                $"Position not found.",
+                null);
+        }
+
+        return position;
     }
 }

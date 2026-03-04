@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Locations;
 using Shared;
 
@@ -15,4 +16,6 @@ public interface ILocationsRepository
     /// <param name="cancellationToken">Токен для отмены операции.</param>
     /// <returns>True если все идентификаторы есть в БД. Error если какого-то идентификатора нету.</returns>
     Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken);
+
+    Task<Result<Location, Error>> GetBy(Expression<Func<Location, bool>> predicate, CancellationToken cancellationToken);
 }

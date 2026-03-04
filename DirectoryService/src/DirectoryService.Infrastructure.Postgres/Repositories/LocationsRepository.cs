@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Domain.Locations;
 using Microsoft.EntityFrameworkCore;
@@ -57,5 +58,23 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         }
 
         return true;
+    }
+
+    public async Task<Result<Location, Error>> GetBy(
+        Expression<Func<Location, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        var location = await dbContext.Locations.FirstOrDefaultAsync(predicate, cancellationToken);
+
+        if (location is null)
+        {
+            logger.LogError("Location not found with given predicate");
+            return Error.NotFound(
+                "location.not.found",
+                $"Location not found.",
+                null);
+        }
+
+        return location;
     }
 }
