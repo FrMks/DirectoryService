@@ -2,7 +2,9 @@
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Domain.Department.ValueObject;
+using DirectoryService.Application.Locations.Interfaces;
+using DirectoryService.Application.Positions.Interfaces;
+using DirectoryService.Domain.DepartmentLocations;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -10,6 +12,8 @@ namespace DirectoryService.Application.Departments.SoftDeleteDepartment;
 
 public class SoftDeleteDepartmentHandler(
     IDepartmentsRepository departmentsRepository,
+    ILocationsRepository locationsRepository,
+    IPositionsRepository positionRepository,
     ITransactionManager transactionManager,
     ILogger<SoftDeleteDepartmentHandler> logger
     ) : ICommandHandler<Guid, SoftDeleteDepartmentCommand>
@@ -39,6 +43,43 @@ public class SoftDeleteDepartmentHandler(
         var department = departmentResult.Value;
 
         department.SoftDelete();
+
+        // Если у department есть только одно место, то при удалении department мы удаляем и это место, так как оно не может существовать без department.
+        if (department.DepartmentLocations.Count <= 1)
+        {
+            var departmentLocation = department.DepartmentLocations.First();
+
+            var locationId = departmentLocation.LocationId;
+
+            var locationResult = await locationsRepository.GetBy(l => l.Id == locationId, cancellationToken);
+
+            if (locationResult.IsFailure)
+            {
+                logger.LogError("Location with id {LocationId} not found.", locationId);
+                return locationResult.Error.ToErrors();
+        }
+
+            var location = locationResult.Value;
+            location.SoftDelete();
+        }
+        
+        if (department.DepartmentPositions.Count <= 1)
+        {
+            var departmentPosition = department.DepartmentPositions.First();
+
+            var positionId = departmentPosition.PositionId;
+
+            var positionResult = await positionRepository.GetBy(l => l.Id == positionId, cancellationToken);
+
+            if (positionResult.IsFailure)
+            {
+                logger.LogError("Position with id {PositionId} not found.", positionId);
+                return positionResult.Error.ToErrors();
+            }
+
+            var position = positionResult.Value;
+            position.SoftDelete();
+        }
 
         logger.LogInformation("Department with id {DepartmentId} has been soft deleted.", command.DepartmentId);
 
