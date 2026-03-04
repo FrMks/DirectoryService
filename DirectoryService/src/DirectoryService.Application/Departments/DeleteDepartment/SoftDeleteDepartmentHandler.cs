@@ -1,9 +1,14 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Windows.Markup;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
+using DirectoryService.Domain;
+using DirectoryService.Domain.Department;
+using DirectoryService.Domain.DepartmentLocations;
+using DirectoryService.Domain.Locations;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -33,7 +38,8 @@ public class SoftDeleteDepartmentHandler(
         using var transactionScope = transactionResult.Value;
 
         // Получаем активный департамент по ID
-        var departmentResult = await departmentsRepository.GetBy(d => d.Id == command.DepartmentId && d.IsActive, cancellationToken);
+        var departmentResult = await departmentsRepository
+            .GetBy(d => d.Id == command.DepartmentId && d.IsActive, cancellationToken);
 
         if (departmentResult.IsFailure)
         {
@@ -46,55 +52,26 @@ public class SoftDeleteDepartmentHandler(
         // Выполняем мягкое удаление департамента
         department.SoftDelete();
 
-        // Обработка удаления связанного места, если оно единственное
-        // Место не может существовать без департамента
-        if (department.DepartmentLocations.Count <= 1)
-        {
-            var departmentLocation = department.DepartmentLocations.First();
+        await ProcessLocationsAsync(
+            department.Id,
+            department.DepartmentLocations,
+            cancellationToken);
 
-            var locationId = departmentLocation.LocationId;
-
-            var locationResult = await locationsRepository.GetBy(l => l.Id == locationId, cancellationToken);
-
-            if (locationResult.IsFailure)
-            {
-                logger.LogError("Location with id {LocationId} not found.", locationId);
-                return locationResult.Error.ToErrors();
-        }
-
-            var location = locationResult.Value;
-            location.SoftDelete();
-        }
-        
-        // Обработка удаления связанной должности, если она единственная
-        // Должность не может существовать без департамента
-        if (department.DepartmentPositions.Count <= 1)
-        {
-            var departmentPosition = department.DepartmentPositions.First();
-
-            var positionId = departmentPosition.PositionId;
-
-            var positionResult = await positionRepository.GetBy(l => l.Id == positionId, cancellationToken);
-
-            if (positionResult.IsFailure)
-            {
-                logger.LogError("Position with id {PositionId} not found.", positionId);
-                return positionResult.Error.ToErrors();
-            }
-
-            var position = positionResult.Value;
-            position.SoftDelete();
-        }
+        await ProcessPositionsAsync(
+            department.Id,
+            department.DepartmentPositions,
+            cancellationToken);
 
         var identifier = department.Identifier.Value;
 
         // Получаем дочерние департаменты, которые нужно обновить
         var departmentsToChangePathResult = await departmentsRepository
             .GetListBy(
-                d => d.Path.Value == identifier
+                d => d.Id != department.Id &&
+                (d.Path.Value == identifier
                 || d.Path.Value.StartsWith(identifier + ".")
                 || d.Path.Value.EndsWith("." + identifier)
-                || d.Path.Value.Contains("." + identifier + "."),
+                || d.Path.Value.Contains("." + identifier + ".")),
                 cancellationToken);
         
         if (departmentsToChangePathResult.IsFailure)
@@ -133,5 +110,65 @@ public class SoftDeleteDepartmentHandler(
 
         // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);
+    }
+
+    private async Task ProcessLocationsAsync(
+    Guid deletingDepartmentId,
+    IReadOnlyList<DepartmentLocation> departmentLocations,
+    CancellationToken cancellationToken)
+    {
+        foreach (var departmentLocation in departmentLocations)
+        {
+            var locationId = departmentLocation.LocationId;
+
+            var locationResult = await locationsRepository
+                .GetBy(l => l.Id == locationId, cancellationToken);
+
+            if (locationResult.IsFailure)
+            {
+                logger.LogError("Location with id {LocationId} not found.", locationId);
+                continue;
+            }
+
+            var location = locationResult.Value;
+
+            var hasOtherActiveDepartments = location.DepartmentLocations
+                .Any(dl => dl.DepartmentId != deletingDepartmentId);
+
+            if (!hasOtherActiveDepartments)
+            {
+                location.SoftDelete();
+            }
+        }
+    }
+
+    private async Task ProcessPositionsAsync(
+        Guid deletingDepartmentId,
+        IReadOnlyList<DepartmentPosition> departmentPositions,
+        CancellationToken cancellationToken)
+    {
+        foreach (var departmentPosition in departmentPositions)
+        {
+            var positionId = departmentPosition.PositionId;
+
+            var positionResult = await positionRepository
+                .GetBy(p => p.Id == positionId, cancellationToken);
+
+            if (positionResult.IsFailure)
+            {
+                logger.LogError("Position with id {PositionId} not found.", positionId);
+                continue;
+            }
+
+            var position = positionResult.Value;
+
+            var hasOtherActiveDepartments = position.DepartmentPositions
+                .Any(dp => dp.DepartmentId != deletingDepartmentId);
+
+            if (!hasOtherActiveDepartments)
+            {
+                position.SoftDelete();
+            }
+        }
     }
 }
