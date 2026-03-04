@@ -122,6 +122,13 @@ public class SoftDeleteDepartmentHandler(
             childDepartment.UpdatePath(childNewPath);
         }
 
+        var saveResult = await transactionManager.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            logger.LogError("Failed to save changes.");
+            return saveResult.Error.ToErrors();
+        }
+
         logger.LogInformation("Department with id {DepartmentId} has been soft deleted.", command.DepartmentId);
 
         // Возвращаем успешный результат с ID удаленного департамента
