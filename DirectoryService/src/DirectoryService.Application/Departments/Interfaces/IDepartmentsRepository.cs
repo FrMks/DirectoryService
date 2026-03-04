@@ -44,4 +44,6 @@ public interface IDepartmentsRepository
         CancellationToken cancellationToken);
 
     Task<Result<Department, Error>> GetBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
+
+    Task<Result<List<Department>, Error>> GetListBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
 }

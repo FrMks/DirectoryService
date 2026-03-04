@@ -213,4 +213,22 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         return department;
     }
+
+    public async Task<Result<List<Department>, Error>> GetListBy(
+        Expression<Func<Department, bool>> predicate,
+        CancellationToken cancellationToken)
+    {
+        var departments = await dbContext.Departments.Where(predicate).ToListAsync(cancellationToken);
+
+        if (departments is null || !departments.Any())
+        {
+            logger.LogError("Departments not found with given predicate");
+            return Error.NotFound(
+                "departments.not.found",
+                $"Departments not found.",
+                null);
+        }
+
+        return departments;
+    }
 }

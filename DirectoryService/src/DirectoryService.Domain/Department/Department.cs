@@ -168,4 +168,18 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
         DeletedAt = DateTime.UtcNow;
     }
+
+    public UnitResult<Error> UpdatePath(string newPath)
+    {
+        var pathResult = Path.Create(newPath);
+
+        if (pathResult.IsFailure)
+        {
+            return pathResult.Error;
+        }
+
+        Path = pathResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+        return UnitResult.Success<Error>();
+    }
 }
