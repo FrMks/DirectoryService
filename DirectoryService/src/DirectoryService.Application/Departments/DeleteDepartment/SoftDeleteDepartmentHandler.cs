@@ -108,6 +108,8 @@ public class SoftDeleteDepartmentHandler(
 
         logger.LogInformation("Department with id {DepartmentId} has been soft deleted.", command.DepartmentId);
 
+        transactionScope.Commit();
+
         // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);
     }
