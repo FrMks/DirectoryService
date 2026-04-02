@@ -231,4 +231,24 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         return departments;
     }
+
+    public async Task<Result<Department, Error>> GetActiveDepartmentForSoftDelete(DepartmentId departmentId, CancellationToken cancellationToken)
+    {
+        var department = await dbContext.Departments
+            .Include(d => d.DepartmentLocations)
+            .Include(d => d.DepartmentPositions)
+            .FirstOrDefaultAsync(d => d.Id == departmentId && d.IsActive, cancellationToken);
+
+        if (department is null)
+        {
+            logger.LogError("Active department with id {DepartmentId} for soft delete not found", departmentId.Value);
+            return
+                Error.NotFound(
+                    "active.department.for.soft.delete.not.found",
+                    $"Active department with id: {departmentId} for soft delete not found.",
+                    departmentId.Value);
+        }
+
+        return department;
+    }
 }

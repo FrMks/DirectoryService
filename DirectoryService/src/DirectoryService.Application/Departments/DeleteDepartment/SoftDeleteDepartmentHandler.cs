@@ -7,6 +7,7 @@ using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
+using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,7 @@ public class SoftDeleteDepartmentHandler(
 
         // Получаем активный департамент по ID
         var departmentResult = await departmentsRepository
-            .GetBy(d => d.Id == command.DepartmentId && d.IsActive, cancellationToken);
+            .GetActiveDepartmentForSoftDelete(DepartmentId.FromValue(command.DepartmentId), cancellationToken);
 
         if (departmentResult.IsFailure)
         {

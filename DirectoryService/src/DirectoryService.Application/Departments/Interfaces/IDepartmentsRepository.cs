@@ -46,4 +46,6 @@ public interface IDepartmentsRepository
     Task<Result<Department, Error>> GetBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
 
     Task<Result<List<Department>, Error>> GetListBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
+
+    Task<Result<Department, Error>> GetActiveDepartmentForSoftDelete(DepartmentId departmentId, CancellationToken cancellationToken);
 }
