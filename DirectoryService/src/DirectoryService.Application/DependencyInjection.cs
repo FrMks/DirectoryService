@@ -1,4 +1,5 @@
 ﻿using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Departments.SoftDeleteDepartment;
 using DirectoryService.Application.Departments.Validation;
 using DirectoryService.Application.Locations.Validation;
 using DirectoryService.Application.Positions.Validation;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddTransient<IValidator<CreateDepartmentRequest>, CreateDepartmentDtoValidator>();
         services.AddTransient<IValidator<UpdateDepartmentLocationsRequest>, UpdateDepartmentLocationsDtoValidator>();
         services.AddTransient<IValidator<UpdateParentLevelRequest>, UpdateParentLevelDtoValidator>();
+        services.AddTransient<IValidator<SoftDeleteDepartmentCommand>, SoftDeleteDepartmentCommandValidator>();
 
         services.AddTransient<IValidator<CreatePositionRequest>, CreatePositionDtoValidator>();
         return services;

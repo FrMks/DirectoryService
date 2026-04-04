@@ -47,6 +47,7 @@ public sealed class Position
     public void SoftDelete()
     {
         IsActive = false;
+        UpdateAt = DateTime.UtcNow;
         DeletedAt = DateTime.UtcNow;
     }
 }

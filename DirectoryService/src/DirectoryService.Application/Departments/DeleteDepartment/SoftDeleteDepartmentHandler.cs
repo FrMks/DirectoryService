@@ -3,12 +3,14 @@ using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
+using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.DepartmentLocations;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
@@ -19,6 +21,7 @@ public class SoftDeleteDepartmentHandler(
     IDepartmentsRepository departmentsRepository,
     ILocationsRepository locationsRepository,
     IPositionsRepository positionRepository,
+    IValidator<SoftDeleteDepartmentCommand> validator,
     ITransactionManager transactionManager,
     ILogger<SoftDeleteDepartmentHandler> logger
     ) : ICommandHandler<Guid, SoftDeleteDepartmentCommand>
@@ -27,6 +30,17 @@ public class SoftDeleteDepartmentHandler(
         SoftDeleteDepartmentCommand command,
         CancellationToken cancellationToken)
     {
+        var validationResult = await validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            foreach (var error in validationResult.ToList())
+            {
+                logger.LogError("Validation error when soft deleting department: {error}", error.Message);
+            }
+
+            return validationResult.ToList();
+        }
+
         // Начинаем транзакцию для атомарности операции
         var transactionResult = await transactionManager.BeginTransaction(cancellationToken);
 
