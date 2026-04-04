@@ -53,15 +53,19 @@ public class SoftDeleteDepartmentHandler(
         // Выполняем мягкое удаление департамента
         department.SoftDelete();
 
-        await ProcessLocationsAsync(
+        var processLocationsResult = await ProcessLocationsAsync(
             department.Id,
             department.DepartmentLocations,
             cancellationToken);
+        if (processLocationsResult.IsFailure)
+            return processLocationsResult.Error;
 
-        await ProcessPositionsAsync(
+        var processPositionsResult = await ProcessPositionsAsync(
             department.Id,
             department.DepartmentPositions,
             cancellationToken);
+        if (processPositionsResult.IsFailure)
+            return processPositionsResult.Error;
 
         var identifier = department.Identifier.Value;
 
@@ -115,10 +119,10 @@ public class SoftDeleteDepartmentHandler(
         return Result.Success<Guid, Errors>(command.DepartmentId);
     }
 
-    private async Task ProcessLocationsAsync(
-    Guid deletingDepartmentId,
-    IReadOnlyList<DepartmentLocation> departmentLocations,
-    CancellationToken cancellationToken)
+    private async Task<UnitResult<Errors>> ProcessLocationsAsync(
+        Guid deletingDepartmentId,
+        IReadOnlyList<DepartmentLocation> departmentLocations,
+        CancellationToken cancellationToken)
     {
         foreach (var departmentLocation in departmentLocations)
         {
@@ -130,22 +134,34 @@ public class SoftDeleteDepartmentHandler(
             if (locationResult.IsFailure)
             {
                 logger.LogError("Location with id {LocationId} not found.", locationId);
-                continue;
+                return locationResult.Error.ToErrors();
             }
 
             var location = locationResult.Value;
 
-            var hasOtherActiveDepartments = location.DepartmentLocations
-                .Any(dl => dl.DepartmentId != deletingDepartmentId);
+            var hasOtherActiveDepartmentsResult = await locationsRepository
+                .HasOtherActiveDepartmentsForLocation(
+                    locationId,
+                    DepartmentId.FromValue(deletingDepartmentId),
+                    cancellationToken);
+            if (hasOtherActiveDepartmentsResult.IsFailure)
+            {
+                logger.LogError(
+                    "Failed to check other active departments for location {LocationId}.",
+                    locationId.Value);
+                return hasOtherActiveDepartmentsResult.Error.ToErrors();
+            }
 
-            if (!hasOtherActiveDepartments)
+            if (!hasOtherActiveDepartmentsResult.Value)
             {
                 location.SoftDelete();
             }
         }
+
+        return UnitResult.Success<Errors>();
     }
 
-    private async Task ProcessPositionsAsync(
+    private async Task<UnitResult<Errors>> ProcessPositionsAsync(
         Guid deletingDepartmentId,
         IReadOnlyList<DepartmentPosition> departmentPositions,
         CancellationToken cancellationToken)
@@ -160,18 +176,30 @@ public class SoftDeleteDepartmentHandler(
             if (positionResult.IsFailure)
             {
                 logger.LogError("Position with id {PositionId} not found.", positionId);
-                continue;
+                return positionResult.Error.ToErrors();
             }
 
             var position = positionResult.Value;
 
-            var hasOtherActiveDepartments = position.DepartmentPositions
-                .Any(dp => dp.DepartmentId != deletingDepartmentId);
+            var hasOtherActiveDepartmentsResult = await positionRepository
+                .HasOtherActiveDepartmentsForPosition(
+                    positionId,
+                    DepartmentId.FromValue(deletingDepartmentId),
+                    cancellationToken);
+            if (hasOtherActiveDepartmentsResult.IsFailure)
+            {
+                logger.LogError(
+                    "Failed to check other active departments for position {PositionId}.",
+                    positionId.Value);
+                return hasOtherActiveDepartmentsResult.Error.ToErrors();
+            }
 
-            if (!hasOtherActiveDepartments)
+            if (!hasOtherActiveDepartmentsResult.Value)
             {
                 position.SoftDelete();
             }
         }
+
+        return UnitResult.Success<Errors>();
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using DirectoryService.Application.Locations.Interfaces;
+using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -76,5 +78,37 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         }
 
         return location;
+    }
+
+    public async Task<Result<bool, Error>> HasOtherActiveDepartmentsForLocation(
+        LocationId locationId,
+        DepartmentId deletingDepartmentId,
+        CancellationToken cancellationToken)
+    {
+        var locationExists = await dbContext.Locations
+            .AnyAsync(l => l.Id == locationId, cancellationToken);
+        if (!locationExists)
+        {
+            logger.LogError("Location with id {LocationId} not found", locationId.Value);
+            return Error.NotFound(
+                "location.not.found",
+                $"Location not found.",
+                locationId.Value);
+        }
+
+        var hasOtherActiveDepartments = await dbContext.DepartmentLocations
+            .Join(
+                dbContext.Departments,
+                dl => dl.DepartmentId,
+                d => d.Id,
+                // Если dl.DepartmentId совпадает с d.Id, то мы получаем пару { DepartmentLocation = dl, Department = d }
+                (dl, d) => new { DepartmentLocation = dl, Department = d })
+            .AnyAsync(
+                x => x.DepartmentLocation.LocationId == locationId &&
+                     x.DepartmentLocation.DepartmentId != deletingDepartmentId &&
+                     x.Department.IsActive,
+                cancellationToken);
+
+        return hasOtherActiveDepartments;
     }
 }

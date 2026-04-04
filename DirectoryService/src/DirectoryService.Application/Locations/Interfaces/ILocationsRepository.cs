@@ -1,6 +1,8 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations;
+using DirectoryService.Domain.Locations.ValueObjects;
 using Shared;
 
 namespace DirectoryService.Application.Locations.Interfaces;
@@ -18,4 +20,9 @@ public interface ILocationsRepository
     Task<Result<bool, Error>> AllExistAsync(List<Guid> locationIds, CancellationToken cancellationToken);
 
     Task<Result<Location, Error>> GetBy(Expression<Func<Location, bool>> predicate, CancellationToken cancellationToken);
+
+    Task<Result<bool, Error>> HasOtherActiveDepartmentsForLocation(
+        LocationId locationId,
+        DepartmentId deletingDepartmentId,
+        CancellationToken cancellationToken);
 }

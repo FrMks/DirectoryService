@@ -6,6 +6,7 @@ using DirectoryService.Domain.Positions.ValueObject;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;
+using DepartmentId = DirectoryService.Domain.Department.ValueObject.DepartmentId;
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
@@ -60,5 +61,36 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
         }
 
         return position;
+    }
+
+    public async Task<Result<bool, Error>> HasOtherActiveDepartmentsForPosition(
+        PositionId positionId,
+        DepartmentId deletingDepartmentId,
+        CancellationToken cancellationToken)
+    {
+        var positionExists = await dbContext.Positions
+            .AnyAsync(p => p.Id == positionId, cancellationToken);
+        if (!positionExists)
+        {
+            logger.LogError("Position with id {PositionId} not found", positionId.Value);
+            return Error.NotFound(
+                "position.not.found",
+                $"Position not found.",
+                positionId.Value);
+        }
+
+        var hasOtherActiveDepartments = await dbContext.DepartmentPositions
+            .Join(
+                dbContext.Departments,
+                dp => dp.DepartmentId,
+                d => d.Id,
+                (dp, d) => new { DepartmentPosition = dp, Department = d })
+            .AnyAsync(
+                x => x.DepartmentPosition.PositionId == positionId &&
+                     x.DepartmentPosition.DepartmentId != deletingDepartmentId &&
+                     x.Department.IsActive,
+                cancellationToken);
+
+        return hasOtherActiveDepartments;
     }
 }
