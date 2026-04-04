@@ -9,9 +9,9 @@ using DirectoryService.Domain;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.DepartmentLocations;
-using DirectoryService.Domain.Locations;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Path = DirectoryService.Domain.Department.ValueObject.Path;
 
 namespace DirectoryService.Application.Departments.SoftDeleteDepartment;
 
@@ -67,41 +67,27 @@ public class SoftDeleteDepartmentHandler(
         if (processPositionsResult.IsFailure)
             return processPositionsResult.Error;
 
-        var identifier = department.Identifier.Value;
-
-        // Получаем дочерние департаменты, которые нужно обновить
-        var departmentsToChangePathResult = await departmentsRepository
-            .GetListBy(
-                d => d.Id != department.Id &&
-                (d.Path.Value == identifier
-                || d.Path.Value.StartsWith(identifier + ".")
-                || d.Path.Value.EndsWith("." + identifier)
-                || d.Path.Value.Contains("." + identifier + ".")),
-                cancellationToken);
-        
-        if (departmentsToChangePathResult.IsFailure)
+        var oldPath = department.Path;
+        var newPathResult = CreateDeletedBranchPath(department.Path.Value);
+        if (newPathResult.IsFailure)
         {
-            logger.LogError("Failed to retrieve child departments for department with id {DepartmentId}.", command.DepartmentId);
-            return departmentsToChangePathResult.Error.ToErrors();
+            logger.LogError(
+                "Failed to create deleted path for department with id {DepartmentId}.",
+                command.DepartmentId);
+            return newPathResult.Error.ToErrors();
         }
 
-        var departmentsToChangePath = departmentsToChangePathResult.Value;
-
-        // Обновляем пути для удаленного департамента и его дочерних элементов
-        var parentNewPath = department.Path.Value.Replace(identifier, $"deleted-{identifier}");
-        var parentUpdateResult = department.UpdatePath(parentNewPath);
-
-        if (parentUpdateResult.IsFailure)
+        var moveBranchResult = await departmentsRepository.MoveDepartmentWithChildren(
+            oldPath,
+            newPathResult.Value,
+            department.ParentId,
+            cancellationToken);
+        if (moveBranchResult.IsFailure)
         {
-            logger.LogError("Failed to update path in parent department.");
-            return parentUpdateResult.Error.ToErrors();
-        }
-
-        // Обновляем пути для всех дочерних департаментов
-        foreach (var childDepartment in departmentsToChangePath)
-        {
-            var childNewPath = childDepartment.Path.Value.Replace(identifier, $"deleted-{identifier}");
-            childDepartment.UpdatePath(childNewPath);
+            logger.LogError(
+                "Failed to update deleted branch path for department with id {DepartmentId}.",
+                command.DepartmentId);
+            return moveBranchResult.Error.ToErrors();
         }
 
         var saveResult = await transactionManager.SaveChangesAsync(cancellationToken);
@@ -201,5 +187,17 @@ public class SoftDeleteDepartmentHandler(
         }
 
         return UnitResult.Success<Errors>();
+    }
+
+    private Result<Path, Error> CreateDeletedBranchPath(string currentPath)
+    {
+        var segments = currentPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length == 0)
+            return Error.Validation("department.path.invalid", "Department path is invalid.");
+
+        segments[^1] = $"deleted-{segments[^1]}";
+        var updatedPath = string.Join('.', segments);
+
+        return Path.Create(updatedPath);
     }
 }
