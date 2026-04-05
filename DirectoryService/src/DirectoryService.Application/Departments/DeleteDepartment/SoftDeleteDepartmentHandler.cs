@@ -162,35 +162,36 @@ public class SoftDeleteDepartmentHandler(
         IReadOnlyList<DepartmentPosition> departmentPositions,
         CancellationToken cancellationToken)
     {
-        foreach (var departmentPosition in departmentPositions)
+        var positionIds = departmentPositions
+            .Select(dp => dp.PositionId)
+            .Distinct()
+            .ToList();
+
+        var positionsResult = await positionRepository.GetPositionsByIds(positionIds, cancellationToken);
+        if (positionsResult.IsFailure)
         {
-            var positionId = departmentPosition.PositionId;
+            logger.LogError("Failed to retrieve positions for department with id {DepartmentId}.", deletingDepartmentId);
+            return positionsResult.Error.ToErrors();
+        }
 
-            var positionResult = await positionRepository
-                .GetBy(p => p.Id == positionId, cancellationToken);
+        var positionIdsWithOtherActiveDepartmentsResult = await positionRepository
+            .GetPositionIdsWithOtherActiveDepartments(
+                positionIds,
+                DepartmentId.FromValue(deletingDepartmentId),
+                cancellationToken);
+        if (positionIdsWithOtherActiveDepartmentsResult.IsFailure)
+        {
+            logger.LogError(
+                "Failed to retrieve position ids with other active departments for department with id {DepartmentId}.",
+                deletingDepartmentId);
+            return positionIdsWithOtherActiveDepartmentsResult.Error.ToErrors();
+        }
 
-            if (positionResult.IsFailure)
-            {
-                logger.LogError("Position with id {PositionId} not found.", positionId);
-                return positionResult.Error.ToErrors();
-            }
+        var positionIdsWithOtherActiveDepartments = positionIdsWithOtherActiveDepartmentsResult.Value;
 
-            var position = positionResult.Value;
-
-            var hasOtherActiveDepartmentsResult = await positionRepository
-                .HasOtherActiveDepartmentsForPosition(
-                    positionId,
-                    DepartmentId.FromValue(deletingDepartmentId),
-                    cancellationToken);
-            if (hasOtherActiveDepartmentsResult.IsFailure)
-            {
-                logger.LogError(
-                    "Failed to check other active departments for position {PositionId}.",
-                    positionId.Value);
-                return hasOtherActiveDepartmentsResult.Error.ToErrors();
-            }
-
-            if (!hasOtherActiveDepartmentsResult.Value)
+        foreach (var position in positionsResult.Value)
+        {
+            if (!positionIdsWithOtherActiveDepartments.Contains(position.Id))
             {
                 position.SoftDelete();
             }

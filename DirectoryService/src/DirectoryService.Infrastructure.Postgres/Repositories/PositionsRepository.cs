@@ -63,34 +63,59 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
         return position;
     }
 
-    public async Task<Result<bool, Error>> HasOtherActiveDepartmentsForPosition(
-        PositionId positionId,
+    public async Task<Result<List<Position>, Error>> GetPositionsByIds(
+        List<PositionId> positionIds,
+        CancellationToken cancellationToken)
+    {
+        var positions = await dbContext.Positions
+            .Where(p => positionIds.Contains(p.Id))
+            .ToListAsync(cancellationToken);
+
+        if (positions.Count != positionIds.Count)
+        {
+            logger.LogError("Not all positions found with the given IDs");
+            return Error.NotFound(
+                "positions.not.found",
+                "Not all positions found with the given IDs.",
+                null);
+        }
+
+        return positions;
+    }
+
+    public async Task<Result<HashSet<PositionId>, Error>> GetPositionIdsWithOtherActiveDepartments(
+        List<PositionId> positionIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken)
     {
-        var positionExists = await dbContext.Positions
-            .AnyAsync(p => p.Id == positionId, cancellationToken);
-        if (!positionExists)
+        var existingPositionIds = await dbContext.Positions
+            .Where(p => positionIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync(cancellationToken);
+
+        if (existingPositionIds.Count != positionIds.Count)
         {
-            logger.LogError("Position with id {PositionId} not found", positionId.Value);
+            logger.LogError("Not all positions found with the given IDs");
             return Error.NotFound(
-                "position.not.found",
-                $"Position not found.",
-                positionId.Value);
+                "positions.not.found",
+                "Not all positions found with the given IDs.",
+                null);
         }
 
-        var hasOtherActiveDepartments = await dbContext.DepartmentPositions
+        var positionIdsWithOtherActiveDepartments = await dbContext.DepartmentPositions
             .Join(
                 dbContext.Departments,
                 dp => dp.DepartmentId,
                 d => d.Id,
                 (dp, d) => new { DepartmentPosition = dp, Department = d })
-            .AnyAsync(
-                x => x.DepartmentPosition.PositionId == positionId &&
+            .Where(
+                x => positionIds.Contains(x.DepartmentPosition.PositionId) &&
                      x.DepartmentPosition.DepartmentId != deletingDepartmentId &&
-                     x.Department.IsActive,
-                cancellationToken);
+                     x.Department.IsActive)
+            .Select(x => x.DepartmentPosition.PositionId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
 
-        return hasOtherActiveDepartments;
+        return positionIdsWithOtherActiveDepartments.ToHashSet();
     }
 }

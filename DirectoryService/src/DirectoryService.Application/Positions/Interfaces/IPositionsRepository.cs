@@ -15,8 +15,13 @@ public interface IPositionsRepository
 
     Task<Result<Position, Error>> GetBy(Expression<Func<Position, bool>> predicate, CancellationToken cancellationToken);
 
-    Task<Result<bool, Error>> HasOtherActiveDepartmentsForPosition(
-        PositionId positionId,
+
+    Task<Result<List<Position>, Error>> GetPositionsByIds(
+        List<PositionId> positionIds,
+        CancellationToken cancellationToken);
+
+    Task<Result<HashSet<PositionId>, Error>> GetPositionIdsWithOtherActiveDepartments(
+        List<PositionId> positionIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken);
 }
