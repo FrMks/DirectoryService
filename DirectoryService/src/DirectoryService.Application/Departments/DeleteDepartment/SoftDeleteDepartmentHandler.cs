@@ -1,4 +1,3 @@
-﻿using System.Windows.Markup;
 using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
@@ -30,15 +29,11 @@ public class SoftDeleteDepartmentHandler(
         SoftDeleteDepartmentCommand command,
         CancellationToken cancellationToken)
     {
-        var validationResult = await validator.ValidateAsync(command, cancellationToken);
-        if (!validationResult.IsValid)
+        var validationErrors = await validator.GetValidationErrorsAsync(command, cancellationToken);
+        if (validationErrors is not null)
         {
-            foreach (var error in validationResult.ToList())
-            {
-                logger.LogError("Validation error when soft deleting department: {error}", error.Message);
-            }
-
-            return validationResult.ToList();
+            logger.LogErrors(validationErrors, "Validation error when soft deleting department");
+            return validationErrors;
         }
 
         // Начинаем транзакцию для атомарности операции
