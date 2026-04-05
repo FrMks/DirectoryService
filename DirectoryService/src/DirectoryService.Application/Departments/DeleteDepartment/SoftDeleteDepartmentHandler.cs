@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
@@ -119,35 +119,36 @@ public class SoftDeleteDepartmentHandler(
         IReadOnlyList<DepartmentLocation> departmentLocations,
         CancellationToken cancellationToken)
     {
-        foreach (var departmentLocation in departmentLocations)
+        var locationIds = departmentLocations
+            .Select(dl => dl.LocationId)
+            .Distinct()
+            .ToList();
+
+        var locationsResult = await locationsRepository.GetLocationsByIds(locationIds, cancellationToken);
+        if (locationsResult.IsFailure)
         {
-            var locationId = departmentLocation.LocationId;
+            logger.LogError("Failed to retrieve locations for department with id {DepartmentId}.", deletingDepartmentId);
+            return locationsResult.Error.ToErrors();
+        }
 
-            var locationResult = await locationsRepository
-                .GetBy(l => l.Id == locationId, cancellationToken);
+        var locationIdsWithOtherActiveDepartmentsResult = await locationsRepository
+            .GetLocationIdsWithOtherActiveDepartments(
+                locationIds,
+                DepartmentId.FromValue(deletingDepartmentId),
+                cancellationToken);
+        if (locationIdsWithOtherActiveDepartmentsResult.IsFailure)
+        {
+            logger.LogError(
+                "Failed to retrieve location ids with other active departments for department with id {DepartmentId}.",
+                deletingDepartmentId);
+            return locationIdsWithOtherActiveDepartmentsResult.Error.ToErrors();
+        }
 
-            if (locationResult.IsFailure)
-            {
-                logger.LogError("Location with id {LocationId} not found.", locationId);
-                return locationResult.Error.ToErrors();
-            }
+        var locationIdsWithOtherActiveDepartments = locationIdsWithOtherActiveDepartmentsResult.Value;
 
-            var location = locationResult.Value;
-
-            var hasOtherActiveDepartmentsResult = await locationsRepository
-                .HasOtherActiveDepartmentsForLocation(
-                    locationId,
-                    DepartmentId.FromValue(deletingDepartmentId),
-                    cancellationToken);
-            if (hasOtherActiveDepartmentsResult.IsFailure)
-            {
-                logger.LogError(
-                    "Failed to check other active departments for location {LocationId}.",
-                    locationId.Value);
-                return hasOtherActiveDepartmentsResult.Error.ToErrors();
-            }
-
-            if (!hasOtherActiveDepartmentsResult.Value)
+        foreach (var location in locationsResult.Value)
+        {
+            if (!locationIdsWithOtherActiveDepartments.Contains(location.Id))
             {
                 location.SoftDelete();
             }

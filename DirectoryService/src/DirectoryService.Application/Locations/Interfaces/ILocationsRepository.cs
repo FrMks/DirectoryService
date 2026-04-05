@@ -21,8 +21,12 @@ public interface ILocationsRepository
 
     Task<Result<Location, Error>> GetBy(Expression<Func<Location, bool>> predicate, CancellationToken cancellationToken);
 
-    Task<Result<bool, Error>> HasOtherActiveDepartmentsForLocation(
-        LocationId locationId,
+    Task<Result<List<Location>, Error>> GetLocationsByIds(
+        List<LocationId> locationIds,
+        CancellationToken cancellationToken);
+
+    Task<Result<HashSet<LocationId>, Error>> GetLocationIdsWithOtherActiveDepartments(
+        List<LocationId> locationIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken);
 }

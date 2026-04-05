@@ -80,35 +80,59 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
         return location;
     }
 
-    public async Task<Result<bool, Error>> HasOtherActiveDepartmentsForLocation(
-        LocationId locationId,
+    public async Task<Result<List<Location>, Error>> GetLocationsByIds(
+        List<LocationId> locationIds,
+        CancellationToken cancellationToken)
+    {
+        var locations = await dbContext.Locations
+            .Where(l => locationIds.Contains(l.Id))
+            .ToListAsync(cancellationToken);
+
+        if (locations.Count != locationIds.Count)
+        {
+            logger.LogError("Not all locations found with the given IDs");
+            return Error.NotFound(
+                "locations.not.found",
+                "Not all locations found with the given IDs.",
+                null);
+        }
+
+        return locations;
+    }
+
+    public async Task<Result<HashSet<LocationId>, Error>> GetLocationIdsWithOtherActiveDepartments(
+        List<LocationId> locationIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken)
     {
-        var locationExists = await dbContext.Locations
-            .AnyAsync(l => l.Id == locationId, cancellationToken);
-        if (!locationExists)
+        var existingLocationIds = await dbContext.Locations
+            .Where(l => locationIds.Contains(l.Id))
+            .Select(l => l.Id)
+            .ToListAsync(cancellationToken);
+
+        if (existingLocationIds.Count != locationIds.Count)
         {
-            logger.LogError("Location with id {LocationId} not found", locationId.Value);
+            logger.LogError("Not all locations found with the given IDs");
             return Error.NotFound(
-                "location.not.found",
-                $"Location not found.",
-                locationId.Value);
+                "locations.not.found",
+                "Not all locations found with the given IDs.",
+                null);
         }
 
-        var hasOtherActiveDepartments = await dbContext.DepartmentLocations
+        var locationIdsWithOtherActiveDepartments = await dbContext.DepartmentLocations
             .Join(
                 dbContext.Departments,
                 dl => dl.DepartmentId,
                 d => d.Id,
-                // Если dl.DepartmentId совпадает с d.Id, то мы получаем пару { DepartmentLocation = dl, Department = d }
                 (dl, d) => new { DepartmentLocation = dl, Department = d })
-            .AnyAsync(
-                x => x.DepartmentLocation.LocationId == locationId &&
+            .Where(
+                x => locationIds.Contains(x.DepartmentLocation.LocationId) &&
                      x.DepartmentLocation.DepartmentId != deletingDepartmentId &&
-                     x.Department.IsActive,
-                cancellationToken);
+                     x.Department.IsActive)
+            .Select(x => x.DepartmentLocation.LocationId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
 
-        return hasOtherActiveDepartments;
+        return locationIdsWithOtherActiveDepartments.ToHashSet();
     }
 }
