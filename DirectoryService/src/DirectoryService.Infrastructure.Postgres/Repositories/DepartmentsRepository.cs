@@ -275,7 +275,7 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
             var deletedDepartmentsValues = string.Join(
                 ", ",
                 departmentIdPathAndParentIds.Select(x =>
-                    $"('{x.DepartmentId.Value}'::uuid, {(x.ParentId is null ? "NULL" : $"'{x.ParentId.Value}'::uuid")}, '{x.Path.Value}')"));
+                    $"('{x.DepartmentId.Value}'::uuid, {(x.ParentId is null ? "NULL::uuid" : $"'{x.ParentId.Value}'::uuid")}, '{x.Path.Value}')"));
 
 #pragma warning disable EF1002
             // Создаем временную таблицу с значениями для удаляемых департаментов
@@ -351,30 +351,45 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                   AND d.path != deleted_departments.path::ltree;
                 """,
                 cancellationToken);
-#pragma warning restore EF1002
-
             // Удаляем строки из таблицы department_locations, department_positions и departments 
             // для всех удаляемых департаментов и их детей, которые мы получили в первом запросе через departmentIds
-            await dbContext.Database.ExecuteSqlAsync(
+            await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
-                DELETE FROM department_locations
-                WHERE department_id = ANY({departmentIds});
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM department_locations AS dl
+                USING deleted_departments
+                WHERE dl.department_id = deleted_departments.id;
                 """,
                 cancellationToken);
 
-            await dbContext.Database.ExecuteSqlAsync(
+            await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
-                DELETE FROM department_positions
-                WHERE department_id = ANY({departmentIds});
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM department_positions AS dp
+                USING deleted_departments
+                WHERE dp.department_id = deleted_departments.id;
                 """,
                 cancellationToken);
 
-            await dbContext.Database.ExecuteSqlAsync(
+            var deletedDepartmentsCount = await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
-                DELETE FROM departments
-                WHERE id = ANY({departmentIds});
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM departments AS d
+                USING deleted_departments
+                WHERE d.id = deleted_departments.id;
                 """,
                 cancellationToken);
+
+            logger.LogInformation(
+                "Department cleanup delete step removed {DeletedDepartmentsCount} departments.",
+                deletedDepartmentsCount);
+#pragma warning restore EF1002
 
             return UnitResult.Success<Error>();
         }
