@@ -26,6 +26,7 @@ public class DepartmentCleanupService
     {
         var thresholdDate = DateTime.UtcNow.AddDays(-inactiveDaysThreshold);
 
+        // Получаем неактивные департаменты, которые были удалены и дата удаления которых меньше или равна thresholdDate
         var departmentsToRemoveResult = await _departmentsRepository.GetListBy(
             d => d.IsActive == false
             && d.DeletedAt != null
@@ -55,6 +56,7 @@ public class DepartmentCleanupService
 
         var departmentsToRemove = departmentsToRemoveResult.Value;
 
+        // Создаем список кандидатов на удаление, который содержит Id, Path и ParentId для каждого неактивного департамента
         List<DepartmentIdPathAndParentId> candidates = departmentsToRemove
             .Select(d => new DepartmentIdPathAndParentId(d.Id, d.Path, d.ParentId.HasValue ? DepartmentId.FromValue(d.ParentId.Value) : null))
             .ToList();
@@ -69,8 +71,13 @@ public class DepartmentCleanupService
             return;
         }
 
+        // Используем using для обеспечения правильного завершения транзакции
         using var transactionScope = transactionResult.Value;
 
+        // Вызываем метод репозитория для удаления департаментов и их детей, передавая список кандидатов на удаление
+        _logger.LogInformation(
+            "Starting cleanup of {DepartmentsCount} inactive departments.",
+            candidates.Count);
         var cleanupResult = await _departmentsRepository.CleanupDeletedDepartmentsOlderThan(candidates, stoppingToken);
         if (cleanupResult.IsFailure)
         {
@@ -80,6 +87,10 @@ public class DepartmentCleanupService
                 cleanupResult.Error.Message);
             return;
         }
+
+        _logger.LogInformation(
+            "Successfully cleaned up {DepartmentsCount} inactive departments. Saving changes.",
+            candidates.Count);
 
         var saveChangesResult = await _transactionManager.SaveChangesAsync(stoppingToken);
         if (saveChangesResult.IsFailure)
