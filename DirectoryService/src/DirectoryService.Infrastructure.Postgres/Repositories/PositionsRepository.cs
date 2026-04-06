@@ -67,6 +67,11 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
         List<PositionId> positionIds,
         CancellationToken cancellationToken)
     {
+        if (positionIds.Count == 0)
+        {
+            return new List<Position>();
+        }
+
         var positions = await dbContext.Positions
             .Where(p => positionIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
@@ -88,6 +93,11 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken)
     {
+        if (positionIds.Count == 0)
+        {
+            return new HashSet<PositionId>();
+        }
+
         var existingPositionIds = await dbContext.Positions
             .Where(p => positionIds.Contains(p.Id))
             .Select(p => p.Id)

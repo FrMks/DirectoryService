@@ -20,6 +20,7 @@ public sealed class Department
         Identifier identifier,
         Path path,
         IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Id = id;
@@ -30,6 +31,7 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
         Path = path;
         _departmentLocations = departmentLocations.ToList();
+        _departmentPositions = departmentPositions.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -72,7 +74,35 @@ public sealed class Department
         IEnumerable<DepartmentLocation> departmentLocations,
         Depth depth, Guid? parentId)
     {
-        Department department = new(id, name, identifier, path, departmentLocations, depth, parentId);
+        return Create(
+            id,
+            name,
+            identifier,
+            path,
+            departmentLocations,
+            null,
+            depth,
+            parentId);
+    }
+
+    public static Result<Department> Create(
+        DepartmentId id,
+        Name name,
+        Identifier identifier,
+        Path path,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition>? departmentPositions,
+        Depth depth, Guid? parentId)
+    {
+        Department department = new(
+            id,
+            name,
+            identifier,
+            path,
+            departmentLocations,
+            departmentPositions ?? [],
+            depth,
+            parentId);
 
         return Result.Success(department);
     }
@@ -124,6 +154,7 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
+            departmentPositions,
             depth,
             parentId
             );
@@ -156,6 +187,7 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
+            departmentPositions,
             depth,
             parentId
         );

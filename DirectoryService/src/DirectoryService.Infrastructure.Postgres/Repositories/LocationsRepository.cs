@@ -88,7 +88,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
             .Where(l => locationIds.Contains(l.Id))
             .ToListAsync(cancellationToken);
 
-        if (locations.Count != locationIds.Count)
+        if (locations is null || locations.Count == 0)
         {
             logger.LogError("Not all locations found with the given IDs");
             return Error.NotFound(
@@ -110,7 +110,7 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
             .Select(l => l.Id)
             .ToListAsync(cancellationToken);
 
-        if (existingLocationIds.Count != locationIds.Count)
+        if (existingLocationIds is null || existingLocationIds.Count == 0)
         {
             logger.LogError("Not all locations found with the given IDs");
             return Error.NotFound(

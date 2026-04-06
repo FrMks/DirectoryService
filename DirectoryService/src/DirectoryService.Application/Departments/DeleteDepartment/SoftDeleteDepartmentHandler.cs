@@ -162,6 +162,11 @@ public class SoftDeleteDepartmentHandler(
         IReadOnlyList<DepartmentPosition> departmentPositions,
         CancellationToken cancellationToken)
     {
+        if (departmentPositions.Count == 0)
+        {
+            return UnitResult.Success<Errors>();
+        }
+
         var positionIds = departmentPositions
             .Select(dp => dp.PositionId)
             .Distinct()
