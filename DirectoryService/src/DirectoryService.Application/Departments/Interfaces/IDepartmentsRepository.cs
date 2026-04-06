@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Shared;
@@ -10,7 +11,7 @@ public interface IDepartmentsRepository
 {
     Task<Result<Guid, Error>> AddAsync(Department department, CancellationToken cancellationToken);
     Task<Result<Department, Errors>> GetByIdAsync(DepartmentId id, CancellationToken cancellationToken);
-    
+
     /// <summary>
     /// Check that department with identifier does not have in a database.
     /// </summary>
@@ -27,9 +28,9 @@ public interface IDepartmentsRepository
     /// <param name="cancellationToken">Token to cancel.</param>
     /// <returns>Erorr - does not have in database or not active. True - have in database and active.</returns>
     Task<Result<bool, Error>> AllExistAndActiveAsync(List<Guid> departmentIds, CancellationToken cancellationToken);
-    
+
     Task<Result<Department, Errors>> ExistAndActiveAsync(DepartmentId departmentId, CancellationToken cancellationToken);
-    
+
     Task<Result<Guid, Error>> SaveChanges(CancellationToken cancellationToken);
 
     Task<Result<Department, Error>> GetByIdWithLock(
@@ -41,4 +42,10 @@ public interface IDepartmentsRepository
         Path newPath,
         Guid? newParentId,
         CancellationToken cancellationToken);
+
+    Task<Result<Department, Error>> GetBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
+
+    Task<Result<List<Department>, Error>> GetListBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
+
+    Task<Result<Department, Error>> GetActiveDepartmentForSoftDelete(DepartmentId departmentId, CancellationToken cancellationToken);
 }

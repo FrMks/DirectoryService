@@ -29,6 +29,7 @@ public sealed class Position
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdateAt { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
     
     public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; } = null!;
 
@@ -41,5 +42,12 @@ public sealed class Position
             departmentPositions);
         
         return Result.Success(position);
+    }
+
+    public void SoftDelete()
+    {
+        IsActive = false;
+        UpdateAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
     }
 }

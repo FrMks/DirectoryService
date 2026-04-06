@@ -40,6 +40,8 @@ public sealed class Location
 
     public DateTime UpdatedAt { get; private set; }
 
+    public DateTime? DeletedAt { get; private set; }
+
     public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
 
     #endregion
@@ -51,5 +53,12 @@ public sealed class Location
         Location location = new(id, name, address, timezone, departmentLocations);
 
         return Result.Success(location);
+    }
+
+    public void SoftDelete()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
     }
 }

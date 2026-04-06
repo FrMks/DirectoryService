@@ -20,6 +20,7 @@ public sealed class Department
         Identifier identifier,
         Path path,
         IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition> departmentPositions,
         Depth depth, Guid? parentId)
     {
         Id = id;
@@ -30,6 +31,7 @@ public sealed class Department
         UpdatedAt = DateTime.UtcNow;
         Path = path;
         _departmentLocations = departmentLocations.ToList();
+        _departmentPositions = departmentPositions.ToList();
         Depth = depth;
         ParentId = parentId;
     }
@@ -57,6 +59,8 @@ public sealed class Department
 
     public DateTime UpdatedAt { get; private set; }
 
+    public DateTime? DeletedAt { get; private set; }
+
     public IReadOnlyList<DepartmentLocation> DepartmentLocations => _departmentLocations;
     public IReadOnlyList<DepartmentPosition> DepartmentPositions => _departmentPositions;
 
@@ -70,7 +74,35 @@ public sealed class Department
         IEnumerable<DepartmentLocation> departmentLocations,
         Depth depth, Guid? parentId)
     {
-        Department department = new(id, name, identifier, path, departmentLocations, depth, parentId);
+        return Create(
+            id,
+            name,
+            identifier,
+            path,
+            departmentLocations,
+            null,
+            depth,
+            parentId);
+    }
+
+    public static Result<Department> Create(
+        DepartmentId id,
+        Name name,
+        Identifier identifier,
+        Path path,
+        IEnumerable<DepartmentLocation> departmentLocations,
+        IEnumerable<DepartmentPosition>? departmentPositions,
+        Depth depth, Guid? parentId)
+    {
+        Department department = new(
+            id,
+            name,
+            identifier,
+            path,
+            departmentLocations,
+            departmentPositions ?? [],
+            depth,
+            parentId);
 
         return Result.Success(department);
     }
@@ -122,6 +154,7 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
+            departmentPositions,
             depth,
             parentId
             );
@@ -154,9 +187,31 @@ public sealed class Department
             identifier,
             path,
             departmentLocations,
+            departmentPositions,
             depth,
             parentId
         );
         return Result.Success<Department, Error>(department);
+    }
+
+    public void SoftDelete()
+    {
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+    }
+
+    public UnitResult<Error> UpdatePath(string newPath)
+    {
+        var pathResult = Path.Create(newPath);
+
+        if (pathResult.IsFailure)
+        {
+            return pathResult.Error;
+        }
+
+        Path = pathResult.Value;
+        UpdatedAt = DateTime.UtcNow;
+        return UnitResult.Success<Error>();
     }
 }

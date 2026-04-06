@@ -126,6 +126,7 @@ public class CreateDepartmentHandler(
             identifier,
             path,
             departmentLocations,
+            null,
             depth,
             parentIdResult).Value;
 
