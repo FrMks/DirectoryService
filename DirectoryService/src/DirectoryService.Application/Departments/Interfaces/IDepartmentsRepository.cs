@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
+using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Shared;
@@ -48,4 +49,8 @@ public interface IDepartmentsRepository
     Task<Result<List<Department>, Error>> GetListBy(Expression<Func<Department, bool>> predicate, CancellationToken cancellationToken);
 
     Task<Result<Department, Error>> GetActiveDepartmentForSoftDelete(DepartmentId departmentId, CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> CleanupDeletedDepartmentsOlderThan(
+        List<DepartmentIdPathAndParentId> departmentIdPathAndParentIds,
+        CancellationToken cancellationToken);
 }

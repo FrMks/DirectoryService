@@ -33,21 +33,23 @@ public class DepartmentCleanupBackgroundService : Microsoft.Extensions.Hosting.B
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var scope = _serviceScopeFactory.CreateAsyncScope();
-            var cleanupService = scope.ServiceProvider.GetRequiredService<DepartmentCleanupService>();
-            
             try
             {
+                await using var scope = _serviceScopeFactory.CreateAsyncScope();
+                var cleanupService = scope.ServiceProvider.GetRequiredService<DepartmentCleanupService>();
                 await cleanupService.CleanupInactiveDepartments(_options.Value.InactiveDaysThreshold, stoppingToken);
+
+                _logger.LogInformation("Department cleanup completed. Waiting for the next interval.");
+                await Task.Delay(TimeSpan.FromHours(_options.Value.IntervalHours), stoppingToken);
+            }
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+            {
+                break;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while cleaning up inactive departments.");
             }
-
-            _logger.LogInformation("Department cleanup completed. Waiting for the next interval.");
-
-            await Task.Delay(TimeSpan.FromHours(_options.Value.IntervalHours), stoppingToken);
         }
     }
 }
