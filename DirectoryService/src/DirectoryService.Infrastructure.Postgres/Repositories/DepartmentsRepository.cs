@@ -264,14 +264,16 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
 
         try
         {
-            // Получили Id всех удаляемых департаментов
+            // Собираем id удаляемых departments в отдельный массив.
             var departmentIds = departmentIdPathAndParentIds
                 .Select(x => x.DepartmentId.Value)
                 .Distinct()
                 .ToArray();
 
             // Склеиваем все параметры у класса DepartmentIdPathAndParentId в одну строку для передачи в SQL запрос
-            // На выходе будет строка вида: ('{DepartmentId1}'::uuid, {ParentId1}, '{Path1}'), ...
+            // Пример итоговой строки:
+            // ('id1'::uuid, 'parent1'::uuid, 'hq.deleted-it'),
+            // ('id2'::uuid, NULL::uuid, 'root')
             var deletedDepartmentsValues = string.Join(
                 ", ",
                 departmentIdPathAndParentIds.Select(x =>
@@ -281,6 +283,10 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
             // Создаем временную таблицу с значениями для удаляемых департаментов
             // Находим всех детей из таблицы departments, у которых parent_id совпадает с id удаляемого департамента
             // У этих детей меняем parent_id на parent_id удаляемого департамента и обновляем updated_at
+            //
+            // Пример:
+            // было: hq -> deleted-it -> dev-team
+            // станет: hq -> dev-team
             await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
                     WITH deleted_departments(id, parent_id, path) AS (
@@ -351,8 +357,10 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                   AND d.path != deleted_departments.path::ltree;
                 """,
                 cancellationToken);
-            // Удаляем строки из таблицы department_locations, department_positions и departments 
-            // для всех удаляемых департаментов и их детей, которые мы получили в первом запросе через departmentIds
+
+            // Удаляем связи удаляемых departments с locations.
+            // Удаляются только строки из department_locations, где department_id совпадает
+            // с id из временной таблицы deleted_departments.
             await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
                 WITH deleted_departments(id, parent_id, path) AS (
@@ -364,6 +372,9 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 """,
                 cancellationToken);
 
+            // Удаляем связи удаляемых departments с positions.
+            // Логика такая же, как и на предыдущем шаге: удаляем только строки связей,
+            // а не сами positions.
             await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
                 WITH deleted_departments(id, parent_id, path) AS (
@@ -375,6 +386,9 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
                 """,
                 cancellationToken);
 
+            // Финальный hard delete самих departments.
+            // Здесь снова используем deleted_departments и удаляем только те строки из таблицы departments,
+            // чьи id входят в этот набор.
             var deletedDepartmentsCount = await dbContext.Database.ExecuteSqlRawAsync(
                 $"""
                 WITH deleted_departments(id, parent_id, path) AS (
