@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using DirectoryService.Application.Departments.Interfaces;
+using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using Microsoft.EntityFrameworkCore;
@@ -250,5 +251,171 @@ public class DepartmentsRepository(DirectoryServiceDbContext dbContext, ILogger<
         }
 
         return department;
+    }
+
+    public async Task<UnitResult<Error>> CleanupDeletedDepartmentsOlderThan(
+        List<DepartmentIdPathAndParentId> departmentIdPathAndParentIds,
+        CancellationToken cancellationToken)
+    {
+        if (departmentIdPathAndParentIds.Count == 0)
+        {
+            return UnitResult.Success<Error>();
+        }
+
+        try
+        {
+            // Собираем id удаляемых departments в отдельный массив.
+            var departmentIds = departmentIdPathAndParentIds
+                .Select(x => x.DepartmentId.Value)
+                .Distinct()
+                .ToArray();
+
+            // Склеиваем все параметры у класса DepartmentIdPathAndParentId в одну строку для передачи в SQL запрос
+            // Пример итоговой строки:
+            // ('id1'::uuid, 'parent1'::uuid, 'hq.deleted-it'),
+            // ('id2'::uuid, NULL::uuid, 'root')
+            var deletedDepartmentsValues = string.Join(
+                ", ",
+                departmentIdPathAndParentIds.Select(x =>
+                    $"('{x.DepartmentId.Value}'::uuid, {(x.ParentId is null ? "NULL::uuid" : $"'{x.ParentId.Value}'::uuid")}, '{x.Path.Value}')"));
+
+#pragma warning disable EF1002
+            // Создаем временную таблицу с значениями для удаляемых департаментов
+            // Находим всех детей из таблицы departments, у которых parent_id совпадает с id удаляемого департамента
+            // У этих детей меняем parent_id на parent_id удаляемого департамента и обновляем updated_at
+            //
+            // Пример:
+            // было: hq -> deleted-it -> dev-team
+            // станет: hq -> dev-team
+            await dbContext.Database.ExecuteSqlRawAsync(
+                $"""
+                    WITH deleted_departments(id, parent_id, path) AS (
+                        VALUES {deletedDepartmentsValues}
+                    )
+
+                    UPDATE departments AS child
+                    SET parent_id = deleted_departments.parent_id,
+                        updated_at = NOW()
+                    FROM deleted_departments
+                    WHERE child.parent_id = deleted_departments.id;
+                 """,
+                cancellationToken);
+
+            // Создаем временную таблицу с значениями для удаляемых департаментов
+            // Обновляем таблицу departments
+            // У всех детей удаляемого департамента меняем path, depth и updated_at
+            // Логика обновления path:
+            // Если удаляемый департамент был корневым
+            // (nlevel(path) показывает количество сегментов в path, для корневого path это 1),
+            // то новый path строится через subpath(d.path, nlevel(deleted_departments.path::ltree))
+            // Это означает: "отрезать от текущего path первый сегмент"
+            //
+            // Иначе, если удаляемый департамент не был корневым
+            // path собирается из двух частей:
+            // 1. subpath(d.path, 0, nlevel(deleted_departments.path::ltree) - 1)
+            // - берем часть path от начала до уровня удаляемого департамента, То есть от 0 до nlevel(deleted_departments.path::ltree) - 1.
+            // 2. subpath(d.path, nlevel(deleted_departments.path::ltree))
+            // - берем хвост path после удаляемого департамента. То есть с nlevel(deleted_departments.path::ltree) по конец.
+            // Затем эти две части склеиваются оператором ||.
+            // Удаляемый сегмент исчезает из path
+            //
+            // Для depth
+            // Если Корневой, то убираем первый сегмент и считаем количество оставшихся сегментов, отнимая 1, так как depth считается от 0
+            // Иначе, если не Корневой, то собираем новый path без удаляемого сегмента и считаем количество сегментов в новом path, отнимая 1, так как depth считается от 0
+            //
+            // В WHERE:
+            // d.path <@ deleted_departments.path::ltree 
+            // 'hq.deleted_it.dev_team' <@ 'hq.deleted_it' = true
+            // означает: берем все узлы внутри поддерева удаляемого департамента (включая его самого)
+            // d.path != deleted_departments.path::ltree не обновляем сам удаляемый департамент,
+            // потому что он будет удален позже отдельным DELETE.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                $"""
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                UPDATE departments AS d
+                SET path = CASE
+                        WHEN nlevel(deleted_departments.path::ltree) = 1
+                            THEN subpath(d.path, nlevel(deleted_departments.path::ltree))
+                        ELSE
+                            subpath(d.path, 0, nlevel(deleted_departments.path::ltree) - 1)
+                            || subpath(d.path, nlevel(deleted_departments.path::ltree))
+                    END,
+                    depth = CASE
+                        WHEN nlevel(deleted_departments.path::ltree) = 1
+                            THEN nlevel(subpath(d.path, nlevel(deleted_departments.path::ltree))) - 1
+                        ELSE
+                            nlevel(
+                                subpath(d.path, 0, nlevel(deleted_departments.path::ltree) - 1)
+                                || subpath(d.path, nlevel(deleted_departments.path::ltree))
+                            ) - 1
+                    END,
+                    updated_at = NOW()
+                FROM deleted_departments
+                WHERE d.path <@ deleted_departments.path::ltree
+                  AND d.path != deleted_departments.path::ltree;
+                """,
+                cancellationToken);
+
+            // Удаляем связи удаляемых departments с locations.
+            // Удаляются только строки из department_locations, где department_id совпадает
+            // с id из временной таблицы deleted_departments.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                $"""
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM department_locations AS dl
+                USING deleted_departments
+                WHERE dl.department_id = deleted_departments.id;
+                """,
+                cancellationToken);
+
+            // Удаляем связи удаляемых departments с positions.
+            // Логика такая же, как и на предыдущем шаге: удаляем только строки связей,
+            // а не сами positions.
+            await dbContext.Database.ExecuteSqlRawAsync(
+                $"""
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM department_positions AS dp
+                USING deleted_departments
+                WHERE dp.department_id = deleted_departments.id;
+                """,
+                cancellationToken);
+
+            // Финальный hard delete самих departments.
+            // Здесь снова используем deleted_departments и удаляем только те строки из таблицы departments,
+            // чьи id входят в этот набор.
+            var deletedDepartmentsCount = await dbContext.Database.ExecuteSqlRawAsync(
+                $"""
+                WITH deleted_departments(id, parent_id, path) AS (
+                    VALUES {deletedDepartmentsValues}
+                )
+                DELETE FROM departments AS d
+                USING deleted_departments
+                WHERE d.id = deleted_departments.id;
+                """,
+                cancellationToken);
+
+            logger.LogInformation(
+                "Department cleanup delete step removed {DeletedDepartmentsCount} departments.",
+                deletedDepartmentsCount);
+#pragma warning restore EF1002
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Failed to hard delete departments older than cleanup threshold.");
+
+            return Error.Failure(
+                "department.cleanup.delete.failed",
+                "Failed to hard delete departments.");
+        }
     }
 }

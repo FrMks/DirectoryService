@@ -4,7 +4,9 @@ using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Infrastructure.Postgres;
 using DirectoryService.Infrastructure.Postgres.Database;
+using DirectoryService.Infrastructure.Postgres.DepartmentCleanupBackgroundService;
 using DirectoryService.Infrastructure.Postgres.Repositories;
+using DirectoryService.Infrastructure.Postgres.Services;
 using DirectoryService.Web;
 using DirectoryService.Web.Middlewares;
 using Serilog;
@@ -38,6 +40,11 @@ builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionsRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+
+builder.Services.Configure<DepartmentCleanupOptions>(
+    builder.Configuration.GetSection("DepartmentCleanup"));
+builder.Services.AddScoped<DepartmentCleanupService>();
+builder.Services.AddHostedService<DepartmentCleanupBackgroundService>();
 
 var app = builder.Build();
 
