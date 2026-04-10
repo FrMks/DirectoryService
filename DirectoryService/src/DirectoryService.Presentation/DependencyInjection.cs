@@ -7,11 +7,11 @@ namespace DirectoryService.Web;
 
 public static class DependencyInjection // docker compose up --build для разворачивания приложения. http://localhost:8080
 {
-    public static IServiceCollection AddProgramDependencies(this IServiceCollection services)
+    public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         return services
             .AddWebDependencies()
-            .AddApplication()
+            .AddApplication(configuration)
             .AddSerilog();
     }
 
