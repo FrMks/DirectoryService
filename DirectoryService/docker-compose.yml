@@ -10,12 +10,16 @@
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DirectoryServiceDb: Server=postgres;Port=5432;Database=directory_service_db;User Id=postgres;Password=postgres;
       ConnectionStrings__Seq: http://seq:5341
+      ConnectionStrings__Redis: redis:6379
+      Swagger__ServerUrl: http://localhost:8080
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
       seq:
+        condition: service_started
+      redis:
         condition: service_started
 
   postgres:
@@ -50,6 +54,13 @@
       - "5431:5341"
     volumes:
       - seq-data:/data
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres-data:

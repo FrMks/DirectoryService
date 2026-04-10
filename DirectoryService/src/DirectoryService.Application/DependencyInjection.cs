@@ -8,15 +8,19 @@ using DirectoryService.Contracts.Locations;
 using DirectoryService.Contracts.Locations.GetLocations;
 using DirectoryService.Contracts.Positions;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DirectoryService.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
     {
         var assembblie = typeof(DependencyInjection).Assembly;
+        var redisConnectionString = configuration.GetConnectionString("Redis")
+            ?? throw new ArgumentNullException("ConnectionStrings:Redis");
 
         services.Scan(scan => scan.FromAssemblies(assembblie)
             .AddClasses(classes => classes
@@ -39,6 +43,22 @@ public static class DependencyInjection
         services.AddTransient<IValidator<SoftDeleteDepartmentCommand>, SoftDeleteDepartmentCommandValidator>();
 
         services.AddTransient<IValidator<CreatePositionRequest>, CreatePositionDtoValidator>();
+
+        services.AddStackExchangeRedisCache(setup =>
+        {
+            setup.Configuration = redisConnectionString;
+        });
+
+        services.AddHybridCache(options =>
+        {
+            options.DefaultEntryOptions = new HybridCacheEntryOptions
+            {
+                LocalCacheExpiration = TimeSpan.FromMinutes(5), // Локально в памяти текущего процесса (живет внутри запущенного экземпляра приложения)
+                Expiration = TimeSpan.FromMinutes(30), // Общий срок жизни записи (обычно Redis, IDistributedCache)
+                // Если нет в локальном, то будет запрашивать из удаленного, и если там есть, то положит в локальный кэш
+            };
+        });
+
         return services;
     }
 }
