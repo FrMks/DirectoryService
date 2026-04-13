@@ -4,6 +4,9 @@
     build:
       context: .
       dockerfile: src/Dockerfile
+      args:
+        GITHUB_PACKAGES_USERNAME: ${GITHUB_PACKAGES_USERNAME}
+        GITHUB_PACKAGES_TOKEN: ${GITHUB_PACKAGES_TOKEN}
     restart: unless-stopped
     environment:
       ASPNETCORE_ENVIRONMENT: Development

@@ -4,13 +4,19 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
+ARG GITHUB_PACKAGES_USERNAME
+ARG GITHUB_PACKAGES_TOKEN
 WORKDIR /src
 COPY ["src/DirectoryService.Presentation/DirectoryService.Presentation.csproj", "src/DirectoryService.Presentation/"]
-COPY ["Shared/Shared.csproj", "Shared/"]
 COPY ["src/DirectoryService.Application/DirectoryService.Application.csproj", "src/DirectoryService.Application/"]
 COPY ["src/DirectoryService.Contracts/DirectoryService.Contracts.csproj", "src/DirectoryService.Contracts/"]
 COPY ["src/DirectoryService.Domain/DirectoryService.Domain.csproj", "src/DirectoryService.Domain/"]
 COPY ["src/DirectoryService.Infrastructure.Postgres/DirectoryService.Infrastructure.Postgres.csproj", "src/DirectoryService.Infrastructure.Postgres/"]
+RUN dotnet nuget add source "https://nuget.pkg.github.com/FrMks/index.json" \
+    --name github \
+    --username "$GITHUB_PACKAGES_USERNAME" \
+    --password "$GITHUB_PACKAGES_TOKEN" \
+    --store-password-in-clear-text
 RUN dotnet restore "src/DirectoryService.Presentation/DirectoryService.Presentation.csproj"
 COPY . .
 WORKDIR "/src/src/DirectoryService.Presentation"
