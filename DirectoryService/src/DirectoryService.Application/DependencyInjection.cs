@@ -54,7 +54,7 @@ public static class DependencyInjection
             options.DefaultEntryOptions = new HybridCacheEntryOptions
             {
                 LocalCacheExpiration = TimeSpan.FromMinutes(5), // Локально в памяти текущего процесса (живет внутри запущенного экземпляра приложения)
-                Expiration = TimeSpan.FromMinutes(30), // Общий срок жизни записи (обычно Redis, IDistributedCache)
+                Expiration = TimeSpan.FromMinutes(5), // Общий срок жизни записи (обычно Redis, IDistributedCache)
                 // Если нет в локальном, то будет запрашивать из удаленного, и если там есть, то положит в локальный кэш
             };
         });
