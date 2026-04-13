@@ -6,7 +6,7 @@ using DirectoryService.Domain.DepartmentLocations;
 using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Positions;
 using Microsoft.EntityFrameworkCore;
-using Shared.Database;
+using Shared.Core.Database;
 
 namespace DirectoryService.Infrastructure.Postgres;
 

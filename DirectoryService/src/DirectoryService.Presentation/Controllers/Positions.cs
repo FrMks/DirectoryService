@@ -2,7 +2,7 @@
 using DirectoryService.Application.Positions;
 using DirectoryService.Contracts.Positions;
 using Microsoft.AspNetCore.Mvc;
-using Shared.EndpointResults;
+using Shared.Framework.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
 

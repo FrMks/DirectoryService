@@ -3,7 +3,7 @@ using Dapper;
 using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Shared;
-using Shared.Database;
+using Shared.Core.Database;
 
 namespace DirectoryService.Application.Departments.GetTopDepartments;
 

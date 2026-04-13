@@ -8,7 +8,7 @@ using DirectoryService.Contracts.Departments.GetTopDepartments;
 using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
-using Shared.EndpointResults;
+using Shared.Framework.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
 

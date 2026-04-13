@@ -11,7 +11,7 @@ using DirectoryService.Web;
 using DirectoryService.Web.Middlewares;
 using Serilog;
 using Serilog.Events;
-using Shared.Database;
+using Shared.Core.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +39,7 @@ builder.Services.AddScoped<IDbConnectionFactory, DirectoryServiceDbContext>(_ =>
 builder.Services.AddScoped<ILocationsRepository, LocationsRepository>();
 builder.Services.AddScoped<IDepartmentsRepository, DepartmentsRepository>();
 builder.Services.AddScoped<IPositionsRepository, PositionsRepository>();
-builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+builder.Services.AddScoped<DirectoryService.Application.Database.ITransactionManager, TransactionManager>();
 
 builder.Services.Configure<DepartmentCleanupOptions>(
     builder.Configuration.GetSection("DepartmentCleanup"));

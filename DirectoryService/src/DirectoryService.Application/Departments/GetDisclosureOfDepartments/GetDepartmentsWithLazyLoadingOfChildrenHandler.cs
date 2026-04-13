@@ -4,7 +4,7 @@ using DirectoryService.Application.Abstractions;
 using DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Shared;
-using Shared.Database;
+using Shared.Core.Database;
 
 namespace DirectoryService.Application.Departments.GetDisclosureOfDepartments;
 
