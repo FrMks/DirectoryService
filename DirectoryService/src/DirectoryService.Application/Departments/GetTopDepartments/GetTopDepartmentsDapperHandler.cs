@@ -1,6 +1,7 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Dapper;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Microsoft.Extensions.Caching.Hybrid;
 using Shared;
@@ -63,6 +64,7 @@ public class GetTopDepartmentsDapperHandler(
 
                 return queryResult.ToArray();
             },
+            tags: [CacheTags.DepartmentsList],
             cancellationToken: cancellationToken);
     }
 }

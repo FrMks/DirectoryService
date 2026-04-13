@@ -1,15 +1,17 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Domain;
-using DirectoryService.Domain.Department;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.DepartmentLocations;
 using FluentValidation;
+using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
@@ -22,6 +24,7 @@ public class SoftDeleteDepartmentHandler(
     IPositionsRepository positionRepository,
     IValidator<SoftDeleteDepartmentCommand> validator,
     ITransactionManager transactionManager,
+    HybridCache cache,
     ILogger<SoftDeleteDepartmentHandler> logger
     ) : ICommandHandler<Guid, SoftDeleteDepartmentCommand>
 {
@@ -109,6 +112,8 @@ public class SoftDeleteDepartmentHandler(
         logger.LogInformation("Department with id {DepartmentId} has been soft deleted.", command.DepartmentId);
 
         transactionScope.Commit();
+
+        await cache.RemoveByTagAsync(CacheTags.DepartmentsList, cancellationToken);
 
         // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);

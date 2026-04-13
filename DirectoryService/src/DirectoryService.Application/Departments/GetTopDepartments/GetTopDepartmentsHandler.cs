@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Application.Database;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,7 @@ public class GetTopDepartmentsHandler(
 
                 return departments.ToArray();
             },
+            tags: [CacheTags.DepartmentsList],
             cancellationToken: cancellationToken);
     }
 }

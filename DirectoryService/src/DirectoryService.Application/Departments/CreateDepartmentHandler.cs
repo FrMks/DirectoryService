@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
@@ -9,6 +10,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Name = DirectoryService.Domain.Department.ValueObject.Name;
@@ -20,6 +22,7 @@ public class CreateDepartmentHandler(
     IDepartmentsRepository departmentsRepository,
     ILocationsRepository locationsRepository,
     IValidator<CreateDepartmentRequest> validator,
+    HybridCache cache,
     ILogger<CreateDepartmentHandler> logger)
     : ICommandHandler<Guid, CreateDepartmentCommand>
 {
@@ -137,6 +140,8 @@ public class CreateDepartmentHandler(
 
         if (successfulId.IsFailure)
             return successfulId.Error.ToErrors();
+
+        await cache.RemoveByTagAsync(CacheTags.DepartmentsList, cancellationToken);
 
         // Логирование об успешном или неуспешном сохранении
         logger.LogInformation("Department with id {successfulId.Value} add to db.", successfulId.Value);

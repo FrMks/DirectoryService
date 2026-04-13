@@ -1,6 +1,7 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Dapper;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -136,6 +137,7 @@ public class GetDepartmentsWithLazyLoadingOfChildrenHandler(
 
                 return departments;
             },
+            tags: [CacheTags.DepartmentsList],
             cancellationToken: cancellationToken);
     }
 }
