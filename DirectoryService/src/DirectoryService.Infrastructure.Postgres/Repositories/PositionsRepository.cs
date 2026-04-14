@@ -10,7 +10,8 @@ using DepartmentId = DirectoryService.Domain.Department.ValueObject.DepartmentId
 
 namespace DirectoryService.Infrastructure.Postgres.Repositories;
 
-public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<PositionsRepository> logger) : IPositionsRepository
+public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<PositionsRepository> logger)
+     : IPositionsRepository
 {
     public async Task<Result<Guid, Error>> AddAsync(Position position, CancellationToken cancellationToken)
     {
@@ -127,5 +128,62 @@ public class PositionsRepository(DirectoryServiceDbContext dbContext, ILogger<Po
             .ToListAsync(cancellationToken);
 
         return positionIdsWithOtherActiveDepartments.ToHashSet();
+    }
+
+    public async Task<UnitResult<Error>> SoftDeleteUnusedPositionsInBranchAsync(
+        Domain.Department.ValueObject.Path branchPath,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+    #pragma warning disable EF1002
+            await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                WITH deleting_departments AS (
+                    SELECT id
+                    FROM departments
+                    WHERE path <@ {branchPath.Value}::ltree
+                ),
+                branch_positions AS (
+                    SELECT DISTINCT dp.position_id
+                    FROM department_positions AS dp
+                    JOIN deleting_departments AS dd ON dd.id = dp.department_id
+                ),
+                positions_used_outside_branch AS (
+                    SELECT DISTINCT dp.position_id
+                    FROM department_positions AS dp
+                    JOIN departments AS d ON d.id = dp.department_id
+                    WHERE dp.position_id IN (SELECT position_id FROM branch_positions)
+                    AND d.is_active = TRUE
+                    AND dp.department_id NOT IN (SELECT id FROM deleting_departments)
+                )
+                UPDATE positions AS p
+                SET is_active = FALSE,
+                    deleted_at = NOW(),
+                    update_at = NOW()
+                WHERE p.id IN (
+                    SELECT position_id
+                    FROM branch_positions
+                    EXCEPT
+                    SELECT position_id
+                    FROM positions_used_outside_branch
+                );
+                """,
+                cancellationToken);
+    #pragma warning restore EF1002
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Failed to soft delete unused positions in branch {BranchPath}",
+                branchPath.Value);
+
+            return Error.Failure(
+                "positions.soft.delete.branch.failed",
+                "Failed to soft delete unused positions in branch.");
+        }
     }
 }

@@ -65,19 +65,15 @@ public class SoftDeleteDepartmentHandler(
         // Выполняем мягкое удаление департамента
         department.SoftDelete();
 
-        var processLocationsResult = await ProcessLocationsAsync(
-            department.Id,
-            department.DepartmentLocations,
-            cancellationToken);
-        if (processLocationsResult.IsFailure)
-            return processLocationsResult.Error;
+        var softDeleteLocationsResult = await locationsRepository
+            .SoftDeleteUnusedLocationsInBranchAsync(department.Path, cancellationToken);
+        if (softDeleteLocationsResult.IsFailure)
+            return softDeleteLocationsResult.Error.ToErrors();
 
-        var processPositionsResult = await ProcessPositionsAsync(
-            department.Id,
-            department.DepartmentPositions,
-            cancellationToken);
-        if (processPositionsResult.IsFailure)
-            return processPositionsResult.Error;
+        var softDeletePositionsResult = await positionRepository
+            .SoftDeleteUnusedPositionsInBranchAsync(department.Path, cancellationToken);
+        if (softDeletePositionsResult.IsFailure)
+            return softDeletePositionsResult.Error.ToErrors();
 
         var oldPath = department.Path;
         var newPathResult = CreateDeletedBranchPath(department.Path.Value);
@@ -117,97 +113,6 @@ public class SoftDeleteDepartmentHandler(
 
         // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);
-    }
-
-    private async Task<UnitResult<Errors>> ProcessLocationsAsync(
-        Guid deletingDepartmentId,
-        IReadOnlyList<DepartmentLocation> departmentLocations,
-        CancellationToken cancellationToken)
-    {
-        var locationIds = departmentLocations
-            .Select(dl => dl.LocationId)
-            .Distinct()
-            .ToList();
-
-        var locationsResult = await locationsRepository.GetLocationsByIds(locationIds, cancellationToken);
-        if (locationsResult.IsFailure)
-        {
-            logger.LogError("Failed to retrieve locations for department with id {DepartmentId}.", deletingDepartmentId);
-            return locationsResult.Error.ToErrors();
-        }
-
-        var locationIdsWithOtherActiveDepartmentsResult = await locationsRepository
-            .GetLocationIdsWithOtherActiveDepartments(
-                locationIds,
-                DepartmentId.FromValue(deletingDepartmentId),
-                cancellationToken);
-        if (locationIdsWithOtherActiveDepartmentsResult.IsFailure)
-        {
-            logger.LogError(
-                "Failed to retrieve location ids with other active departments for department with id {DepartmentId}.",
-                deletingDepartmentId);
-            return locationIdsWithOtherActiveDepartmentsResult.Error.ToErrors();
-        }
-
-        var locationIdsWithOtherActiveDepartments = locationIdsWithOtherActiveDepartmentsResult.Value;
-
-        foreach (var location in locationsResult.Value)
-        {
-            if (!locationIdsWithOtherActiveDepartments.Contains(location.Id))
-            {
-                location.SoftDelete();
-            }
-        }
-
-        return UnitResult.Success<Errors>();
-    }
-
-    private async Task<UnitResult<Errors>> ProcessPositionsAsync(
-        Guid deletingDepartmentId,
-        IReadOnlyList<DepartmentPosition> departmentPositions,
-        CancellationToken cancellationToken)
-    {
-        if (departmentPositions.Count == 0)
-        {
-            return UnitResult.Success<Errors>();
-        }
-
-        var positionIds = departmentPositions
-            .Select(dp => dp.PositionId)
-            .Distinct()
-            .ToList();
-
-        var positionsResult = await positionRepository.GetPositionsByIds(positionIds, cancellationToken);
-        if (positionsResult.IsFailure)
-        {
-            logger.LogError("Failed to retrieve positions for department with id {DepartmentId}.", deletingDepartmentId);
-            return positionsResult.Error.ToErrors();
-        }
-
-        var positionIdsWithOtherActiveDepartmentsResult = await positionRepository
-            .GetPositionIdsWithOtherActiveDepartments(
-                positionIds,
-                DepartmentId.FromValue(deletingDepartmentId),
-                cancellationToken);
-        if (positionIdsWithOtherActiveDepartmentsResult.IsFailure)
-        {
-            logger.LogError(
-                "Failed to retrieve position ids with other active departments for department with id {DepartmentId}.",
-                deletingDepartmentId);
-            return positionIdsWithOtherActiveDepartmentsResult.Error.ToErrors();
-        }
-
-        var positionIdsWithOtherActiveDepartments = positionIdsWithOtherActiveDepartmentsResult.Value;
-
-        foreach (var position in positionsResult.Value)
-        {
-            if (!positionIdsWithOtherActiveDepartments.Contains(position.Id))
-            {
-                position.SoftDelete();
-            }
-        }
-
-        return UnitResult.Success<Errors>();
     }
 
     private Result<Path, Error> CreateDeletedBranchPath(string currentPath)

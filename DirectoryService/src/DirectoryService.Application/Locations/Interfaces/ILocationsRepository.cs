@@ -29,4 +29,8 @@ public interface ILocationsRepository
         List<LocationId> locationIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> SoftDeleteUnusedLocationsInBranchAsync(
+        Domain.Department.ValueObject.Path branchPath,
+        CancellationToken cancellationToken);
 }
