@@ -1,6 +1,7 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Database;
+using Shared.Core.Abstractions;
+using Shared.Core.Database;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

@@ -1,5 +1,5 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Departments.SoftDeleteDepartment;
 using DirectoryService.Contracts.Departments;

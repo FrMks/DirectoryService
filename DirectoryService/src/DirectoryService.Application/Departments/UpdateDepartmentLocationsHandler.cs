@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Database;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
+using Shared.Core.Database;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department.ValueObject;
@@ -30,12 +30,12 @@ public class UpdateDepartmentLocationsHandler(
         var validationResult = await validator.ValidateAsync(command.DepartmentLocationsRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (Error error in validationResult.ToList())
+            foreach (Error error in validationResult.ToErrors())
             {
                 logger.LogInformation("Error when updating department locations, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
 
         // var transactionScopeResult = await transactionManager.BeginTransactionAsTask(cancellationToken);

@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Abstractions;
+using Shared.Core.Abstractions;
 using DirectoryService.Contracts.Departments;
 
 namespace DirectoryService.Application.Departments;

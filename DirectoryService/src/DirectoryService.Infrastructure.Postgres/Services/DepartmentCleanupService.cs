@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Database;
+using Shared.Core.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department.ValueObject;

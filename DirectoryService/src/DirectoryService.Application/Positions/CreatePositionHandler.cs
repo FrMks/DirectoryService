@@ -1,7 +1,7 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Extensions;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Contracts.Positions;
 using DirectoryService.Domain;
@@ -29,12 +29,12 @@ public class CreatePositionHandler(
         var validationResult = await validator.ValidateAsync(command.PositionRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.ToList())
+            foreach (var error in validationResult.ToErrors())
             {
                 logger.LogInformation("Error when creating position, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
         
         // Создание сущности Position

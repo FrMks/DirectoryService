@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Database;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
+using Shared.Core.Database;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
 using DirectoryService.Domain;

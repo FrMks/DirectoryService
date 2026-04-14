@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Abstractions;
+using Shared.Core.Abstractions;
 using DirectoryService.Contracts.Positions;
 
 namespace DirectoryService.Application.Positions;

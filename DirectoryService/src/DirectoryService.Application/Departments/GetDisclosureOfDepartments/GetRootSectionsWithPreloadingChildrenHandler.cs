@@ -1,6 +1,6 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Dapper;
-using DirectoryService.Application.Abstractions;
+using Shared.Core.Abstractions;
 using DirectoryService.Contracts.Departments.GetDisclosureOfDepartments;
 using DirectoryService.Contracts.Departments.GetTopDepartments;
 using Shared;

@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Abstractions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Positions;
 using DirectoryService.Contracts.Positions;
 using Microsoft.AspNetCore.Mvc;

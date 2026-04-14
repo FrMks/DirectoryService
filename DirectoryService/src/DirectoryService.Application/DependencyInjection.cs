@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Abstractions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments.SoftDeleteDepartment;
 using DirectoryService.Application.Departments.Validation;
 using DirectoryService.Application.Locations.Validation;
