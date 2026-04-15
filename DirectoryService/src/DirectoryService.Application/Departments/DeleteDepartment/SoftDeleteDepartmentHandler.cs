@@ -76,7 +76,7 @@ public class SoftDeleteDepartmentHandler(
             return softDeletePositionsResult.Error.ToErrors();
 
         var oldPath = department.Path;
-        var newPathResult = CreateDeletedBranchPath(department.Path.Value);
+        var newPathResult = Path.CreateDeletedBranchPath(department.Path.Value);
         if (newPathResult.IsFailure)
         {
             logger.LogError(
@@ -113,17 +113,5 @@ public class SoftDeleteDepartmentHandler(
 
         // Возвращаем успешный результат с ID удаленного департамента
         return Result.Success<Guid, Errors>(command.DepartmentId);
-    }
-
-    private Result<Path, Error> CreateDeletedBranchPath(string currentPath)
-    {
-        var segments = currentPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length == 0)
-            return Error.Validation("department.path.invalid", "Department path is invalid.");
-
-        segments[^1] = $"deleted-{segments[^1]}";
-        var updatedPath = string.Join('.', segments);
-
-        return Path.Create(updatedPath);
     }
 }
