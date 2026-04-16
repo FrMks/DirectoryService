@@ -15,7 +15,7 @@ using Shared.Core.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddProgramDependencies();
+builder.Services.AddProgramDependencies(builder.Configuration);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()

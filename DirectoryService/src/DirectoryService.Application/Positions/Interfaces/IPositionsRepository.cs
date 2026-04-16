@@ -24,4 +24,8 @@ public interface IPositionsRepository
         List<PositionId> positionIds,
         DepartmentId deletingDepartmentId,
         CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> SoftDeleteUnusedPositionsInBranchAsync(
+        Domain.Department.ValueObject.Path branchPath,
+        CancellationToken cancellationToken);
 }

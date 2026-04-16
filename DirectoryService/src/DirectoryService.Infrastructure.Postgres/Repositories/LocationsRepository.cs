@@ -135,4 +135,61 @@ public class LocationsRepository(DirectoryServiceDbContext dbContext, ILogger<Lo
 
         return locationIdsWithOtherActiveDepartments.ToHashSet();
     }
+
+    public async Task<UnitResult<Error>> SoftDeleteUnusedLocationsInBranchAsync(
+        Domain.Department.ValueObject.Path branchPath,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+    #pragma warning disable EF1002
+            await dbContext.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                WITH deleting_departments AS (
+                    SELECT id
+                    FROM departments
+                    WHERE path <@ {branchPath.Value}::ltree
+                ),
+                branch_locations AS (
+                    SELECT DISTINCT dl.location_id
+                    FROM department_locations AS dl
+                    JOIN deleting_departments AS dd ON dd.id = dl.department_id
+                ),
+                locations_used_outside_branch AS (
+                    SELECT DISTINCT dl.location_id
+                    FROM department_locations AS dl
+                    JOIN departments AS d ON d.id = dl.department_id
+                    WHERE dl.location_id IN (SELECT location_id FROM branch_locations)
+                    AND d.is_active = true
+                    AND dl.department_id NOT IN (SELECT id FROM deleting_departments)
+                )
+                UPDATE locations AS l
+                SET is_active = FALSE,
+                    deleted_at = NOW(),
+                    updated_at = NOW()
+                WHERE l.id IN (
+                    SELECT location_id
+                    FROM branch_locations
+                    EXCEPT
+                    SELECT location_id
+                    FROM locations_used_outside_branch
+                );
+                """,
+                cancellationToken);
+    #pragma warning restore EF1002
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Failed to soft delete unused locations in branch {BranchPath}",
+                branchPath.Value);
+
+            return Error.Failure(
+                "locations.soft.delete.branch.failed",
+                "Failed to soft delete unused locations in branch.");
+        }
+    }
 }

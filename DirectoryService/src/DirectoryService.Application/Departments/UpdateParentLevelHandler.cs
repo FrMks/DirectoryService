@@ -8,6 +8,7 @@ using Shared.Core.Extensions;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department.ValueObject;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Path = DirectoryService.Domain.Department.ValueObject.Path;
@@ -16,6 +17,7 @@ public class UpdateParentLevelHandler(
     IDepartmentsRepository departmentsRepository,
     IValidator<UpdateParentLevelRequest> validator,
     ITransactionManager transactionManager,
+    HybridCache cache, 
     ILogger<UpdateParentLevelHandler> logger)
     : ICommandHandler<Guid, UpdateParentLevelCommand>
 {
@@ -142,6 +144,8 @@ public class UpdateParentLevelHandler(
         }
 
         transactionScope.Commit();
+
+        await cache.RemoveByTagAsync(CacheTags.DepartmentsList, cancellationToken);
 
         return Result.Success<Guid, Errors>(Guid.NewGuid());
     }
