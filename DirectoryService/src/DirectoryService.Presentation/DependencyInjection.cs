@@ -1,4 +1,5 @@
-﻿using DirectoryService.Application;
+using DirectoryService.Application;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shared;
@@ -7,16 +8,18 @@ namespace DirectoryService.Web;
 
 public static class DependencyInjection // docker compose up --build для разворачивания приложения. http://localhost:8080
 {
-    public static IServiceCollection AddProgramDependencies(this IServiceCollection services)
+    public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddWebDependencies()
-            .AddApplication()
+            .AddWebDependencies(configuration)
+            .AddApplication(configuration)
             .AddSerilog();
     }
 
-    private static IServiceCollection AddWebDependencies(this IServiceCollection services)
+    private static IServiceCollection AddWebDependencies(this IServiceCollection services, IConfiguration configuration)
     {
+        var swaggerServerUrl = configuration["Swagger:ServerUrl"];
+
         services.AddControllers()
             .AddJsonOptions(options =>
             {
@@ -29,13 +32,16 @@ public static class DependencyInjection // docker compose up --build для ра
         {
             options.AddDocumentTransformer((document, _, _) =>
             {
-                document.Servers =
-                [
-                    new OpenApiServer
-                    {
-                        Url = "http://localhost:8080",
-                    },
-                ];
+                if (!string.IsNullOrWhiteSpace(swaggerServerUrl))
+                {
+                    document.Servers =
+                    [
+                        new OpenApiServer
+                        {
+                            Url = swaggerServerUrl,
+                        },
+                    ];
+                }
 
                 return Task.CompletedTask;
             });

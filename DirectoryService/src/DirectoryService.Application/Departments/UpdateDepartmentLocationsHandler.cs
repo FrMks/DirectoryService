@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using DirectoryService.Application.Abstractions;
+using DirectoryService.Application.Caching;
 using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Extensions;
@@ -9,6 +10,7 @@ using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.Domain.ValueObjects;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -19,6 +21,7 @@ public class UpdateDepartmentLocationsHandler(
     ILocationsRepository locationsRepository,
     IValidator<UpdateDepartmentLocationsRequest> validator,
     ITransactionManager transactionManager,
+    HybridCache cache,
     ILogger<UpdateDepartmentLocationsHandler> logger)
     : ICommandHandler<Guid, UpdateDepartmentLocationsCommand>
 {
@@ -91,6 +94,8 @@ public class UpdateDepartmentLocationsHandler(
         // {
         // return commitedResult.Error.ToErrors();
         // }
+
+        await cache.RemoveByTagAsync(CacheTags.DepartmentsList, cancellationToken);
 
         return Result.Success<Guid, Errors>(departmentId.Value);
     }

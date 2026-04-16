@@ -50,6 +50,18 @@ public partial record Path
         return Result.Success<Path, Error>(path);
     }
 
+    public static Result<Path, Error> CreateDeletedBranchPath(string currentPath)
+    {
+        var segments = currentPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        if (segments.Length == 0)
+            return Error.Validation("department.path.invalid", "Department path is invalid.");
+
+        segments[^1] = $"deleted-{segments[^1]}";
+        var updatedPath = string.Join('.', segments);
+
+        return Create(updatedPath);
+    }
+
     [GeneratedRegex(@"^[a-zA-Z.-]+$")]
     private static partial Regex LatinLettersDotsHyphensRegex();
 }
