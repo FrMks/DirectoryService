@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using DirectoryService.Application.Caching;
 using Shared.Core.Abstractions;
 using Shared.Core.Database;
 using DirectoryService.Application.Departments.Interfaces;
@@ -9,7 +10,6 @@ using DirectoryService.Domain;
 using DirectoryService.Domain.Department.ValueObject;
 using DirectoryService.Domain.DepartmentLocations;
 using FluentValidation;
-using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;

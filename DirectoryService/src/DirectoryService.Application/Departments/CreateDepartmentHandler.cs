@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using DirectoryService.Application.Caching;
 using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
 using Shared.Core.Extensions;
