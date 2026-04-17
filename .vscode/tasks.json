@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/DirectoryService/DirectoryService.sln",
+                "${workspaceFolder}/backend/DirectoryService.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
@@ -25,7 +25,9 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/DirectoryService/src/DirectoryService.Presentation/DirectoryService.Presentation.csproj"
+                "${workspaceFolder}/backend/src/DirectoryService.Presentation/DirectoryService.Presentation.csproj",
+                "--urls",
+                "http://localhost:5142"
             ],
             "problemMatcher": "$msCompile"
         }

@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-directoryservice",
-            "program": "${workspaceFolder}/DirectoryService/src/DirectoryService.Presentation/bin/Debug/net9.0/DirectoryService.Presentation.dll",
+            "program": "${workspaceFolder}/backend/src/DirectoryService.Presentation/bin/Debug/net9.0/DirectoryService.Presentation.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/DirectoryService/src/DirectoryService.Presentation",
+            "cwd": "${workspaceFolder}/backend/src/DirectoryService.Presentation",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
@@ -16,7 +16,8 @@
                 "uriFormat": "%s/swagger"
             },
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "http://localhost:5142"
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"
