@@ -8,10 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\..\Shared\Shared.csproj" />
+      <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
     </ItemGroup>
 
 </Project>

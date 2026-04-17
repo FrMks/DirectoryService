@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Database;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Departments.Interfaces;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Application.Positions.Interfaces;
@@ -8,10 +8,10 @@ using DirectoryService.Infrastructure.Postgres.DepartmentCleanupBackgroundServic
 using DirectoryService.Infrastructure.Postgres.Repositories;
 using DirectoryService.Infrastructure.Postgres.Services;
 using DirectoryService.Web;
-using DirectoryService.Web.Middlewares;
+using Shared.Framework.Middlewares;
 using Serilog;
 using Serilog.Events;
-using Shared.Database;
+using Shared.Core.Database;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +48,7 @@ builder.Services.AddHostedService<DepartmentCleanupBackgroundService>();
 
 var app = builder.Build();
 
-app.UseExceptionHandlingMiddleware();
+app.UseSharedExceptionHandling();
 
 app.UseHttpLogging();
 

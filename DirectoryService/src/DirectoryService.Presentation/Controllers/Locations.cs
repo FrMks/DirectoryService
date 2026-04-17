@@ -1,11 +1,11 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
-using Shared.EndpointResults;
+using Shared.Framework.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
 

@@ -1,11 +1,11 @@
-﻿using System.Data;
+using System.Data;
 using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Caching;
-using DirectoryService.Application.Database;
+using Shared.Core.Abstractions;
+using Shared.Core.Database;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Extensions;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department.ValueObject;
 using FluentValidation;
@@ -28,12 +28,12 @@ public class UpdateParentLevelHandler(
         var validationResult = await validator.ValidateAsync(command.ParentLevelRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (Error error in validationResult.ToList())
+            foreach (Error error in validationResult.ToErrors())
             {
                 logger.LogError("Error when updating parent level, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
 
         // Работа с транзакциями

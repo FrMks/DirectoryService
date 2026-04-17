@@ -1,6 +1,6 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
-using DirectoryService.Application.Extensions;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
+using Shared.Core.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Locations;
 using DirectoryService.Domain.Locations;
@@ -23,12 +23,12 @@ public class CreateLocationHandler(
         var validationResult = await validator.ValidateAsync(locationCommand.LocationRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.ToList())
+            foreach (var error in validationResult.ToErrors())
             {
                 logger.LogInformation("Error when creating location, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
 
         // Создание сущности Location

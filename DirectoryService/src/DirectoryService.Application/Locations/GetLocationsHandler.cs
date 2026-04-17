@@ -1,8 +1,9 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
 using DirectoryService.Application.Database;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Abstractions;
+using Shared.Core.Database;
+using Shared.Core.Extensions;
 using DirectoryService.Contracts.Locations.GetLocations;
 using DirectoryService.Domain.Locations;
 using FluentValidation;
@@ -26,12 +27,12 @@ public class GetLocationsHandler(
         var validationResult = await validator.ValidateAsync(locationsQuery.LocationsRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.ToList())
+            foreach (var error in validationResult.ToErrors())
             {
                 logger.LogInformation("Error when creating location, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
 
         var locationsQueryResponse = readDbContext.LocationsRead;

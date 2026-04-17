@@ -1,8 +1,8 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
 using DirectoryService.Application.Caching;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments.Interfaces;
-using DirectoryService.Application.Extensions;
+using Shared.Core.Extensions;
 using DirectoryService.Application.Locations.Interfaces;
 using DirectoryService.Contracts.Departments;
 using DirectoryService.Domain.Department;
@@ -34,12 +34,12 @@ public class CreateDepartmentHandler(
         var validationResult = await validator.ValidateAsync(command.DepartmentRequest, cancellationToken);
         if (!validationResult.IsValid)
         {
-            foreach (var error in validationResult.ToList())
+            foreach (var error in validationResult.ToErrors())
             {
                 logger.LogInformation("Error when creating department, error: {error}", error.Message);
             }
 
-            return validationResult.ToList();
+            return validationResult.ToErrors();
         }
 
         // Создание сущности Department

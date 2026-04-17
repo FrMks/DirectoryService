@@ -1,7 +1,6 @@
 ﻿using DirectoryService.Application.Validation;
 using DirectoryService.Contracts.Locations.GetLocations;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Shared;
 
 namespace DirectoryService.Application.Locations.Validation;

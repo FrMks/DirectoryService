@@ -1,4 +1,4 @@
-﻿using DirectoryService.Application.Exceptions;
+using Shared.Exceptions;
 
 namespace DirectoryService.Application.Locations.Fails.Exceptions;
 

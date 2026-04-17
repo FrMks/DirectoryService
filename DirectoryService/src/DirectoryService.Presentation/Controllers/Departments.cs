@@ -1,5 +1,5 @@
-﻿using CSharpFunctionalExtensions;
-using DirectoryService.Application.Abstractions;
+using CSharpFunctionalExtensions;
+using Shared.Core.Abstractions;
 using DirectoryService.Application.Departments;
 using DirectoryService.Application.Departments.SoftDeleteDepartment;
 using DirectoryService.Contracts.Departments;
@@ -8,7 +8,7 @@ using DirectoryService.Contracts.Departments.GetTopDepartments;
 using DirectoryService.Contracts.Locations.GetLocations;
 using Microsoft.AspNetCore.Mvc;
 using Shared;
-using Shared.EndpointResults;
+using Shared.Framework.EndpointResults;
 
 namespace DirectoryService.Web.Controllers;
 
