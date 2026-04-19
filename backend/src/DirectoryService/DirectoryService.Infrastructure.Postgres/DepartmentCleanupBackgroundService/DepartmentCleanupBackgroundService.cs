@@ -49,6 +49,7 @@ public class DepartmentCleanupBackgroundService : Microsoft.Extensions.Hosting.B
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while cleaning up inactive departments.");
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
     }

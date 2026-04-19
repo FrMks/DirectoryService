@@ -8,6 +8,7 @@ using DirectoryService.Infrastructure.Postgres.DepartmentCleanupBackgroundServic
 using DirectoryService.Infrastructure.Postgres.Repositories;
 using DirectoryService.Infrastructure.Postgres.Services;
 using DirectoryService.Web;
+using Microsoft.EntityFrameworkCore;
 using Shared.Framework.Middlewares;
 using Serilog;
 using Serilog.Events;
@@ -47,6 +48,12 @@ builder.Services.AddScoped<DepartmentCleanupService>();
 builder.Services.AddHostedService<DepartmentCleanupBackgroundService>();
 
 var app = builder.Build();
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<DirectoryServiceDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.UseSharedExceptionHandling();
 
