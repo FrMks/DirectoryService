@@ -2,22 +2,22 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { JSX } from "react";
+import { JSX, useState } from "react";
 
 export default function Counter(): JSX.Element {
-  const count = calculateSum(5, 10);
+  const [counter, setCounter] = useState(0);
 
   function calculateSum(a: number, b: number): number {
     return a + b;
   }
 
   const handleClick = () => {
-    console.log(count);
+    setCounter(counter + 1);
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <CoolCount count={count} />
+      <CoolCount count={counter} />
       <Button onClick={handleClick} variant={"secondary"}>
         Увеличить
       </Button>
