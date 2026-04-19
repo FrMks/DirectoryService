@@ -1,3 +1,6 @@
 {
-    "dotnet.defaultSolution": "backend/DirectoryService.sln"
+  "editor.formatOnSave": true,
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
