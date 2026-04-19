@@ -1,6 +1,5 @@
 ﻿services:
   directory-service:
-    container_name: directory-service
     build:
       context: .
       dockerfile: src/Dockerfile
@@ -26,7 +25,6 @@
         condition: service_started
 
   postgres:
-    container_name: postgres
     image: postgres:17
     restart: unless-stopped
     environment:
@@ -46,7 +44,6 @@
 
   seq:
     image: datalust/seq:latest
-    container_name: seq
     restart: unless-stopped
     environment:
       ACCEPT_EULA: "Y"
@@ -60,7 +57,6 @@
 
   redis:
     image: redis:alpine
-    container_name: redis
     restart: unless-stopped
     ports:
       - "6379:6379"
