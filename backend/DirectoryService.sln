@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6979BD37-391C-4EB3-88E6-BE0B0DAA885D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Presentation", "src\DirectoryService.Presentation\DirectoryService.Presentation.csproj", "{44FEB702-8A0E-4664-BE83-48488DE27C77}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Presentation", "src\DirectoryService\DirectoryService.Presentation\DirectoryService.Presentation.csproj", "{44FEB702-8A0E-4664-BE83-48488DE27C77}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1AD9B699-1747-437D-BFB3-216ED63865DE}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,13 +10,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Domain", "src\DirectoryService.Domain\DirectoryService.Domain.csproj", "{3B9851C1-CAB2-439F-A91D-C07F9D0CCA97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Domain", "src\DirectoryService\DirectoryService.Domain\DirectoryService.Domain.csproj", "{3B9851C1-CAB2-439F-A91D-C07F9D0CCA97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Contracts", "src\DirectoryService.Contracts\DirectoryService.Contracts.csproj", "{3EB9488E-7287-42B9-AEB9-4CEA0E2F87D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Contracts", "src\DirectoryService\DirectoryService.Contracts\DirectoryService.Contracts.csproj", "{3EB9488E-7287-42B9-AEB9-4CEA0E2F87D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Application", "src\DirectoryService.Application\DirectoryService.Application.csproj", "{D714FD21-94A2-4471-9AE3-CDC4196A3C63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Application", "src\DirectoryService\DirectoryService.Application\DirectoryService.Application.csproj", "{D714FD21-94A2-4471-9AE3-CDC4196A3C63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Infrastructure.Postgres", "src\DirectoryService.Infrastructure.Postgres\DirectoryService.Infrastructure.Postgres.csproj", "{166B34C0-7A7A-4989-B2F0-8A7B4564D107}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DirectoryService.Infrastructure.Postgres", "src\DirectoryService\DirectoryService.Infrastructure.Postgres\DirectoryService.Infrastructure.Postgres.csproj", "{166B34C0-7A7A-4989-B2F0-8A7B4564D107}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{5A7A728E-A785-4E5C-AED0-8E3F30CA740E}"
 EndProject

@@ -1,0 +1,53 @@
+﻿using CSharpFunctionalExtensions;
+using DirectoryService.Domain.Positions.ValueObject;
+using Shared;
+
+namespace DirectoryService.Domain.Positions;
+
+public sealed class Position
+{
+    // EF Core
+    private Position() { }
+    
+    private Position(PositionId id, Name name, Description description,
+        IEnumerable<DepartmentPosition> departmentPositions)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+        IsActive = true;
+        CreatedAt = DateTime.UtcNow;
+        UpdateAt = DateTime.UtcNow;
+        DepartmentPositions = departmentPositions.ToList();
+    }
+
+    #region Properties
+
+    public PositionId Id { get; private set; }
+    public Name Name { get; private set; } = null!;
+    public Description Description { get; private set; } = null!;
+    public bool IsActive { get; private set; }
+    public DateTime CreatedAt { get; private set; }
+    public DateTime UpdateAt { get; private set; }
+    public DateTime? DeletedAt { get; private set; }
+    
+    public IReadOnlyList<DepartmentPosition> DepartmentPositions { get; private set; } = null!;
+
+    #endregion
+
+    public static Result<Position> Create(PositionId id, Name name, Description description,
+        IEnumerable<DepartmentPosition> departmentPositions)
+    {
+        Position position = new(id, name, description,
+            departmentPositions);
+        
+        return Result.Success(position);
+    }
+
+    public void SoftDelete()
+    {
+        IsActive = false;
+        UpdateAt = DateTime.UtcNow;
+        DeletedAt = DateTime.UtcNow;
+    }
+}
