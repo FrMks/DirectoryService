@@ -2,10 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 
 export default function Counter(): JSX.Element {
   const [counter, setCounter] = useState(0);
+
+  useEffect(() => {
+    console.log("Counter mounted");
+  }, [counter]);
 
   function calculateSum(a: number, b: number): number {
     return a + b;
