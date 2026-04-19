@@ -1,0 +1,4 @@
+interface:
+  display_name: "Karpathy Guidelines"
+  short_description: "Cautious, simple, surgical coding discipline"
+  default_prompt: "Use $karpathy-guidelines to reason carefully, keep changes minimal, and verify against explicit success criteria."
