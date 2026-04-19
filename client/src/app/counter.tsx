@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { JSX } from "react";
 
 export default function Counter(): JSX.Element {
@@ -17,7 +18,11 @@ export default function Counter(): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
       <CoolCount count={count} />
-      <Button onClick={handleClick}>Увеличить</Button>
+      <Button onClick={handleClick} variant={"secondary"}>
+        Увеличить
+      </Button>
+
+      <Input type="text" placeholder="Max Leiter"></Input>
     </div>
   );
 }
