@@ -24,7 +24,6 @@ import { routes } from "@/shared/routes";
 
 const navigationItems = [
   { href: routes.home, label: "Главная", icon: Home },
-  { href: routes.counter, label: "Счетчик", icon: SquareTerminal },
   { href: routes.locations, label: "Локации", icon: MapPinned },
   { href: routes.departments, label: "Отделы", icon: Building2 },
   { href: routes.positions, label: "Должности", icon: UserRoundSearch },
