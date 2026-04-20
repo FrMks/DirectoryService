@@ -1,26 +1,54 @@
 "use client";
 
-import { Link, Sidebar } from "lucide-react";
+import Link from "next/link";
 import {
+  Building2,
+  Home,
+  MapPinned,
+  SquareTerminal,
+  UserRoundSearch,
+} from "lucide-react";
+import {
+  Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
-} from "../ui/sidebar";
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { routes } from "@/shared/routes";
+
+const navigationItems = [
+  { href: routes.home, label: "Главная", icon: Home },
+  { href: routes.counter, label: "Счетчик", icon: SquareTerminal },
+  { href: routes.locations, label: "Локации", icon: MapPinned },
+  { href: routes.departments, label: "Отделы", icon: Building2 },
+  { href: routes.positions, label: "Должности", icon: UserRoundSearch },
+] as const;
 
 export function AppSidebar() {
   return (
-    <Sidebar>
-      <SidebarHeader>Меню</SidebarHeader>
+    <Sidebar className="top-16 h-[calc(100svh-4rem)] border-r border-zinc-200 bg-white">
+      <SidebarHeader className="border-b border-zinc-200 px-3 py-4 text-sm font-semibold text-zinc-900">
+        Меню
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <Link href={routes.home}>Главная</Link>
-            <Link href={routes.counter}>Счетчик</Link>
-            <Link href={routes.locations}>Локации</Link>
-            <Link href={routes.departments}>Отделы</Link>
-            <Link href={routes.positions}>Должности</Link>
+            <SidebarMenu className="mb-2">
+              {navigationItems.map(({ href, label, icon: Icon }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton asChild>
+                    <Link href={href}>
+                      <Icon />
+                      <span>{label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
