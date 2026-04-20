@@ -31,14 +31,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-zinc-50 text-zinc-950">
-        <SidebarProvider className="min-h-screen flex-col">
-          <Header />
-          <div className="flex flex-1">
-            <AppSidebar />
-            <SidebarInset className="min-h-[calc(100svh-4rem)]">
-              <main className="p-10">{children}</main>
-            </SidebarInset>
-          </div>
+        <SidebarProvider className="min-h-screen">
+          <AppSidebar />
+          <SidebarInset className="min-h-screen">
+            <Header />
+            <main className="p-10">{children}</main>
+          </SidebarInset>
         </SidebarProvider>
       </body>
     </html>

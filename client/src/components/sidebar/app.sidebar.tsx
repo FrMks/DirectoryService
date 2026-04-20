@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Building2,
   Home,
@@ -30,13 +31,12 @@ const navigationItems = [
 ] as const;
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
-    <Sidebar
-      collapsible="icon"
-      className="top-16 h-[calc(100svh-4rem)] border-r border-zinc-200 bg-white"
-    >
-      <SidebarHeader className="border-b border-zinc-200 px-3 py-4 text-sm font-semibold text-zinc-900">
-        <SidebarTrigger />
+    <Sidebar collapsible="icon" className="border-r border-zinc-200 bg-white">
+      <SidebarHeader className="h-16 flex-row items-center justify-start gap-0 border-b border-zinc-200 p-2 text-sm font-semibold text-zinc-900">
+        <SidebarTrigger className="size-8 shrink-0 rounded-md p-0 hover:bg-zinc-100" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -44,7 +44,11 @@ export function AppSidebar() {
             <SidebarMenu className="mb-2">
               {navigationItems.map(({ href, label, icon: Icon }) => (
                 <SidebarMenuItem key={href}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === href}
+                    className="data-[active=true]:bg-zinc-900 data-[active=true]:text-white data-[active=true]:hover:bg-zinc-900 data-[active=true]:hover:text-white"
+                  >
                     <Link href={href}>
                       <Icon />
                       <span>{label}</span>
