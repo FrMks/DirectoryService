@@ -17,6 +17,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { routes } from "@/shared/routes";
 
@@ -30,9 +31,12 @@ const navigationItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar className="top-16 h-[calc(100svh-4rem)] border-r border-zinc-200 bg-white">
+    <Sidebar
+      collapsible="icon"
+      className="top-16 h-[calc(100svh-4rem)] border-r border-zinc-200 bg-white"
+    >
       <SidebarHeader className="border-b border-zinc-200 px-3 py-4 text-sm font-semibold text-zinc-900">
-        Меню
+        <SidebarTrigger />
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
