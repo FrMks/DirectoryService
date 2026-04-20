@@ -1,45 +1,26 @@
 "use client";
 
+import { Link, Sidebar } from "lucide-react";
 import {
-  Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { Home, LayoutGrid } from "lucide-react";
-import Link from "next/link";
-import { JSX } from "react";
+  SidebarHeader,
+} from "../ui/sidebar";
 import { routes } from "@/shared/routes";
 
-export function AppSidebar(): JSX.Element {
+export function AppSidebar() {
   return (
     <Sidebar>
+      <SidebarHeader>Меню</SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href={routes.home}>
-                    <Home className="h-4 w-4" />
-                    <span>Home</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href={routes.counter}>
-                    <LayoutGrid className="h-4 w-4" />
-                    <span>Counter</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            <Link href={routes.home}>Главная</Link>
+            <Link href={routes.counter}>Счетчик</Link>
+            <Link href={routes.locations}>Локации</Link>
+            <Link href={routes.departments}>Отделы</Link>
+            <Link href={routes.positions}>Должности</Link>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
