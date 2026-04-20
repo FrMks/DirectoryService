@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/ui/button";
+import { Input } from "@/components/ui/ui/input";
 import { JSX, useEffect, useState } from "react";
 
 export default function Counter(): JSX.Element {
