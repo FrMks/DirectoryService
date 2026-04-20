@@ -1,0 +1,11 @@
+"use client";
+
+import Counter from "../../components/ui/counter";
+
+export default function Home() {
+  return (
+    <main className="p-10">
+      <Counter />
+    </main>
+  );
+}
