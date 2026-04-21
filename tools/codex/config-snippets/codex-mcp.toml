@@ -1,0 +1,9 @@
+[mcp_servers.context7]
+command = "C:\\Program Files\\nodejs\\npx.cmd"
+args = ["-y", "@upstash/context7-mcp"]
+startup_timeout_ms = 40000
+
+[mcp_servers.serena]
+startup_timeout_sec = 15
+command = "C:\\Users\\<USER>\\.local\\bin\\serena.exe"
+args = ["start-mcp-server", "--project-from-cwd", "--context=codex"]
