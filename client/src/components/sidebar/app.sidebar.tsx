@@ -27,6 +27,7 @@ const navigationItems = [
   { href: routes.locations, label: "Локации", icon: MapPinned },
   { href: routes.departments, label: "Отделы", icon: Building2 },
   { href: routes.positions, label: "Должности", icon: UserRoundSearch },
+  { href: routes.counter, label: "Counter", icon: SquareTerminal },
 ] as const;
 
 export function AppSidebar() {
