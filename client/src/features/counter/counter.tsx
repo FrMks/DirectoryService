@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useCounter } from "@/hooks/use-counter";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { useCounter } from "@/shared/hooks/use-counter";
 import { JSX, useEffect, useState } from "react";
 
 export default function Counter(): JSX.Element {

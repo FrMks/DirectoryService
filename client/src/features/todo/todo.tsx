@@ -1,10 +1,10 @@
 "use client";
 
 import { JSX, useState } from "react";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
-import { Input } from "../ui/input";
+import { Badge } from "../../shared/components/ui/badge";
+import { Button } from "../../shared/components/ui/button";
+import { Checkbox } from "../../shared/components/ui/checkbox";
+import { Input } from "../../shared/components/ui/input";
 
 type Todo = {
   id: number;

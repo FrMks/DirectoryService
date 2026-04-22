@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/shared/components/ui/sidebar";
 import { routes } from "@/shared/routes";
 
 const navigationItems = [

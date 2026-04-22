@@ -1,4 +1,4 @@
-import Todo from "@/components/todo/todo";
+import Todo from "@/features/todo/todo";
 import { JSX } from "react";
 
 export default function TodoPage(): JSX.Element {
