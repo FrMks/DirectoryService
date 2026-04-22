@@ -28,6 +28,7 @@ const navigationItems = [
   { href: routes.departments, label: "Отделы", icon: Building2 },
   { href: routes.positions, label: "Должности", icon: UserRoundSearch },
   { href: routes.counter, label: "Counter", icon: SquareTerminal },
+  { href: routes.todo, label: "Todo", icon: SquareTerminal },
 ] as const;
 
 export function AppSidebar() {

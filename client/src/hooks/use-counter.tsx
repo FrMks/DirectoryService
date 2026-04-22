@@ -4,7 +4,7 @@ export function useCounter() {
   const [counter, setCounter] = useState(0);
 
   const click = () => {
-    setCounter(counter + 1);
+    setCounter((prevCounter) => prevCounter + 1);
   };
 
   const isWin = counter >= 10;
