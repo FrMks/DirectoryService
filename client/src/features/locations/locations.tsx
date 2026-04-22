@@ -1,6 +1,30 @@
-import { JSX } from "react";
+"use client";
+
+import { Location } from "@/entities/locations/type";
+import { JSX, useState } from "react";
+import { LocationCard } from "./location-card";
+import { getLocations } from "@/entities/locations/api";
 
 export function AppLocations(): JSX.Element {
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState("");
+
+  async function handleLoadLocations() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getLocations();
+
+      setLocations(response);
+    } catch (error) {
+      setError("Failed to load locations");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <section className="max-w-3xl space-y-4">
       <div className="space-y-2">
@@ -12,6 +36,25 @@ export function AppLocations(): JSX.Element {
           использовать её в привязке отделов и сотрудников к конкретным местам
           работы.
         </p>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleLoadLocations}
+        className="rounded-md border px-4 py-2"
+      >
+        Load Locations
+      </button>
+
+      <div className="space-y-3">
+        {locations.map((location) => (
+          <LocationCard
+            key={location.id}
+            name={location.name}
+            adress={location.address}
+            isActive={location.isActive}
+          />
+        ))}
       </div>
     </section>
   );
