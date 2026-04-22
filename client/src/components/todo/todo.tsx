@@ -3,6 +3,7 @@
 import { JSX, useState } from "react";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 
 type Todo = {
@@ -28,6 +29,17 @@ export default function Todo(): JSX.Element {
     };
 
     setTodos((prevTodos) => [...prevTodos, newTodo]);
+  };
+
+  const toggleTodo = (id: number) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) => {
+        if (todo.id === id) {
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      }),
+    );
   };
 
   return (
@@ -61,12 +73,20 @@ export default function Todo(): JSX.Element {
               <span className="truncate">{todo.text}</span>
             </Badge>
           </div>
-          <Badge
-            variant={todo.completed ? "success" : "muted"}
-            className="rounded-md"
-          >
-            {todo.completed ? "Completed" : "Not Completed"}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              checked={todo.completed}
+              onCheckedChange={() => toggleTodo(todo.id)}
+              aria-label="Toggle task completion"
+              className="size-6 rounded-lg"
+            />
+            <Badge
+              variant={todo.completed ? "success" : "muted"}
+              className="rounded-md"
+            >
+              {todo.completed ? "Completed" : "Not Completed"}
+            </Badge>
+          </div>
         </div>
       ))}
     </div>
