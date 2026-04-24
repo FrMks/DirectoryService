@@ -1,32 +1,23 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { useCounter } from "@/shared/hooks/use-counter";
 import { JSX, useEffect, useState } from "react";
 
 export default function Counter(): JSX.Element {
-  const [counter, setCounter] = useState(0);
-
-  useEffect(() => {
-    console.log("Counter mounted");
-  }, [counter]);
-
-  function calculateSum(a: number, b: number): number {
-    return a + b;
-  }
-
-  const handleClick = () => {
-    setCounter(counter + 1);
-  };
+  const { counter, click, isWin } = useCounter();
 
   return (
     <div className="flex flex-col gap-4">
       <CoolCount count={counter} />
-      <Button onClick={handleClick} variant={"secondary"}>
+      <Button onClick={click} variant={"secondary"}>
         Увеличить
       </Button>
 
       <Input type="text" placeholder="Max Leiter"></Input>
+
+      {isWin && <span>Поздравляю!</span>}
     </div>
   );
 }

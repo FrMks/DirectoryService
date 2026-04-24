@@ -1,3 +1,4 @@
+﻿using System.Runtime.InteropServices;
 using DirectoryService.Application;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
@@ -8,13 +9,29 @@ namespace DirectoryService.Web;
 
 public static class DependencyInjection // docker compose up --build для разворачивания приложения. http://localhost:8080
 {
+    private static string ClientCorsPolicy = "ClientCorsPolicy";
     public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
+        var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
         return services
             .AddWebDependencies(configuration)
             .AddApplication(configuration)
-            .AddSerilog();
+            .AddSerilog()
+            .AddCors(options =>
+            {
+                options.AddPolicy(ClientCorsPolicy, policy =>
+                {
+                    policy
+                        .WithOrigins(allowedOrigins)
+                        .AllowCredentials()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
     }
+
+    public static string GetClientCorsPolicyName() => ClientCorsPolicy;
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services, IConfiguration configuration)
     {

@@ -9,14 +9,26 @@ $codexSkillsRoot = Join-Path $codexRoot "skills"
 $skillTarget = Join-Path $codexSkillsRoot "karpathy-guidelines"
 $codexConfigPath = Join-Path $codexRoot "config.toml"
 $serenaRoot = Join-Path $env:USERPROFILE ".serena"
-$serenaExe = Join-Path $env:USERPROFILE ".local\bin\serena.exe"
-$uvExe = Join-Path $env:APPDATA "Python\Python312\Scripts\uv.exe"
-$npxCmd = "C:\Program Files\nodejs\npx.cmd"
 
 function Ensure-Directory([string]$Path) {
     if (-not (Test-Path -LiteralPath $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
     }
+}
+
+function Find-CommandPath([string]$Name, [string[]]$FallbackPaths) {
+    $command = Get-Command $Name -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    foreach ($path in $FallbackPaths) {
+        if (Test-Path -LiteralPath $path) {
+            return $path
+        }
+    }
+
+    return $null
 }
 
 function Ensure-ConfigLineBlock([string]$Path, [string]$Header, [string]$Block) {
@@ -55,12 +67,39 @@ startup_timeout_ms = 40000
 
 Ensure-ConfigLineBlock -Path $codexConfigPath -Header "[mcp_servers.context7]" -Block $context7Block
 
-if (-not (Test-Path -LiteralPath $uvExe)) {
-    python -m pip install --user uv
+if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+    throw "Python is required to install uv. Install Python, then run this script again."
 }
 
-if (-not (Test-Path -LiteralPath $serenaExe)) {
+$uvFallbackPaths = @(
+    (Join-Path $env:USERPROFILE ".local\bin\uv.exe"),
+    (Join-Path $env:APPDATA "Python\Python312\Scripts\uv.exe"),
+    (Join-Path $env:APPDATA "Python\Python311\Scripts\uv.exe"),
+    (Join-Path $env:APPDATA "Python\Python310\Scripts\uv.exe")
+)
+$uvExe = Find-CommandPath -Name "uv" -FallbackPaths $uvFallbackPaths
+
+if (-not $uvExe) {
+    python -m pip install --user uv
+    $uvExe = Find-CommandPath -Name "uv" -FallbackPaths $uvFallbackPaths
+}
+
+if (-not $uvExe -or -not (Test-Path -LiteralPath $uvExe)) {
+    throw "uv was installed, but setup could not find uv.exe. Restart PowerShell or add Python user Scripts to PATH, then run this script again."
+}
+
+$serenaFallbackPaths = @(
+    (Join-Path $env:USERPROFILE ".local\bin\serena.exe")
+)
+$serenaExe = Find-CommandPath -Name "serena" -FallbackPaths $serenaFallbackPaths
+
+if (-not $serenaExe) {
     & $uvExe tool install -p 3.12 serena-agent@latest --prerelease=allow
+    $serenaExe = Find-CommandPath -Name "serena" -FallbackPaths $serenaFallbackPaths
+}
+
+if (-not $serenaExe -or -not (Test-Path -LiteralPath $serenaExe)) {
+    throw "Serena was installed, but setup could not find serena.exe. Restart PowerShell or check uv tool installation output, then run this script again."
 }
 
 if (-not (Test-Path -LiteralPath (Join-Path $serenaRoot "serena_config.yml"))) {

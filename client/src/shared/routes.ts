@@ -4,4 +4,5 @@ export const routes = {
     locations: "/locations",
     departments: "/departments",
     positions: "/positions",
+    todo: "/todo",
 }

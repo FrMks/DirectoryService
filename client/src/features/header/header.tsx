@@ -1,5 +1,5 @@
 import { routes } from "@/shared/routes";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 import Link from "next/link";
 import type { JSX } from "react";
 

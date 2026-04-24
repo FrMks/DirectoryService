@@ -1,0 +1,3 @@
+type LocationsListErrorProps = {
+    errorMessage: string;
+};

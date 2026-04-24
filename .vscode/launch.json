@@ -6,9 +6,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-directoryservice",
-            "program": "${workspaceFolder}/backend/src/DirectoryService.Presentation/bin/Debug/net9.0/DirectoryService.Presentation.dll",
+            "program": "${workspaceFolder}/backend/src/DirectoryService/DirectoryService.Presentation/bin/Debug/net9.0/DirectoryService.Presentation.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/backend/src/DirectoryService.Presentation",
+            "cwd": "${workspaceFolder}/backend/src/DirectoryService/DirectoryService.Presentation",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
@@ -17,10 +17,13 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
-                "ASPNETCORE_URLS": "http://localhost:5142"
+                "ASPNETCORE_URLS": "http://localhost:5142",
+                "ConnectionStrings__Redis": "localhost:6379"
             },
             "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
+                "/Views": "${workspaceFolder}/Views",
+                "C:\\Users\\coder8\\RiderProjects\\DirectoryService\\backend\\src\\DirectoryService.Application": "${workspaceFolder}/backend/src/DirectoryService/DirectoryService.Application",
+                "C:\\Users\\coder8\\RiderProjects\\DirectoryService\\backend\\src\\DirectoryService.Presentation": "${workspaceFolder}/backend/src/DirectoryService/DirectoryService.Presentation"
             }
         }
     ]

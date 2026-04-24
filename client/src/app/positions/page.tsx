@@ -1,4 +1,4 @@
-import { AppPositions } from "@/components/positions/positions";
+import { AppPositions } from "@/features/positions/positions";
 import { JSX } from "react";
 
 export default function PositionsPage(): JSX.Element {

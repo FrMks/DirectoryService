@@ -1,4 +1,4 @@
-import { AppDepartments } from "@/components/departments/departments";
+import { AppDepartments } from "@/features/departments/departments";
 import { JSX } from "react";
 
 export default function DepartmentsPage(): JSX.Element {

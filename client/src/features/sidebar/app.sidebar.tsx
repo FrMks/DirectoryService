@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
+} from "@/shared/components/ui/sidebar";
 import { routes } from "@/shared/routes";
 
 const navigationItems = [
@@ -27,6 +27,8 @@ const navigationItems = [
   { href: routes.locations, label: "Локации", icon: MapPinned },
   { href: routes.departments, label: "Отделы", icon: Building2 },
   { href: routes.positions, label: "Должности", icon: UserRoundSearch },
+  { href: routes.counter, label: "Counter", icon: SquareTerminal },
+  { href: routes.todo, label: "Todo", icon: SquareTerminal },
 ] as const;
 
 export function AppSidebar() {
