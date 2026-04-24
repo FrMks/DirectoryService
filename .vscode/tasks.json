@@ -25,7 +25,7 @@
                 "watch",
                 "run",
                 "--project",
-                "${workspaceFolder}/backend/src/DirectoryService.Presentation/DirectoryService.Presentation.csproj",
+                "${workspaceFolder}/backend/src/DirectoryService/DirectoryService.Presentation/DirectoryService.Presentation.csproj",
                 "--urls",
                 "http://localhost:5142"
             ],
