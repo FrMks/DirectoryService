@@ -4,6 +4,7 @@ import { Location } from "@/entities/locations/type";
 import { JSX, useState } from "react";
 import { LocationCard } from "./location-card";
 import { getLocations } from "@/entities/locations/api";
+import { LocationsListLoader } from "./locations-list-loader";
 
 export function AppLocations(): JSX.Element {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -48,6 +49,8 @@ export function AppLocations(): JSX.Element {
       >
         Load Locations
       </button>
+
+      {loading && <LocationsListLoader />}
 
       <div className="space-y-3">
         {locations.map((location) => (
