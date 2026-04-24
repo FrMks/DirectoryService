@@ -5,6 +5,7 @@ import { JSX, useState } from "react";
 import { LocationCard } from "./location-card";
 import { getLocations } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
+import { LocationsListError } from "./locations-list-error";
 
 export function AppLocations(): JSX.Element {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -51,6 +52,7 @@ export function AppLocations(): JSX.Element {
       </button>
 
       {loading && <LocationsListLoader />}
+      {!loading && error && <LocationsListError errorMessage={error} />}
 
       <div className="space-y-3">
         {locations.map((location) => (
