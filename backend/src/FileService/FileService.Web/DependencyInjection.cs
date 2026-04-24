@@ -1,4 +1,5 @@
-using FileService.Core;
+﻿using FileService.Core;
+using FileService.Infrastructure.S3;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -24,7 +25,8 @@ public static class DependencyInjection
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
-            });
+            })
+            .AddS3(configuration);
     }
 
     public static string GetClientCorsPolicyName() => clientCorsPolicy;

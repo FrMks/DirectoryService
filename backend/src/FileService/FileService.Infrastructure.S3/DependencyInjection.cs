@@ -13,7 +13,7 @@ namespace FileService.Infrastructure.S3;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddS3Infrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddS3(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
 
