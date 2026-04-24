@@ -13,5 +13,5 @@ public record S3Options
 
     public string SecretKey { get; init; } = string.Empty;
 
-    public bool WithSsl { get; init; } = false;
+    public bool WithSSL { get; init; } = false;
 }

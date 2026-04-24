@@ -17,14 +17,17 @@ public static class DependencyInjection
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
 
+        S3Options s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()
+            ?? throw new ApplicationException($"Failed to bind {nameof(S3Options)} from configuration.");
+
         var options = new AWSOptions
         {
             DefaultClientConfig =
             {
-                ServiceURL = "http://localhost:9000",
-                UseHttp = true,
+                ServiceURL = s3Options.Endpoint,
+                UseHttp = !s3Options.WithSSL,
             },
-            Credentials = new BasicAWSCredentials("minioadmin", "minioadmin"),
+            Credentials = new BasicAWSCredentials(s3Options.AccessKey, s3Options.SecretKey),
         };
 
         services.AddAWSService<IAmazonS3>(options);
