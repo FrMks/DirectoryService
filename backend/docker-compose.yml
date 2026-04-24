@@ -13,6 +13,7 @@
       ConnectionStrings__DirectoryServiceDb: Server=postgres;Port=5432;Database=directory_service_db;User Id=postgres;Password=postgres;
       ConnectionStrings__Seq: http://seq:5341
       ConnectionStrings__Redis: redis:6379
+      ConnectionSetrings_Minio: http://minio:9000
       Swagger__ServerUrl: http://localhost:8080
     ports:
       - "8080:8080"
@@ -50,7 +51,7 @@
       SEQ_FIRSTRUN_ADMINUSERNAME: "admin"
       SEQ_FIRSTRUN_ADMINPASSWORD: "YourStrong!Pass1"
     ports:
-      - "8081:80"
+      - "8082:80"
       - "5431:5341"
     volumes:
       - seq-data:/data
@@ -60,6 +61,18 @@
     restart: unless-stopped
     ports:
       - "6379:6379"
+
+  minio:
+    container_name: minio-file-service
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server --console-address ":9001"
+    restart: always
 
 volumes:
   postgres-data:
