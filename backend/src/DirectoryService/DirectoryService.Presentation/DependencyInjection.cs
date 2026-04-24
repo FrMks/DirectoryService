@@ -12,6 +12,8 @@ public static class DependencyInjection // docker compose up --build для ра
     private static string ClientCorsPolicy = "ClientCorsPolicy";
     public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
+        var allowedOrigins = configuration.GetSection("AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
         return services
             .AddWebDependencies(configuration)
             .AddApplication(configuration)
@@ -21,7 +23,7 @@ public static class DependencyInjection // docker compose up --build для ра
                 options.AddPolicy(ClientCorsPolicy, policy =>
                 {
                     policy
-                        .WithOrigins("http://localhost:3000")
+                        .WithOrigins(allowedOrigins)
                         .AllowCredentials()
                         .AllowAnyHeader()
                         .AllowAnyMethod();
