@@ -8,6 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.12" />
+    <PackageReference Include="Shared.Core" Version="1.0.1" />
+    <PackageReference Include="Shared.Framework" Version="1.0.1" />
+    <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

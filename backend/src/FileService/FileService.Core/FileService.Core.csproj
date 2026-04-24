@@ -11,4 +11,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Shared.Core" Version="1.0.1" />
+    <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
+  </ItemGroup>
+
 </Project>
