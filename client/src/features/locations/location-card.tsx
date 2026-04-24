@@ -12,9 +12,7 @@ export function LocationCard({
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-zinc-900">{name}</h3>
           <p className="text-sm text-zinc-600">
-            <address>
-              {adress.street}, {adress.city}, {adress.country}
-            </address>
+            {adress.street}, {adress.city}, {adress.country}
           </p>
         </div>
       </div>

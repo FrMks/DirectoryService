@@ -11,6 +11,7 @@ export function AppLocations(): JSX.Element {
   const [error, setError] = useState("");
 
   async function handleLoadLocations() {
+    console.log("Loading locations...");
     try {
       setLoading(true);
       setError("");
@@ -19,8 +20,10 @@ export function AppLocations(): JSX.Element {
 
       setLocations(response);
     } catch (error) {
+      console.error("Failed to load locations:", error);
       setError("Failed to load locations");
     } finally {
+      console.log("Finished loading locations");
       setLoading(false);
     }
   }
