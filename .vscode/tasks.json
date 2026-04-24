@@ -30,6 +30,33 @@
                 "http://localhost:5142"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build-fileservice",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/backend/src/FileService/FileService.Web/FileService.Web.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": "build"
+        },
+        {
+            "label": "watch-fileservice",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/backend/src/FileService/FileService.Web/FileService.Web.csproj",
+                "--urls",
+                "http://localhost:5143"
+            ],
+            "problemMatcher": "$msCompile"
         }
     ]
 }

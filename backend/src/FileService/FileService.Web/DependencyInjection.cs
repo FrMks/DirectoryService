@@ -1,11 +1,12 @@
 using FileService.Core;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 namespace FileService.Web;
 
 public static class DependencyInjection
 {
-    private static string ClientCorsPolicy = "ClientCorsPolicy";
+    private static string clientCorsPolicy = "ClientCorsPolicy";
 
     public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
@@ -15,7 +16,7 @@ public static class DependencyInjection
             .AddSerilog()
             .AddCors(options =>
             {
-                options.AddPolicy(ClientCorsPolicy, policy =>
+                options.AddPolicy(clientCorsPolicy, policy =>
                 {
                     policy
                         .WithOrigins("http://localhost:3000")
@@ -26,7 +27,7 @@ public static class DependencyInjection
             });
     }
 
-    public static string GetClientCorsPolicyName() => ClientCorsPolicy;
+    public static string GetClientCorsPolicyName() => clientCorsPolicy;
 
     private static IServiceCollection AddWebDependencies(this IServiceCollection services, IConfiguration configuration)
     {
