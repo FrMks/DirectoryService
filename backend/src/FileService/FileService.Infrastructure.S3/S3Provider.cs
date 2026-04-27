@@ -51,4 +51,22 @@ public class S3Provider : IS3Provider
 
         return response;
     }
+
+    public async Task<string?> GenerateUploadUrlAsync(
+        string bucketName,
+        string key)
+    {
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = bucketName,
+            Key = key,
+            Verb = HttpVerb.PUT,
+            Expires = DateTime.UtcNow.AddHours(6),
+            Protocol = _s3Options.WithSSL ? Protocol.HTTPS : Protocol.HTTP,
+        };
+
+        string? response = await _s3Client.GetPreSignedURLAsync(request);
+
+        return response;
+    }
 }
