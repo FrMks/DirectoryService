@@ -13,22 +13,8 @@ public static class DependencyInjection
     public static IServiceCollection AddS3(this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
+
         services.AddScoped<IFileStorage, S3Provider>();
-
-        S3Options s3Options = configuration.GetSection(nameof(S3Options)).Get<S3Options>()
-            ?? throw new ApplicationException($"Failed to bind {nameof(S3Options)} from configuration.");
-
-        // var options = new AWSOptions
-        // {
-        //     DefaultClientConfig =
-        //     {
-        //         ServiceURL = s3Options.Endpoint,
-        //         UseHttp = !s3Options.WithSSL,
-        //     },
-        //     Credentials = new BasicAWSCredentials(s3Options.AccessKey, s3Options.SecretKey),
-        // };
-
-        // services.AddAWSService<IAmazonS3>(options);
 
         services.AddSingleton<IAmazonS3>(sp =>
         {
