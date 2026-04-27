@@ -35,12 +35,6 @@ public static class DependencyInjection
     {
         var swaggerServerUrl = configuration["Swagger:ServerUrl"];
 
-        services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.IncludeFields = true;
-            });
-
         services.AddHttpLogging();
 
         services.AddOpenApi(options =>

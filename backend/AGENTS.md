@@ -31,7 +31,7 @@ FileService:
 
 - `src/FileService/FileService.Domain` - file-service domain concepts
 - `src/FileService/FileService.Contracts` - external DTOs and contracts when needed
-- `src/FileService/FileService.Core` - handlers, interfaces, storage abstractions, orchestration
+- `src/FileService/FileService.Core` - Minimal API slices, interfaces, storage abstractions, orchestration
 - `src/FileService/FileService.Infrastructure.Postgres` - Postgres-specific persistence
 - `src/FileService/FileService.Infrastructure.S3` - S3/MinIO client and storage implementation
 - `src/FileService/FileService.Web` - API host, controllers, DI, app settings
@@ -47,17 +47,17 @@ FileService:
 - `Domain` should remain the most independent layer
 - `FileService.Web` may depend on `FileService.Core`, `Contracts`, `Domain`, and infrastructure projects.
 - `FileService.Infrastructure.*` may depend on `FileService.Core`, `Contracts`, and `Domain`.
-- `FileService.Core` owns handlers and interfaces for infrastructure dependencies.
+- `FileService.Core` owns Minimal API endpoint slices and interfaces for infrastructure dependencies.
 
 ## Backend Rules
 
 - Keep migrations in `Infrastructure.Postgres`.
 - Keep controllers thin and move behavior into application handlers/services.
 - Put DirectoryService repository interfaces in `Application` and implementations in `Infrastructure.Postgres`.
-- Put FileService handler-facing interfaces in `FileService.Core` and implementations in infrastructure projects.
+- Put FileService endpoint-facing interfaces in `FileService.Core` and implementations in infrastructure projects.
 - If an API contract changes, check `Contracts`, `Presentation`, and integration tests together.
 - If persistence changes, check repository code, EF configuration, and migrations together.
-- For FileService upload flows, controllers should call Core handlers; Core should call storage abstractions, not `S3Provider` directly.
+- For FileService upload flows, Minimal API slices in Core should call storage abstractions, not `S3Provider` directly.
 
 ## Common Commands
 
