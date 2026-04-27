@@ -11,7 +11,7 @@ Give Codex a short map of the repo so it can open fewer files, stay in the corre
 
 ## Repository Map
 
-- `backend/` - .NET backend, Docker config, and integration tests
+- `backend/` - .NET backend services, Docker config, and integration tests
 - `client/` - Next.js frontend
 - `README.md` - high-level project overview
 
@@ -32,5 +32,6 @@ Give Codex a short map of the repo so it can open fewer files, stay in the corre
 ## Navigation
 
 - Backend solution: `backend/DirectoryService.sln`
-- Backend entry point: `backend/src/DirectoryService/DirectoryService.Presentation/Program.cs`
+- Directory service entry point: `backend/src/DirectoryService/DirectoryService.Presentation/Program.cs`
+- File service entry point: `backend/src/FileService/FileService.Web/Program.cs`
 - Frontend app root: `client/src/app`

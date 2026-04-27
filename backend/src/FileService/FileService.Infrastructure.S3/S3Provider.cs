@@ -1,9 +1,11 @@
-﻿using Amazon.S3;
+using Amazon.S3;
+using Amazon.S3.Model;
+using FileService.Core.Files;
 using Microsoft.Extensions.Options;
 
 namespace FileService.Infrastructure.S3;
 
-public class S3Provider
+public class S3Provider : IFileStorage
 {
     private readonly IAmazonS3 _s3Client;
     private readonly S3Options _s3Options;
@@ -14,8 +16,21 @@ public class S3Provider
         _s3Options = s3Options.Value;
     }
 
-    public Task UploadFileAsync(Stream stream)
+    public async Task UploadFileAsync(
+        Stream stream,
+        string bucketName,
+        string key,
+        string contentType,
+        CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        var request = new PutObjectRequest
+        {
+            BucketName = bucketName,
+            Key = key,
+            InputStream = stream,
+            ContentType = contentType,
+        };
+
+        await _s3Client.PutObjectAsync(request, cancellationToken);
     }
 }

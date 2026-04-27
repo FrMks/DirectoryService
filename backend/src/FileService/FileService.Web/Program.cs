@@ -38,7 +38,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSerilogRequestLogging();
 
-app.UseCors(DependencyInjection.GetClientCorsPolicyName());
+app.UseCors(FileService.Web.DependencyInjection.GetClientCorsPolicyName());
 
 app.UseHttpsRedirection();
 
