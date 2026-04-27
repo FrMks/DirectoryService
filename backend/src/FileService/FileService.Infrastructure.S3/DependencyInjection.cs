@@ -16,6 +16,8 @@ public static class DependencyInjection
 
         services.AddScoped<IS3Provider, S3Provider>();
 
+        services.AddHostedService<S3BucketInitializationService>();
+
         services.AddSingleton<IAmazonS3>(sp =>
         {
             var s3Option = sp.GetRequiredService<IOptions<S3Options>>().Value;
