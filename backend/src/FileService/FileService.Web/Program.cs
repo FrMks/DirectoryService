@@ -1,4 +1,4 @@
-using FileService.Core.Files;
+﻿using FileService.Core.Files;
 using FileService.Web;
 using Serilog;
 using Serilog.Events;
@@ -43,7 +43,8 @@ app.UseCors(FileService.Web.DependencyInjection.GetClientCorsPolicyName());
 
 app.UseHttpsRedirection();
 
-app.MapFileEndpoints();
+UploadEndpoint.MapFileEndpoints(app);
+GetDownloadUrlEndpoint.MapFileEndpoints(app);
 
 app.Run();
 

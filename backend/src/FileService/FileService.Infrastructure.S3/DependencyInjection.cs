@@ -14,7 +14,7 @@ public static class DependencyInjection
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
 
-        services.AddScoped<IFileStorage, S3Provider>();
+        services.AddScoped<IS3Provider, S3Provider>();
 
         services.AddSingleton<IAmazonS3>(sp =>
         {

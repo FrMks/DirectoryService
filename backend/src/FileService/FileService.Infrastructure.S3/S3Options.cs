@@ -14,4 +14,6 @@ public record S3Options
     public string SecretKey { get; init; } = string.Empty;
 
     public bool WithSSL { get; init; } = false;
+
+    public int DownloadUrlExpirationHours { get; init; } = 24;
 }
