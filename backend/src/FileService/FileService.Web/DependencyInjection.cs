@@ -1,6 +1,6 @@
 ﻿using FileService.Core;
 using FileService.Infrastructure.S3;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 
 namespace FileService.Web;

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using DirectoryService.Application;
 using Microsoft.Extensions.Configuration;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Serilog;
 using Shared;
 
@@ -65,9 +65,10 @@ public static class DependencyInjection // docker compose up --build для ра
             {
                 if (context.JsonTypeInfo.Type == typeof(Envelope<Errors>))
                 {
-                    if (schema.Properties.TryGetValue("errors", out var errorsProp))
+                    if (schema.Properties.TryGetValue("errors", out var errorsProp)
+                        && errorsProp is OpenApiSchema errorsSchema)
                     {
-                        errorsProp.Items.Reference = new OpenApiReference
+                        errorsSchema.Items = (IOpenApiSchema)new JsonSchemaReference
                         {
                             Type = ReferenceType.Schema,
                             Id = "Error",
