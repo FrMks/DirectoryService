@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FileService.Core.Files.FileKey;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
@@ -12,9 +13,11 @@ public static class UploadEndpoint
         endpoints.MapPost("/files", async Task<IResult> (
             [FromForm] IFormFile formFile,
             [FromServices] IS3Provider storage,
+            [FromServices] IFileKeyGenerator fileKeyGenerator,
             CancellationToken cancellationToken) =>
         {
-            var key = $"raw/{Guid.NewGuid()}";
+            var key = fileKeyGenerator.GenerateRawFileKey(
+                new FileKeyContext(formFile.FileName, formFile.ContentType));
             await using var stream = formFile.OpenReadStream();
 
             await storage.UploadFileAsync(
