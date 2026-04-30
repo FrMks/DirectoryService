@@ -36,11 +36,11 @@ powershell -ExecutionPolicy Bypass -File .\tools\codex\setup-codex.ps1
 The script:
 
 1. Copies the repository's `karpathy-guidelines` skill into `~/.codex/skills/`
-2. Ensures `Context7` exists in `~/.codex/config.toml`
+2. Adds or updates `Context7` in `~/.codex/config.toml`
 3. Installs `uv` if needed
 4. Installs `Serena`
 5. Initializes Serena if needed
-6. Ensures `Serena` exists in `~/.codex/config.toml`
+6. Adds or updates `Serena` in `~/.codex/config.toml` with this repository path as the active project
 
 After running the script, restart Codex.
 

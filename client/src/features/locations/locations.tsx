@@ -1,33 +1,28 @@
 "use client";
 
 import { Location } from "@/entities/locations/type";
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { LocationCard } from "./location-card";
-import { getLocations } from "@/entities/locations/api";
+import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
+import { useQuery } from "@tanstack/react-query";
 
 export function AppLocations(): JSX.Element {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState("");
+  const {
+    data: locations = [],
+    isError,
+    isFetching,
+    error,
+    refetch,
+  } = useQuery<Location[], Error>({
+    queryFn: () => locationsApi.getLocations(),
+    queryKey: ["locations"],
+    enabled: false,
+  });
 
-  async function handleLoadLocations() {
-    console.log("Loading locations...");
-    try {
-      setLoading(true);
-      setError("");
-
-      const response = await getLocations();
-
-      setLocations(response);
-    } catch (error) {
-      console.error("Failed to load locations:", error);
-      setError("Failed to load locations");
-    } finally {
-      console.log("Finished loading locations");
-      setLoading(false);
-    }
+  function handleLoadLocations() {
+    void refetch();
   }
 
   return (
@@ -51,8 +46,12 @@ export function AppLocations(): JSX.Element {
         Load Locations
       </button>
 
-      {loading && <LocationsListLoader />}
-      {!loading && error && <LocationsListError errorMessage={error} />}
+      {isFetching && <LocationsListLoader />}
+      {!isFetching && isError && (
+        <LocationsListError
+          errorMessage={error?.message ?? "Failed to load locations"}
+        />
+      )}
 
       <div className="space-y-3">
         {locations.map((location) => (

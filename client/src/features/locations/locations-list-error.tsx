@@ -2,6 +2,10 @@
 
 import { JSX } from "react";
 
+type LocationsListErrorProps = {
+  errorMessage: string;
+};
+
 export function LocationsListError({
   errorMessage,
 }: LocationsListErrorProps): JSX.Element {
