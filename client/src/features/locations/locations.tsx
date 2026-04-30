@@ -21,7 +21,13 @@ export function AppLocations(): JSX.Element {
     error,
     refetch,
   } = useQuery<PaginationResponse<Location>, Error>({
-    queryFn: () => locationsApi.getLocations({ page, pageSize: 3 }),
+    queryFn: () =>
+      locationsApi.getLocations({
+        page,
+        pageSize: 3,
+        sortBy: "UpdatedAt",
+        sortDirection: "desc",
+      }),
     queryKey: ["locations", page],
   });
   const locations = locationsResponse?.items ?? [];
@@ -31,15 +37,16 @@ export function AppLocations(): JSX.Element {
   const createLocationMutation = useMutation<string, Error>({
     mutationFn: () =>
       locationsApi.createLocation({
-        name: "Новая локация",
+        name: "Новая локация 2",
         address: {
-          street: "Тверская улица",
-          city: "Москва",
-          country: "Россия",
+          street: "Тверская улица 2",
+          city: "Москва 2",
+          country: "Россия 2",
         },
         timezone: "Europe/Moscow",
       }),
     onSuccess: () => {
+      setPage(1);
       void refetch();
     },
   });
@@ -82,14 +89,14 @@ export function AppLocations(): JSX.Element {
           Load Locations
         </button>
 
-        <Button
+        <button
           type="button"
           onClick={handleCreateLocation}
           disabled={createLocationMutation.isPending}
           className="rounded-md border px-4 py-2"
         >
           {createLocationMutation.isPending ? "Creating..." : "Create Location"}
-        </Button>
+        </button>
       </div>
 
       {createLocationMutation.isError && (

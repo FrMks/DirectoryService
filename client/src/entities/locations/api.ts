@@ -10,16 +10,31 @@ export type CreateLocationRequest = {
   timezone: string;
 };
 
-export async function getLocations(params?: {
+export type GetLocationsParams = {
   page?: number;
   pageSize?: number;
-}): Promise<PaginationResponse<Location>> {
+  sortBy?:
+    | "Name"
+    | "Street"
+    | "City"
+    | "Country"
+    | "IsActive"
+    | "CreatedAt"
+    | "UpdatedAt";
+  sortDirection?: "asc" | "desc";
+};
+
+export async function getLocations(
+  params?: GetLocationsParams,
+): Promise<PaginationResponse<Location>> {
   const response = await apiClient.get<Envelope<GetLocationsResponse>>(
     "/locations",
     {
       params: {
         "Pagination.Page": params?.page,
         "Pagination.PageSize": params?.pageSize,
+        SortBy: params?.sortBy,
+        SortDirection: params?.sortDirection,
       },
     },
   );
