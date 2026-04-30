@@ -1,15 +1,25 @@
 "use client";
 
 import { Location } from "@/entities/locations/type";
-import { JSX } from "react";
+import { JSX, useState } from "react";
 import { LocationCard } from "./location-card";
 import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
 import { useQuery } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PagiantionNext,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/shared/components/ui/pagination";
 
 export function AppLocations(): JSX.Element {
+  const [page, setPage] = useState(1);
+
   const {
     data: locationsResponse,
     isError,
@@ -17,11 +27,15 @@ export function AppLocations(): JSX.Element {
     error,
     refetch,
   } = useQuery<PaginationResponse<Location>, Error>({
-    queryFn: () => locationsApi.getLocations(),
+    queryFn: () => locationsApi.getLocations({ page, pageSize: 10 }),
     queryKey: ["locations"],
     enabled: false,
   });
   const locations = locationsResponse?.items ?? [];
+
+  const totalPages = locationsResponse?.totalPages ?? 1;
+  const canGoPrevious = page > 1;
+  const canGoNext = page < totalPages;
 
   function handleLoadLocations() {
     void refetch();
@@ -65,6 +79,27 @@ export function AppLocations(): JSX.Element {
           />
         ))}
       </div>
+      <Pagiantion>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious aria-disabled={!canGoPrevious}>
+              onClick=
+              {() => canGoPrevious && setPage((currentPage) => currentPage - 1)}
+            </PaginationPrevious>
+          </PaginationItem>
+
+          <PaginationItem>
+            {page} / {totalPages}
+          </PaginationItem>
+
+          <PaginationItem>
+            <PaginationNext aria-disabled={!canGoNext}>
+              onClick=
+              {() => canGoNext && setPage((currectPage) => currentPage + 1)}
+            </PaginationNext>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagiantion>
     </section>
   );
 }
