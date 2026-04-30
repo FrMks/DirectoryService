@@ -19,7 +19,7 @@ export function AppLocations(): JSX.Element {
   const {
     data: locationsResponse,
     isError,
-    isFetching,
+    isPending,
     error,
     refetch,
   } = useQuery<PaginationResponse<Location>, Error>({
@@ -109,8 +109,8 @@ export function AppLocations(): JSX.Element {
         />
       )}
 
-      {isFetching && <LocationsListLoader />}
-      {!isFetching && isError && (
+      {isPending && <LocationsListLoader />}
+      {!isPending && isError && (
         <LocationsListError
           errorMessage={error?.message ?? "Failed to load locations"}
         />
