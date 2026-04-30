@@ -8,13 +8,7 @@ import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
 import { useQuery } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/shared/components/ui/pagination";
+import { LocationsPagination } from "./locations-pagination";
 
 export function AppLocations(): JSX.Element {
   const [page, setPage] = useState(1);
@@ -32,11 +26,17 @@ export function AppLocations(): JSX.Element {
   const locations = locationsResponse?.items ?? [];
 
   const totalPages = locationsResponse?.totalPages ?? 1;
-  const canGoPrevious = page > 1;
-  const canGoNext = page < totalPages;
 
   function handleLoadLocations() {
     void refetch();
+  }
+
+  function handlePreviousPage() {
+    setPage((currentPage) => currentPage - 1);
+  }
+
+  function handleNextPage() {
+    setPage((currentPage) => currentPage + 1);
   }
 
   return (
@@ -77,45 +77,13 @@ export function AppLocations(): JSX.Element {
           />
         ))}
       </div>
-      <Pagination>
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              href="#"
-              aria-disabled={!canGoPrevious}
-              className={
-                !canGoPrevious ? "pointer-events-none opacity-50" : undefined
-              }
-              onClick={(event) => {
-                event.preventDefault();
-                if (canGoPrevious) {
-                  setPage((currentPage) => currentPage - 1);
-                }
-              }}
-            />
-          </PaginationItem>
 
-          <PaginationItem>
-            {page} / {totalPages}
-          </PaginationItem>
-
-          <PaginationItem>
-            <PaginationNext
-              href="#"
-              aria-disabled={!canGoNext}
-              className={
-                !canGoNext ? "pointer-events-none opacity-50" : undefined
-              }
-              onClick={(event) => {
-                event.preventDefault();
-                if (canGoNext) {
-                  setPage((currentPage) => currentPage + 1);
-                }
-              }}
-            />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      <LocationsPagination
+        page={page}
+        totalPages={totalPages}
+        onPreviousPage={handlePreviousPage}
+        onNextPage={handleNextPage}
+      />
     </section>
   );
 }
