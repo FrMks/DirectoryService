@@ -8,11 +8,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Respawn;
 using Testcontainers.PostgreSql;
-using Program = DirectoryService.Presentation.Program;
 
 namespace DirectoryService.IntegrationTests.Infrastructure;
 
-public class DirectoryTestWebFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class DirectoryTestWebFactory : WebApplicationFactory<DirectoryService.Presentation.Program>, IAsyncLifetime
 {
     // Запускаем один Docker контейнер с нашей БД для тестов
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()

@@ -1,5 +1,7 @@
 {
   "editor.formatOnSave": true,
+  "dotnet.defaultSolution": "backend/DirectoryService.sln",
+  "omnisharp.defaultLaunchSolution": "backend/DirectoryService.sln",
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
