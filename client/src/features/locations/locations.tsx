@@ -26,7 +26,7 @@ export function AppLocations(): JSX.Element {
     error,
     refetch,
   } = useQuery<PaginationResponse<Location>, Error>({
-    queryFn: () => locationsApi.getLocations({ page, pageSize: 10 }),
+    queryFn: () => locationsApi.getLocations({ page, pageSize: 3 }),
     queryKey: ["locations", page],
   });
   const locations = locationsResponse?.items ?? [];
