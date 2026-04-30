@@ -7,19 +7,21 @@ import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
 import { useQuery } from "@tanstack/react-query";
+import { PaginationResponse } from "@/shared/api/types";
 
 export function AppLocations(): JSX.Element {
   const {
-    data: locations = [],
+    data: locationsResponse,
     isError,
     isFetching,
     error,
     refetch,
-  } = useQuery<Location[], Error>({
+  } = useQuery<PaginationResponse<Location>, Error>({
     queryFn: () => locationsApi.getLocations(),
     queryKey: ["locations"],
     enabled: false,
   });
+  const locations = locationsResponse?.items ?? [];
 
   function handleLoadLocations() {
     void refetch();
