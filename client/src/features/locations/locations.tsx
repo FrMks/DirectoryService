@@ -6,12 +6,14 @@ import { LocationCard } from "./location-card";
 import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
 import { LocationsPagination } from "./locations-pagination";
 import { Button } from "@/shared/components/ui/button";
 
 export function AppLocations(): JSX.Element {
+  const queryClient = useQueryClient();
+
   const [page, setPage] = useState(1);
 
   const {
@@ -37,17 +39,17 @@ export function AppLocations(): JSX.Element {
   const createLocationMutation = useMutation<string, Error>({
     mutationFn: () =>
       locationsApi.createLocation({
-        name: "Новая локация 2",
+        name: "Новая локация 5",
         address: {
-          street: "Тверская улица 2",
-          city: "Москва 2",
-          country: "Россия 2",
+          street: "Тверская улица 5",
+          city: "Москва 5",
+          country: "Россия 5",
         },
         timezone: "Europe/Moscow",
       }),
-    onSuccess: () => {
+    onSettled: async () => {
       setPage(1);
-      void refetch();
+      await queryClient.invalidateQueries({ queryKey: ["locations"] });
     },
   });
 
@@ -81,22 +83,22 @@ export function AppLocations(): JSX.Element {
       </div>
 
       <div className="flex gap-2">
-        <button
+        <Button
           type="button"
           onClick={handleLoadLocations}
           className="rounded-md border px-4 py-2"
         >
           Load Locations
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="button"
           onClick={handleCreateLocation}
           disabled={createLocationMutation.isPending}
           className="rounded-md border px-4 py-2"
         >
           {createLocationMutation.isPending ? "Creating..." : "Create Location"}
-        </button>
+        </Button>
       </div>
 
       {createLocationMutation.isError && (
