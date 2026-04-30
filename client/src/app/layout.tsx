@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/features/header/header";
-import { SidebarInset, SidebarProvider } from "@/shared/components/ui/sidebar";
-import { AppSidebar } from "@/features/sidebar/app.sidebar";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/shared/api/query-client";
 import Layout from "@/features/layout/app-layout";
 
 const geistSans = Geist({
