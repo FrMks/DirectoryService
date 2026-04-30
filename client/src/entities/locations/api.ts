@@ -55,8 +55,15 @@ export const locationsApi = {
   getLocations,
 
   createLocation: async (request: CreateLocationRequest) => {
-    const response = await apiClient.post<Location>("/locations", request);
+    const response = await apiClient.post<Envelope<string>>(
+      "/locations",
+      request,
+    );
 
-    return response.data;
+    if (!response.data.result) {
+      throw new Error("Create location response does not contain result.");
+    }
+
+    return response.data.result;
   },
 };

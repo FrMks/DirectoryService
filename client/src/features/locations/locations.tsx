@@ -6,9 +6,10 @@ import { LocationCard } from "./location-card";
 import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
 import { LocationsPagination } from "./locations-pagination";
+import { Button } from "@/shared/components/ui/button";
 
 export function AppLocations(): JSX.Element {
   const [page, setPage] = useState(1);
@@ -26,6 +27,26 @@ export function AppLocations(): JSX.Element {
   const locations = locationsResponse?.items ?? [];
 
   const totalPages = locationsResponse?.totalPages ?? 1;
+
+  const createLocationMutation = useMutation<string, Error>({
+    mutationFn: () =>
+      locationsApi.createLocation({
+        name: "Новая локация",
+        address: {
+          street: "Тверская улица",
+          city: "Москва",
+          country: "Россия",
+        },
+        timezone: "Europe/Moscow",
+      }),
+    onSuccess: () => {
+      void refetch();
+    },
+  });
+
+  function handleCreateLocation() {
+    createLocationMutation.mutate();
+  }
 
   function handleLoadLocations() {
     void refetch();
@@ -52,13 +73,32 @@ export function AppLocations(): JSX.Element {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={handleLoadLocations}
-        className="rounded-md border px-4 py-2"
-      >
-        Load Locations
-      </button>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleLoadLocations}
+          className="rounded-md border px-4 py-2"
+        >
+          Load Locations
+        </button>
+
+        <Button
+          type="button"
+          onClick={handleCreateLocation}
+          disabled={createLocationMutation.isPending}
+          className="rounded-md border px-4 py-2"
+        >
+          {createLocationMutation.isPending ? "Creating..." : "Create Location"}
+        </Button>
+      </div>
+
+      {createLocationMutation.isError && (
+        <LocationsListError
+          errorMessage={
+            createLocationMutation.error?.message ?? "Failed to create location"
+          }
+        />
+      )}
 
       {isFetching && <LocationsListLoader />}
       {!isFetching && isError && (
