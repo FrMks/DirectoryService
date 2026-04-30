@@ -12,7 +12,6 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PagiantionNext,
   PaginationPrevious,
   PaginationNext,
 } from "@/shared/components/ui/pagination";
@@ -28,8 +27,7 @@ export function AppLocations(): JSX.Element {
     refetch,
   } = useQuery<PaginationResponse<Location>, Error>({
     queryFn: () => locationsApi.getLocations({ page, pageSize: 10 }),
-    queryKey: ["locations"],
-    enabled: false,
+    queryKey: ["locations", page],
   });
   const locations = locationsResponse?.items ?? [];
 
@@ -79,13 +77,22 @@ export function AppLocations(): JSX.Element {
           />
         ))}
       </div>
-      <Pagiantion>
+      <Pagination>
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious aria-disabled={!canGoPrevious}>
-              onClick=
-              {() => canGoPrevious && setPage((currentPage) => currentPage - 1)}
-            </PaginationPrevious>
+            <PaginationPrevious
+              href="#"
+              aria-disabled={!canGoPrevious}
+              className={
+                !canGoPrevious ? "pointer-events-none opacity-50" : undefined
+              }
+              onClick={(event) => {
+                event.preventDefault();
+                if (canGoPrevious) {
+                  setPage((currentPage) => currentPage - 1);
+                }
+              }}
+            />
           </PaginationItem>
 
           <PaginationItem>
@@ -93,13 +100,22 @@ export function AppLocations(): JSX.Element {
           </PaginationItem>
 
           <PaginationItem>
-            <PaginationNext aria-disabled={!canGoNext}>
-              onClick=
-              {() => canGoNext && setPage((currectPage) => currentPage + 1)}
-            </PaginationNext>
+            <PaginationNext
+              href="#"
+              aria-disabled={!canGoNext}
+              className={
+                !canGoNext ? "pointer-events-none opacity-50" : undefined
+              }
+              onClick={(event) => {
+                event.preventDefault();
+                if (canGoNext) {
+                  setPage((currentPage) => currentPage + 1);
+                }
+              }}
+            />
           </PaginationItem>
         </PaginationContent>
-      </Pagiantion>
+      </Pagination>
     </section>
   );
 }
