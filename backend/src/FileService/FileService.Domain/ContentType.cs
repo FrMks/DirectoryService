@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using CSharpFunctionalExtensions;
 using Shared;
@@ -9,12 +9,12 @@ public sealed record ContentType
 {
     public string Value { get; }
 
-    public MediaType MediaType { get; }
+    public MediaType Category { get; }
 
     private ContentType(string value, MediaType mediaType)
     {
         Value = value;
-        MediaType = mediaType;
+        Category = mediaType;
     }
 
     public static Result<ContentType, Error> Create(string contentType)
