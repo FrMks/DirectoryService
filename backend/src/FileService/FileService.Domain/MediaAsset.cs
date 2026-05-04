@@ -7,23 +7,47 @@ namespace FileService.Domain;
 
 public abstract class MediaAsset
 {
+    /// <summary>
+    /// Unique identifier of the media asset.
+    /// </summary>
     public Guid Id { get; protected set; }
 
+    /// <summary>
+    /// Data and metadata associated with the media asset.
+    /// </summary>
     public MediaData MediaData { get; protected set; }
 
+    /// <summary>
+    /// The type of the asset (e.g., Image, Video).
+    /// </summary>
     public AssetType AssetType { get; protected set; }
 
+    /// <summary>
+    /// Date and time when the asset was created in UTC.
+    /// </summary>
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Date and time when the asset was last updated in UTC.
+    /// </summary>
     public DateTime UpdatedAt { get; protected set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// The storage key representing the physical location of the asset.
+    /// </summary>
     public StorageKey RawKey { get; protected set; }
 }
 
 public sealed record StorageKey
 {
+    /// <summary>
+    /// The unique key or name of the file.
+    /// </summary>
     public string Key { get; }
 
+    /// <summary>
+    /// The path prefix or folder structure.
+    /// </summary>
     public string Prefix { get; }
 
     /// <summary>
@@ -67,6 +91,16 @@ public sealed record StorageKey
         return new StorageKey(location.Trim(), normalizedKeyResult.Value, normalizedKeyResult.Value);
     }
 
+    /// <summary>
+    /// Normalizes a path prefix by trimming whitespace, replacing backslashes with forward slashes, 
+    /// and removing empty segments.
+    /// </summary>
+    /// <example>
+    /// "folder/subfolder" -> "folder/subfolder"
+    /// "folder\\subfolder" -> "folder/subfolder"
+    /// " /folder///subfolder/ " -> "folder/subfolder"
+    /// null or empty -> ""
+    /// </example>
     private static Result<string, Error> NormalizePrefix(string? prefix)
     {
         if (string.IsNullOrWhiteSpace(prefix))
@@ -88,6 +122,15 @@ public sealed record StorageKey
         return string.Join('/', normalizedParts);
     }
 
+    /// <summary>
+    /// Normalizes a single path segment by trimming whitespace. 
+    /// Returns an error if the segment contains path separators.
+    /// </summary>
+    /// <example>
+    /// "file.txt" -> "file.txt"
+    /// "  folder  " -> "folder"
+    /// "path/to" -> Error (contains slash)
+    /// </example>
     private static Result<string, Error> NormalizeSegment(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
