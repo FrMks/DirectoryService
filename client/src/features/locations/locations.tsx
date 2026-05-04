@@ -3,31 +3,70 @@
 import { Location } from "@/entities/locations/type";
 import { JSX, useState } from "react";
 import { LocationCard } from "./location-card";
-import { getLocations } from "@/entities/locations/api";
+import { locationsApi } from "@/entities/locations/api";
 import { LocationsListLoader } from "./locations-list-loader";
 import { LocationsListError } from "./locations-list-error";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PaginationResponse } from "@/shared/api/types";
+import { LocationsPagination } from "./locations-pagination";
+import { Button } from "@/shared/components/ui/button";
 
 export function AppLocations(): JSX.Element {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
 
-  async function handleLoadLocations() {
-    console.log("Loading locations...");
-    try {
-      setLoading(true);
-      setError("");
+  const [page, setPage] = useState(1);
 
-      const response = await getLocations();
+  const {
+    data: locationsResponse,
+    isError,
+    isPending,
+    error,
+    refetch,
+  } = useQuery<PaginationResponse<Location>, Error>({
+    queryFn: () =>
+      locationsApi.getLocations({
+        page,
+        pageSize: 3,
+        sortBy: "UpdatedAt",
+        sortDirection: "desc",
+      }),
+    queryKey: ["locations", page],
+  });
+  const locations = locationsResponse?.items ?? [];
 
-      setLocations(response);
-    } catch (error) {
-      console.error("Failed to load locations:", error);
-      setError("Failed to load locations");
-    } finally {
-      console.log("Finished loading locations");
-      setLoading(false);
-    }
+  const totalPages = locationsResponse?.totalPages ?? 1;
+
+  const createLocationMutation = useMutation<string, Error>({
+    mutationFn: () =>
+      locationsApi.createLocation({
+        name: "Новая локация 5",
+        address: {
+          street: "Тверская улица 5",
+          city: "Москва 5",
+          country: "Россия 5",
+        },
+        timezone: "Europe/Moscow",
+      }),
+    onSettled: async () => {
+      setPage(1);
+      await queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+  });
+
+  function handleCreateLocation() {
+    createLocationMutation.mutate();
+  }
+
+  function handleLoadLocations() {
+    void refetch();
+  }
+
+  function handlePreviousPage() {
+    setPage((currentPage) => currentPage - 1);
+  }
+
+  function handleNextPage() {
+    setPage((currentPage) => currentPage + 1);
   }
 
   return (
@@ -43,16 +82,39 @@ export function AppLocations(): JSX.Element {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={handleLoadLocations}
-        className="rounded-md border px-4 py-2"
-      >
-        Load Locations
-      </button>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          onClick={handleLoadLocations}
+          className="rounded-md border px-4 py-2"
+        >
+          Load Locations
+        </Button>
 
-      {loading && <LocationsListLoader />}
-      {!loading && error && <LocationsListError errorMessage={error} />}
+        <Button
+          type="button"
+          onClick={handleCreateLocation}
+          disabled={createLocationMutation.isPending}
+          className="rounded-md border px-4 py-2"
+        >
+          {createLocationMutation.isPending ? "Creating..." : "Create Location"}
+        </Button>
+      </div>
+
+      {createLocationMutation.isError && (
+        <LocationsListError
+          errorMessage={
+            createLocationMutation.error?.message ?? "Failed to create location"
+          }
+        />
+      )}
+
+      {isPending && <LocationsListLoader />}
+      {!isPending && isError && (
+        <LocationsListError
+          errorMessage={error?.message ?? "Failed to load locations"}
+        />
+      )}
 
       <div className="space-y-3">
         {locations.map((location) => (
@@ -64,6 +126,13 @@ export function AppLocations(): JSX.Element {
           />
         ))}
       </div>
+
+      <LocationsPagination
+        page={page}
+        totalPages={totalPages}
+        onPreviousPage={handlePreviousPage}
+        onNextPage={handleNextPage}
+      />
     </section>
   );
 }

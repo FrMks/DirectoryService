@@ -4,6 +4,6 @@ args = ["-y", "@upstash/context7-mcp"]
 startup_timeout_ms = 40000
 
 [mcp_servers.serena]
-startup_timeout_sec = 15
+startup_timeout_sec = 60
 command = "C:\\Users\\<USER>\\.local\\bin\\serena.exe"
-args = ["start-mcp-server", "--project-from-cwd", "--context=codex"]
+args = ["start-mcp-server", "--project", "C:\\path\\to\\repo", "--context=codex", "--open-web-dashboard", "false"]

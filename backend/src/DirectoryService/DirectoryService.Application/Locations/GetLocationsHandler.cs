@@ -1,4 +1,4 @@
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using DirectoryService.Application.Database;
 using Shared.Core.Abstractions;
@@ -75,32 +75,31 @@ public class GetLocationsHandler(
             _ => l => l.Name,
         };
 
-        locationsQueryResponse = locationsQuery.LocationsRequest.SortDirection == "asc"
-            ? locationsQueryResponse.OrderBy(keySelector)
-            : locationsQueryResponse.OrderByDescending(keySelector);
+        locationsQueryResponse = locationsQuery.LocationsRequest.SortDirection == "desc"
+            ? locationsQueryResponse.OrderByDescending(keySelector)
+            : locationsQueryResponse.OrderBy(keySelector);
 
         long totalCount = await locationsQueryResponse.CountAsync(cancellationToken);
+        var page = locationsQuery.LocationsRequest.Pagination?.Page ?? 1;
+        var pageSize = locationsQuery.LocationsRequest.Pagination?.PageSize ?? 20;
 
         // Пагинация
-        if (locationsQuery.LocationsRequest.Pagination is not null)
+        if (pageSize < 1)
         {
-            if (locationsQuery.LocationsRequest.Pagination.PageSize < 1)
-            {
-                logger.LogError("Request with page size < 1 cannot be executed. Page size must be >= 1");
-                return Error.Validation("pagination.pageSize", "PageSize must be >= 1").ToErrors();
-            }
-
-            if (locationsQuery.LocationsRequest.Pagination.Page < 1)
-            {
-                logger.LogError("Request with page number < 1 cannot be executed. Page number must be >= 1");
-                return Error.Validation("pagination.page", "Page must be >= 1").ToErrors();
-            }
-
-            int skipCount = (int)((locationsQuery.LocationsRequest.Pagination.Page - 1) * locationsQuery.LocationsRequest.Pagination.PageSize);
-            locationsQueryResponse = locationsQueryResponse
-                .Skip(skipCount)
-                .Take((int)locationsQuery.LocationsRequest.Pagination.PageSize);
+            logger.LogError("Request with page size < 1 cannot be executed. Page size must be >= 1");
+            return Error.Validation("pagination.pageSize", "PageSize must be >= 1").ToErrors();
         }
+
+        if (page < 1)
+        {
+            logger.LogError("Request with page number < 1 cannot be executed. Page number must be >= 1");
+            return Error.Validation("pagination.page", "Page must be >= 1").ToErrors();
+        }
+
+        int skipCount = (page - 1) * pageSize;
+        locationsQueryResponse = locationsQueryResponse
+            .Skip(skipCount)
+            .Take(pageSize);
 
         // Проекция в DTO
         List<GetLocationsResponse> locations = await locationsQueryResponse
@@ -118,6 +117,11 @@ public class GetLocationsHandler(
             })
             .ToListAsync(cancellationToken);
 
-        return new GetLocationsResult(locations, totalCount);
+        return new GetLocationsResult(
+            locations,
+            totalCount,
+            page,
+            pageSize,
+            (int)Math.Ceiling(totalCount / (double)pageSize));
     }
 }

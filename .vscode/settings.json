@@ -2,6 +2,11 @@
   "editor.formatOnSave": true,
   "dotnet.defaultSolution": "backend/DirectoryService.sln",
   "omnisharp.defaultLaunchSolution": "backend/DirectoryService.sln",
+  "typescript.tsdk": "client/node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
