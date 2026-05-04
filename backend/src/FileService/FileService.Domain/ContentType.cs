@@ -1,5 +1,3 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
 using CSharpFunctionalExtensions;
 using Shared;
 
@@ -27,7 +25,6 @@ public sealed record ContentType
             _ when contentType.Contains("video", StringComparison.InvariantCultureIgnoreCase) => MediaType.VIDEO,
             _ when contentType.Contains("image", StringComparison.InvariantCultureIgnoreCase) => MediaType.IMAGE,
             _ when contentType.Contains("audio", StringComparison.InvariantCultureIgnoreCase) => MediaType.AUDIO,
-            _ when contentType.Contains("document", StringComparison.InvariantCultureIgnoreCase) => MediaType.DOCUMENT,
             _ => MediaType.UNKNOWN,
         };
 

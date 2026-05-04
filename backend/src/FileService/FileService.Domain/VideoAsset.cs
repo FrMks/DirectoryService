@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Shared;
 
@@ -14,20 +10,26 @@ public class VideoAsset : MediaAsset
         MediaData mediaData,
         MediaStatus status,
         MediaOwner owner,
-        StorageKey key)
-            : base(id, mediaData, status, AssetType.VIDEO, owner, key)
+        StorageKey rawKey,
+        StorageKey finalKey,
+        StorageKey hlsRootKey)
+            : base(id, mediaData, status, AssetType.VIDEO, owner, rawKey, finalKey)
     {
+        HlsRootKey = hlsRootKey;
     }
 
     public const long MAX_SIZE = 5_368_709_120;
 
-    public const string LOCATION = "videos";
+    public const string BUCKET = "videos";
     public const string RAW_PREFIX = "raw";
-    public const string ALLOWED_CONTENT_TYPE = "video";
+    public const string HLS_PREFIX = "hls";
+    public const string MASTER_PLAYLIST_NAME = "master.m3u8";
 
     public static readonly string[] AllowedExtensions = ["mp4", "mkv", "avi", "mov"];
 
-    public static UnitResult<Error> Validate(MediaData mediaData)
+    public StorageKey HlsRootKey { get; }
+
+    public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
         if (!AllowedExtensions.Contains(mediaData.FileName.Extension))
         {
@@ -40,7 +42,7 @@ public class VideoAsset : MediaAsset
         {
             return Error.Validation(
                 "video.invalid.content-type",
-                $"File content type must be {ALLOWED_CONTENT_TYPE}");
+                "File content type must be video");
         }
 
         if (mediaData.Size > MAX_SIZE)
@@ -55,19 +57,34 @@ public class VideoAsset : MediaAsset
 
     public static Result<VideoAsset, Error> CreateForUpload(Guid id, MediaData mediaData, MediaOwner owner)
     {
-        UnitResult<Error> validationResult = Validate(mediaData);
+        UnitResult<Error> validationResult = ValidateForUpload(mediaData);
         if (validationResult.IsFailure)
             return validationResult.Error;
 
-        Result<StorageKey, Error> key = StorageKey.Create(LOCATION, null, id.ToString());
-        if (key.IsFailure)
-            return key.Error;
+        Result<StorageKey, Error> rawKey = StorageKey.Create(BUCKET, RAW_PREFIX, id.ToString());
+        if (rawKey.IsFailure)
+            return rawKey.Error;
+
+        Result<StorageKey, Error> hlsRootKey = StorageKey.Create(BUCKET, HLS_PREFIX, id.ToString());
+        if (hlsRootKey.IsFailure)
+            return hlsRootKey.Error;
 
         return new VideoAsset(
             id,
             mediaData,
             MediaStatus.UPLOADING,
             owner,
-            key.Value);
+            rawKey.Value,
+            StorageKey.None,
+            hlsRootKey.Value);
+    }
+
+    public UnitResult<Error> CompleteProcessing(DateTime timestamp)
+    {
+        Result<StorageKey, Error> finalKey = HlsRootKey.AppendSegment(MASTER_PLAYLIST_NAME);
+        if (finalKey.IsFailure)
+            return finalKey.Error;
+
+        return MarkReady(finalKey.Value, timestamp);
     }
 }

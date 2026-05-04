@@ -1,4 +1,4 @@
-﻿using CSharpFunctionalExtensions;
+using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
@@ -10,17 +10,20 @@ public class PreviewAsset : MediaAsset
         MediaData mediaData,
         MediaStatus status,
         MediaOwner owner,
-        StorageKey key)
-            : base(id, mediaData, status, AssetType.PREVIEW, owner, key)
+        StorageKey rawKey,
+        StorageKey finalKey)
+            : base(id, mediaData, status, AssetType.PREVIEW, owner, rawKey, finalKey)
     {
     }
 
-    public const long MAX_SIZE = 10_485_760; // 10 MB
-    public const string LOCATION = "preview";
+    public const long MAX_SIZE = 10_485_760;
+
+    public const string BUCKET = "preview";
     public const string RAW_PREFIX = "raw";
+
     public static readonly string[] AllowedExtensions = ["jpg", "jpeg", "png", "webp"];
 
-    public static UnitResult<Error> Validate(MediaData mediaData)
+    public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
         if (!AllowedExtensions.Contains(mediaData.FileName.Extension))
         {
@@ -33,7 +36,7 @@ public class PreviewAsset : MediaAsset
         {
             return Error.Validation(
                 "preview.invalid.content-type",
-                $"File content type must be image");
+                "File content type must be image");
         }
 
         if (mediaData.Size > MAX_SIZE)
@@ -48,19 +51,29 @@ public class PreviewAsset : MediaAsset
 
     public static Result<PreviewAsset, Error> CreateForUpload(Guid id, MediaData mediaData, MediaOwner owner)
     {
-        UnitResult<Error> validationResult = Validate(mediaData);
+        UnitResult<Error> validationResult = ValidateForUpload(mediaData);
         if (validationResult.IsFailure)
             return validationResult.Error;
 
-        Result<StorageKey, Error> key = StorageKey.Create(LOCATION, null, id.ToString());
-        if (key.IsFailure)
-            return key.Error;
+        Result<StorageKey, Error> rawKey = StorageKey.Create(BUCKET, RAW_PREFIX, id.ToString());
+        if (rawKey.IsFailure)
+            return rawKey.Error;
 
         return new PreviewAsset(
             id,
             mediaData,
             MediaStatus.UPLOADING,
             owner,
-            key.Value);
+            rawKey.Value,
+            StorageKey.None);
+    }
+
+    public UnitResult<Error> CompleteUpload(DateTime timestamp)
+    {
+        UnitResult<Error> uploadedResult = MarkUploaded(timestamp);
+        if (uploadedResult.IsFailure)
+            return uploadedResult.Error;
+
+        return MarkReady(RawKey, timestamp);
     }
 }
