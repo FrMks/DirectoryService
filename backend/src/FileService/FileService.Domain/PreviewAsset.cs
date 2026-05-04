@@ -9,14 +9,14 @@ public class PreviewAsset : MediaAsset
         Guid id,
         MediaData mediaData,
         MediaStatus status,
-        MediaOwner owner)
-            : base(id, mediaData, status, AssetType.PREVIEW, owner)
+        MediaOwner owner,
+        StorageKey key)
+            : base(id, mediaData, status, AssetType.PREVIEW, owner, key)
     {
     }
 
-    public const string ALLOWED_CONTENT_TYPE = "image";
     public const long MAX_SIZE = 10_485_760; // 10 MB
-    public const string BUCKET = "preview";
+    public const string LOCATION = "preview";
     public const string RAW_PREFIX = "raw";
     public static readonly string[] AllowedExtensions = ["jpg", "jpeg", "png", "webp"];
 
@@ -33,7 +33,7 @@ public class PreviewAsset : MediaAsset
         {
             return Error.Validation(
                 "preview.invalid.content-type",
-                $"File content type must be {ALLOWED_CONTENT_TYPE}");
+                $"File content type must be image");
         }
 
         if (mediaData.Size > MAX_SIZE)
@@ -52,10 +52,15 @@ public class PreviewAsset : MediaAsset
         if (validationResult.IsFailure)
             return validationResult.Error;
 
+        Result<StorageKey, Error> key = StorageKey.Create(LOCATION, null, id.ToString());
+        if (key.IsFailure)
+            return key.Error;
+
         return new PreviewAsset(
             id,
             mediaData,
             MediaStatus.UPLOADING,
-            owner);
+            owner,
+            key.Value);
     }
 }

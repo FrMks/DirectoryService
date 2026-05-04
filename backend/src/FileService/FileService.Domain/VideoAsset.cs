@@ -13,8 +13,9 @@ public class VideoAsset : MediaAsset
         Guid id,
         MediaData mediaData,
         MediaStatus status,
-        MediaOwner owner)
-            : base(id, mediaData, status, AssetType.VIDEO, owner)
+        MediaOwner owner,
+        StorageKey key)
+            : base(id, mediaData, status, AssetType.VIDEO, owner, key)
     {
     }
 
@@ -58,10 +59,15 @@ public class VideoAsset : MediaAsset
         if (validationResult.IsFailure)
             return validationResult.Error;
 
+        Result<StorageKey, Error> key = StorageKey.Create(LOCATION, null, id.ToString());
+        if (key.IsFailure)
+            return key.Error;
+
         return new VideoAsset(
             id,
             mediaData,
             MediaStatus.UPLOADING,
-            owner);
+            owner,
+            key.Value);
     }
 }

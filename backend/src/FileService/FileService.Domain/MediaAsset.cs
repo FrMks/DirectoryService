@@ -47,7 +47,8 @@ public abstract class MediaAsset
         MediaData mediaData,
         MediaStatus status,
         AssetType assetType,
-        MediaOwner owner)
+        MediaOwner owner,
+        StorageKey key)
     {
         Id = id;
         MediaData = mediaData;
@@ -56,5 +57,6 @@ public abstract class MediaAsset
         UpdatedAt = CreatedAt;
         AssetType = assetType;
         Owner = owner;
+        Key = key;
     }
 }
