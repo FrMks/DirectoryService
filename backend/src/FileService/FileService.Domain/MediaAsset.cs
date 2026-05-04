@@ -53,6 +53,51 @@ public sealed record StorageKey
 
     public static Result<StorageKey, Error> Create(string location, string? prefix, string key)
     {
-        // if (string.IsNullOrWhiteSpace())
+        if (string.IsNullOrWhiteSpace(location))
+            return Error.Validation(null, "location is invalid");
+
+        Result<string, Error> normalizedKeyResult = NormalizeSegment(key);
+        if (normalizedKeyResult.IsFailure)
+            return normalizedKeyResult.Error;
+
+        Result<string, Error> normalizedPrefixResult = NormalizeSegment(prefix);
+        if (normalizedPrefixResult.IsFailure)
+            return normalizedPrefixResult.Error;
+
+        return new StorageKey(location.Trim(), normalizedKeyResult.Value, normalizedKeyResult.Value);
+    }
+
+    private static Result<string, Error> NormalizePrefix(string? prefix)
+    {
+        if (string.IsNullOrWhiteSpace(prefix))
+            return string.Empty;
+
+        string[] parts = prefix.Trim().Replace('\\', '/').Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        List<string> normalizedParts = [];
+        foreach (string part in parts)
+        {
+            Result<string, Error> normalizedPart = NormalizeSegment(part);
+            if (normalizedPart.IsFailure)
+                return normalizedPart;
+
+            if (!string.IsNullOrEmpty(normalizedPart.Value))
+                normalizedParts.Add(normalizedPart.Value);
+        }
+
+        return string.Join('/', normalizedParts);
+    }
+
+    private static Result<string, Error> NormalizeSegment(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return Error.Validation(null, "key");
+
+        string trimmed = value.Trim();
+
+        if (trimmed.Contains('/', StringComparison.Ordinal) || trimmed.Contains('\\', StringComparison.Ordinal))
+            return Error.Validation(null, "key");
+
+        return trimmed;
     }
 }
