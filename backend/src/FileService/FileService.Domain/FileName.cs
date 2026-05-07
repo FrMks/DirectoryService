@@ -1,10 +1,14 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.InteropServices;
 using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
 
+/// <summary>
+/// Чтобы проверить, что имя не пустое и у файла есть расширение.
+/// Потом VideoAsset и PreviewAsset исопльзуют уже готовое Extension
+/// </summary>
 public sealed record FileName
 {
     public string Name { get; }

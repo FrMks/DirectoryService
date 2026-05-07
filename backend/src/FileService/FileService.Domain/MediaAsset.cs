@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
@@ -15,8 +15,17 @@ public abstract class MediaAsset
 
     public DateTime UpdatedAt { get; protected set; } = DateTime.UtcNow;
 
+    /// <summary>
+    /// Путь к исходной версии videos/raw/{video-id} или preview/raw/{preview-id}
+    /// </summary>
     public StorageKey RawKey { get; protected set; } = null!;
 
+    /// <summary>
+    /// Путь к финальной версии, который потом будет исопльзовать система
+    /// Для видео финальная версия отличается от raw, потому что видео после загрузки конвертируется в HLS
+    /// videos/hls/{video-id}/master.m3u8
+    /// Для превью финальная версия аткая же, как raw, потому что превью не требует обработки
+    /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
 
     public MediaOwner Owner { get; protected set; } = null!;

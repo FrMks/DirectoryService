@@ -1,8 +1,12 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
 
+/// <summary>
+/// Файл нельзя проверять только по расширению. Пользователь может отправить video.mp4, 
+/// но Content-Type будет image/png. Domain должен такое поймать
+/// </summary>
 public sealed record ContentType
 {
     public string Value { get; }

@@ -1,5 +1,8 @@
-namespace FileService.Domain;
+﻿namespace FileService.Domain;
 
+/// <summary>
+/// Жизненный цикл файла
+/// </summary>
 public enum MediaStatus
 {
     UPLOADING,

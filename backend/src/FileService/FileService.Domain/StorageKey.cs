@@ -1,8 +1,15 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
 
+/// <summary>
+/// Bucket = "videos"
+/// Prefix = "raw"
+/// Key = "{video-id}"
+/// Value = "raw/{video-id}"
+/// FullPath = "videos/raw/{video-id}"
+/// </summary>
 public sealed record StorageKey
 {
     public static StorageKey None { get; } = new(string.Empty, string.Empty, string.Empty);

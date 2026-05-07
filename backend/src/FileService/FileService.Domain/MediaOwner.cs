@@ -1,8 +1,15 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
 
+/// <summary>
+/// Файл нужне, чтобы ответить на вопрос кому принадлежит этот файл.
+/// Например:
+/// видео принадлежит уровку,
+/// превью принадлежит курсу,
+/// аватар принадлежит пользователю...
+/// </summary>
 public sealed record MediaOwner
 {
     private static readonly HashSet<string> AllowedContexts =
