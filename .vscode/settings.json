@@ -1,5 +1,14 @@
 {
   "editor.formatOnSave": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.quickSuggestions": {
+    "comments": "on",
+    "strings": "on",
+    "other": "on"
+  },
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "chatgpt.openOnStartup": true,
   "dotnet.defaultSolution": "backend/DirectoryService.sln",
   "omnisharp.defaultLaunchSolution": "backend/DirectoryService.sln",
   "typescript.tsdk": "client/node_modules/typescript/lib",
