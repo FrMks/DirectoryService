@@ -3,6 +3,7 @@ import { GetLocationsResponse, LocationResponse } from "./getLocationsResponse";
 import { apiClient } from "@/shared/api/axios-instance";
 import { Envelope } from "@/shared/api/envelope";
 import { PaginationResponse } from "@/shared/api/types";
+import axios, { AxiosError } from "axios";
 
 export type CreateLocationRequest = {
   name: string;
@@ -69,16 +70,32 @@ function toLocation(location: LocationResponse): Location {
 export const locationsApi = {
   getLocations,
 
-  createLocation: async (request: CreateLocationRequest) => {
-    const response = await apiClient.post<Envelope<string>>(
-      "/locations",
-      request,
-    );
+  createLocation: async (request: CreateLocationRequest): Promise<string> => {
+    try {
+      const response = await apiClient.post<Envelope<string>>(
+        "/locations",
+        request,
+      );
 
-    if (!response.data.result) {
-      throw new Error("Create location response does not contain result.");
+      const result = response.data.result;
+
+      if (result === null) {
+        throw new Error("API response result is null");
+      }
+
+      return result;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        const data = error.response.data as any;
+
+        if (data.isError) {
+          const message = data.errorList?.[0]?.message || data.error?.messages?.[0]?.message;
+          if (message) {
+            throw new Error(message);
+          }
+        }
+      }
+      throw error;
     }
-
-    return response.data.result;
   },
 };

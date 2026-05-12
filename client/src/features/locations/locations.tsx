@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
 import { LocationsPagination } from "./locations-pagination";
 import { Button } from "@/shared/components/ui/button";
+import { Envelope } from "@/shared/api/envelope";
 
 export function AppLocations(): JSX.Element {
   const queryClient = useQueryClient();
