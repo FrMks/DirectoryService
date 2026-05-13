@@ -12,7 +12,7 @@ export class EnvelopeError extends Error {
     public readonly type: ErrorType
 
     constructor(apiErrors: ApiError[]) {
-        const firstMessage = apiErrors[0].message ?? "Unknown error";
+        const firstMessage = apiErrors.length > 0 ? apiErrors[0].message : "An unexpected error occurred";
         
         super(firstMessage);
 

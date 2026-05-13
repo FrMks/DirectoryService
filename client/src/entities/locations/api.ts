@@ -4,6 +4,7 @@ import { apiClient } from "@/shared/api/axios-instance";
 import { Envelope } from "@/shared/api/envelope";
 import { PaginationResponse } from "@/shared/api/types";
 import axios, { AxiosError } from "axios";
+import { EnvelopeError } from "@/shared/api/errors";
 
 export type CreateLocationRequest = {
   name: string;
@@ -76,6 +77,12 @@ export const locationsApi = {
         request,
       );
 
-      return response.data;
+      const envelope = response.data;
+
+      if (envelope.isError && envelope.errorList) {
+        throw new EnvelopeError(envelope.errorList);
+      }
+
+      return envelope.result;
   },
 };
