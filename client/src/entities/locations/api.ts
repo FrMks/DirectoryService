@@ -40,15 +40,20 @@ export async function getLocations(
       },
     },
   );
-  const result = response.data.result;
+  const envelope = response.data;
 
-  if (!result) {
-    throw new Error("Locations response does not contain result.");
+  if (envelope.isError && envelope.errorList)
+  {
+    throw new EnvelopeError(envelope.errorList);
+  }
+  if (envelope.result == null || envelope.result == undefined)
+  {
+    throw new Error("Server returned an empty result");
   }
 
   return {
-    ...result,
-    items: result.items.map(toLocation),
+    ...envelope.result,
+    items: envelope.result.items.map(toLocation),
   };
 }
 
