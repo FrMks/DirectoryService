@@ -70,30 +70,12 @@ function toLocation(location: LocationResponse): Location {
 export const locationsApi = {
   getLocations,
 
-  createLocation: async (request: CreateLocationRequest): Promise<string> => {
-    try {
+  createLocation: async (request: CreateLocationRequest) => {
       const response = await apiClient.post<Envelope<string>>(
         "/locations",
         request,
       );
 
-      const result = response.data.result;
-
-      if (result === null) {
-        throw new Error("API response result is null");
-      }
-
-      return result;
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.data) {
-        const envelope = error.response.data as Envelope;
-
-        if (envelope?.isError && envelope.errorList)
-        {
-          throw new Error(envelope.errorList[0].message);
-        }
-      }
-      throw error;
-    }
+      return response.data;
   },
 };
