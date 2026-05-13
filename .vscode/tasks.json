@@ -57,6 +57,26 @@
                 "http://localhost:5143"
             ],
             "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "client-dev",
+            "type": "shell",
+            "command": "npm run dev",
+            "options": {
+                "cwd": "${workspaceFolder}/client"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "nextjs",
+                "pattern": {
+                    "regexp": "^.*$"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": ".*",
+                    "endsPattern": ".*(Ready in|Compiled).*|.*(ready|started).*|.*Local:.*"
+                }
+            }
         }
     ]
 }

@@ -86,13 +86,11 @@ export const locationsApi = {
       return result;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.data) {
-        const data = error.response.data as any;
+        const envelope = error.response.data as Envelope;
 
-        if (data.isError) {
-          const message = data.errorList?.[0]?.message || data.error?.messages?.[0]?.message;
-          if (message) {
-            throw new Error(message);
-          }
+        if (envelope?.isError && envelope.errorList)
+        {
+          throw new Error(envelope.errorList[0].message);
         }
       }
       throw error;
