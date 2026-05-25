@@ -22,14 +22,14 @@ namespace FileService.Infrastructure.Postgres.Configurations
 
                 mb.OwnsOne(md => md.ContentType, cb =>
                 {
-                    cb.Property(x => x.Category).HasConversion<string>().HasColumnName("category");
-                    cb.Property(x => x.Value).HasColumnName("value");
+                    cb.Property(x => x.Category).HasConversion<string>();
+                    cb.Property(x => x.Value);
                 });
 
                 mb.OwnsOne(md => md.FileName, fb =>
                 {
-                    fb.Property(x => x.Extension).HasColumnName("extension");
-                    fb.Property(x => x.Name).HasColumnName("value");
+                    fb.Property(x => x.Extension);
+                    fb.Property(x => x.Name);
                 });
 
                 mb.Property(md => md.Size).HasColumnName("size");
@@ -45,18 +45,35 @@ namespace FileService.Infrastructure.Postgres.Configurations
             builder.Property(x => x.CreatedAt).HasColumnName("created_at");
             builder.Property(x => x.UpdatedAt).HasColumnName("updated_at");
 
-            builder.Property(x => x.RawKey)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<StorageKey>(v, (JsonSerializerOptions?)null)!)
-                .HasColumnName("raw_key")
-                .HasColumnType("jsonb");
+            builder.OwnsOne(m => m.RawKey, mb =>
+            {
+                mb.Property(rk => rk.Bucket).HasColumnName("raw_key_bucket");
+                mb.Property(rk => rk.Prefix).HasColumnName("raw_key_prefix");
+                mb.Property(rk => rk.Key).HasColumnName("raw_key_key");
+                mb.Property(rk => rk.Value).HasColumnName("raw_key_value");
+                mb.Property(rk => rk.FullPath).HasColumnName("raw_key_full_path");
+            });
+
+            builder.OwnsOne(m => m.FinalKey, mb =>
+            {
+                mb.Property(rk => rk.Bucket).HasColumnName("final_key_bucket");
+                mb.Property(rk => rk.Prefix).HasColumnName("final_key_prefix");
+                mb.Property(rk => rk.Key).HasColumnName("final_key_key");
+                mb.Property(rk => rk.Value).HasColumnName("final_key_value");
+                mb.Property(rk => rk.FullPath).HasColumnName("final_key_full_path");
+            });
+
+            builder.OwnsOne(m => m.Owner, mb =>
+            {
+                mb.Property(o => o.Context).HasColumnName("owner_context");
+                mb.Property(o => o.EntityId).HasColumnName("owner_entity_id");
+            });
 
             builder.HasIndex(x => new
             {
                 x.Status,
                 x.CreatedAt,
-            })
+            });
         }
     }
 }
