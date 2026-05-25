@@ -1,19 +1,8 @@
+import { ApiError } from "./errors";
+
 export type Envelope<T = unknown> = {
-    result: T | null;
-    error: ApiError | null;
+    errorList: [ApiError];
     isError: boolean;
+    result: T | null;
     timeGenerated: string;
 };
-
-export type ApiError = {
-    messages: ErrorMessage[];
-    type: ErrorType;
-};
-
-export type ErrorMessage = {
-    code: string;
-    message: string;
-    invalidField?: string | null;
-};
-
-export type ErrorType = "validation" | "not_found" | "failure" | "unknown";

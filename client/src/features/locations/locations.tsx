@@ -10,6 +10,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PaginationResponse } from "@/shared/api/types";
 import { LocationsPagination } from "./locations-pagination";
 import { Button } from "@/shared/components/ui/button";
+import { Envelope } from "@/shared/api/envelope";
+import { EnvelopeError } from "@/shared/api/errors";
 
 export function AppLocations(): JSX.Element {
   const queryClient = useQueryClient();
@@ -36,7 +38,7 @@ export function AppLocations(): JSX.Element {
 
   const totalPages = locationsResponse?.totalPages ?? 1;
 
-  const createLocationMutation = useMutation<string, Error>({
+  const createLocationMutation = useMutation({
     mutationFn: () =>
       locationsApi.createLocation({
         name: "Новая локация 5",
@@ -50,6 +52,14 @@ export function AppLocations(): JSX.Element {
     onSettled: async () => {
       setPage(1);
       await queryClient.invalidateQueries({ queryKey: ["locations"] });
+    },
+    onError: (error) => {
+      if (error instanceof EnvelopeError) {
+        return;
+      }
+    },
+    onSuccess: () => {
+      return;
     },
   });
 

@@ -50,9 +50,29 @@
                 "C:\\Users\\coder8\\RiderProjects\\DirectoryService\\backend\\src\\FileService\\FileService.Core": "${workspaceFolder}/backend/src/FileService/FileService.Core",
                 "C:\\Users\\coder8\\RiderProjects\\DirectoryService\\backend\\src\\FileService\\FileService.Web": "${workspaceFolder}/backend/src/FileService/FileService.Web"
             }
+        },
+        {
+            "name": "Client: Debug in Chrome",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/client",
+            "preLaunchTask": "client-dev",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///./*": "${webRoot}/*"
+            }
         }
     ],
     "compounds": [
+        {
+            "name": "Full: DirectoryService + Client",
+            "configurations": [
+                "DirectoryService (ASP.NET Core)",
+                "Client: Debug in Chrome"
+            ],
+            "stopAll": true
+        },
         {
             "name": "DirectoryService + FileService",
             "configurations": [

@@ -3,6 +3,8 @@ import { GetLocationsResponse, LocationResponse } from "./getLocationsResponse";
 import { apiClient } from "@/shared/api/axios-instance";
 import { Envelope } from "@/shared/api/envelope";
 import { PaginationResponse } from "@/shared/api/types";
+import axios, { AxiosError } from "axios";
+import { EnvelopeError } from "@/shared/api/errors";
 
 export type CreateLocationRequest = {
   name: string;
@@ -38,15 +40,20 @@ export async function getLocations(
       },
     },
   );
-  const result = response.data.result;
+  const envelope = response.data;
 
-  if (!result) {
-    throw new Error("Locations response does not contain result.");
+  if (envelope.isError && envelope.errorList)
+  {
+    throw new EnvelopeError(envelope.errorList);
+  }
+  if (envelope.result == null || envelope.result == undefined)
+  {
+    throw new Error("Server returned an empty result");
   }
 
   return {
-    ...result,
-    items: result.items.map(toLocation),
+    ...envelope.result,
+    items: envelope.result.items.map(toLocation),
   };
 }
 
@@ -70,15 +77,17 @@ export const locationsApi = {
   getLocations,
 
   createLocation: async (request: CreateLocationRequest) => {
-    const response = await apiClient.post<Envelope<string>>(
-      "/locations",
-      request,
-    );
+      const response = await apiClient.post<Envelope<string>>(
+        "/locations",
+        request,
+      );
 
-    if (!response.data.result) {
-      throw new Error("Create location response does not contain result.");
-    }
+      const envelope = response.data;
 
-    return response.data.result;
+      if (envelope.isError && envelope.errorList) {
+        throw new EnvelopeError(envelope.errorList);
+      }
+
+      return envelope.result;
   },
 };
