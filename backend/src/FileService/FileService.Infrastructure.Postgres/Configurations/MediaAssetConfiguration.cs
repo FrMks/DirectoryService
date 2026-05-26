@@ -12,9 +12,9 @@ namespace FileService.Infrastructure.Postgres.Configurations
             builder.ToTable("media_assets");
             builder.HasKey(x => x.Id);
 
-            builder.HasDiscriminator<string>("asset_type")
-                .HasValue<VideoAsset>("video")
-                .HasValue<PreviewAsset>("preview");
+            builder.HasDiscriminator(x => x.AssetType)
+                .HasValue<VideoAsset>(AssetType.VIDEO)
+                .HasValue<PreviewAsset>(AssetType.PREVIEW);
 
             builder.OwnsOne(m => m.MediaData, mb =>
             {
@@ -32,8 +32,8 @@ namespace FileService.Infrastructure.Postgres.Configurations
                     fb.Property(x => x.Name);
                 });
 
-                mb.Property(md => md.Size).HasColumnName("size");
-                mb.Property(md => md.ExpectedChunksCount).HasColumnName("expected_chunks_count");
+                mb.Property(md => md.Size);
+                mb.Property(md => md.ExpectedChunksCount);
             });
 
             builder.Property(x => x.Id).HasColumnName("id");
@@ -65,7 +65,7 @@ namespace FileService.Infrastructure.Postgres.Configurations
 
             builder.OwnsOne(m => m.Owner, mb =>
             {
-                mb.Property(o => o.Context).HasColumnName("owner_context");
+                mb.Property(o => o.Context).HasColumnName("owner_context").HasMaxLength(50);
                 mb.Property(o => o.EntityId).HasColumnName("owner_entity_id");
             });
 
