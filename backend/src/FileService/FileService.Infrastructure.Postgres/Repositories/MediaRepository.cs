@@ -3,7 +3,7 @@ using FileService.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace FileService.Infrastructure.Postgres.Migrations;
+namespace FileService.Infrastructure.Postgres.Repositories;
 
 public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaRepository> logger) : IMediaRepository
 {

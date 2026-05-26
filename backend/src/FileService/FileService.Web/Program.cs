@@ -1,7 +1,7 @@
 ﻿using FileService.Core;
 using FileService.Core.Files;
 using FileService.Infrastructure.Postgres;
-using FileService.Infrastructure.Postgres.Migrations;
+using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Web;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
