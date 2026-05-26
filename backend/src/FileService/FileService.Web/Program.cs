@@ -1,5 +1,7 @@
-﻿using FileService.Core.Files;
+﻿using FileService.Core;
+using FileService.Core.Files;
 using FileService.Infrastructure.Postgres;
+using FileService.Infrastructure.Postgres.Migrations;
 using FileService.Web;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -20,6 +22,8 @@ var loggerConfiguration = new LoggerConfiguration()
 
 builder.Services.AddScoped<FileServiceDbContext>(_ =>
     new FileServiceDbContext(builder.Configuration.GetConnectionString("FileServiceDb")!));
+
+builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
 {
