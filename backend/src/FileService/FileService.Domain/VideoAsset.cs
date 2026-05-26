@@ -5,6 +5,9 @@ namespace FileService.Domain;
 
 public class VideoAsset : MediaAsset
 {
+    private VideoAsset()
+        : base() { }
+
     private VideoAsset(
         Guid id,
         MediaData mediaData,
@@ -27,7 +30,7 @@ public class VideoAsset : MediaAsset
 
     public static readonly string[] AllowedExtensions = ["mp4", "mkv", "avi", "mov"];
 
-    public StorageKey HlsRootKey { get; }
+    public StorageKey HlsRootKey { get; init; }
 
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {

@@ -9,14 +9,16 @@ namespace FileService.Domain;
 /// </summary>
 public sealed record ContentType
 {
-    public string Value { get; }
+    public string Value { get; init; }
 
-    public MediaType Category { get; }
+    public MediaType Category { get; init; }
 
-    private ContentType(string value, MediaType mediaType)
+    private ContentType() { }
+
+    private ContentType(string value, MediaType category)
     {
         Value = value;
-        Category = mediaType;
+        Category = category;
     }
 
     public static Result<ContentType, Error> Create(string contentType)

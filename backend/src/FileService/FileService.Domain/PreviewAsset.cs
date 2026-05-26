@@ -1,10 +1,13 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
 
 public class PreviewAsset : MediaAsset
 {
+    private PreviewAsset()
+        : base() { }
+
     private PreviewAsset(
         Guid id,
         MediaData mediaData,

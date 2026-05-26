@@ -20,9 +20,11 @@ public sealed record MediaOwner
         "department",
     ];
 
-    public string Context { get; }
+    public string Context { get; init; }
 
-    public Guid EntityId { get; }
+    public Guid EntityId { get; init; }
+
+    private MediaOwner() { }
 
     private MediaOwner(string context, Guid entityId)
     {
