@@ -14,15 +14,17 @@ public sealed record StorageKey
 {
     public static StorageKey None { get; } = new(string.Empty, string.Empty, string.Empty);
 
-    public string Bucket { get; }
+    public string Bucket { get; init; }
 
-    public string Prefix { get; }
+    public string Prefix { get; init; }
 
-    public string Key { get; }
+    public string Key { get; init; }
 
-    public string Value { get; }
+    public string Value { get; init; }
 
-    public string FullPath { get; }
+    public string FullPath { get; init; }
+
+    private StorageKey() { }
 
     private StorageKey(string bucket, string prefix, string key)
     {

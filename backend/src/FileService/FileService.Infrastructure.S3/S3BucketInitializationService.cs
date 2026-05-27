@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Threading.Tasks;
-using Amazon.Runtime.Internal.Util;
-using Amazon.S3;
+﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 
 namespace FileService.Infrastructure.S3;
 

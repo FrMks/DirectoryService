@@ -32,6 +32,8 @@ public abstract class MediaAsset
 
     public MediaStatus Status { get; protected set; }
 
+    protected MediaAsset() { }
+
     protected MediaAsset(
         Guid id,
         MediaData mediaData,

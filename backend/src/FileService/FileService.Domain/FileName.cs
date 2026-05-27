@@ -11,9 +11,11 @@ namespace FileService.Domain;
 /// </summary>
 public sealed record FileName
 {
-    public string Name { get; }
+    public string Name { get; init; }
 
-    public string Extension { get; }
+    public string Extension { get; init; }
+
+    private FileName() { }
 
     private FileName(string name, string extension)
     {

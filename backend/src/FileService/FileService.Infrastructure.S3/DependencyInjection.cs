@@ -1,6 +1,4 @@
-﻿using Amazon.Extensions.NETCore.Setup;
-using Amazon.Runtime;
-using Amazon.S3;
+﻿using Amazon.S3;
 using FileService.Core.Files;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
