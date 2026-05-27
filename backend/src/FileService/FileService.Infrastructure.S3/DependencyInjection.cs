@@ -30,6 +30,8 @@ public static class DependencyInjection
             return new AmazonS3Client(s3Option.AccessKey, s3Option.SecretKey, config);
         });
 
+        services.AddTransient<IChunkSizeCalculator, ChunkSizeCalculator>();
+
         return services;
     }
 }

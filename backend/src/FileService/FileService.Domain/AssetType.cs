@@ -7,5 +7,4 @@ public enum AssetType
 {
     VIDEO,
     PREVIEW,
-    AVATAR,
 }

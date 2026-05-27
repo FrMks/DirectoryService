@@ -1,4 +1,4 @@
-namespace FileService.Domain;
+﻿namespace FileService.Domain;
 
 public static class AssetTypeExtensions
 {
@@ -8,7 +8,6 @@ public static class AssetTypeExtensions
         {
             "video" => AssetType.VIDEO,
             "preview" => AssetType.PREVIEW,
-            "avatar" => AssetType.AVATAR,
             _ => throw new ArgumentException($"Unknown AssetType: {value}"),
         };
     }

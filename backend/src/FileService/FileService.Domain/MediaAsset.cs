@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Reflection.Metadata.Ecma335;
+using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain;
@@ -39,7 +40,7 @@ public abstract class MediaAsset
         MediaData mediaData,
         MediaStatus status,
         AssetType assetType,
-        MediaOwner owner,
+        // MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey)
     {
@@ -47,12 +48,31 @@ public abstract class MediaAsset
         MediaData = mediaData;
         Status = status;
         AssetType = assetType;
-        Owner = owner;
+        // Owner = owner;
         RawKey = rawKey;
         FinalKey = finalKey;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = CreatedAt;
     }
+
+    public static Result<MediaAsset, Error> CreateForUpload(MediaData mediaData, AssetType assetType)
+    {
+        var assetId = Guid.NewGuid();
+
+        switch (assetType)
+        {
+            case AssetType.VIDEO:
+                var videoResult = VideoAsset.CreateForUpload(assetId, mediaData);
+                return videoResult.IsFailure ? videoResult.Error : videoResult.Value;
+            case AssetType.PREVIEW:
+                var previewResult = PreviewAsset.CreateForUpload(assetId, mediaData);
+                return previewResult.IsFailure ? previewResult.Error : previewResult.Value;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(assetType), assetType, null);
+        }
+    }
+
+    #region Status
 
     public UnitResult<Error> MarkUploaded(DateTime timestamp)
     {
@@ -108,4 +128,6 @@ public abstract class MediaAsset
         UpdatedAt = timestamp;
         return UnitResult.Success<Error>();
     }
+
+    #endregion
 }
