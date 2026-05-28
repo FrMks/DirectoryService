@@ -81,9 +81,7 @@ public sealed class S3BucketInitializer : IS3BucketInitializer
                 await _s3Client.PutBucketAsync(putBucketRequest, cancellationToken);
             }
 
-            _logger.LogInformation("Creatin bucket '{BucketName}'", bucketExists);
-
-            string policy = $$$"""
+            string policy = $$"""
                                {
                                  "Version": "2012-10-17",
                                      "Statement": [

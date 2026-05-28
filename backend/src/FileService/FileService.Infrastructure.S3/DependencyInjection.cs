@@ -17,24 +17,19 @@ public static class DependencyInjection
 
         services.AddSingleton<IS3BucketInitializer, S3BucketInitializer>();
 
-        services.AddDefaultAWSOptions(sp =>
+        services.AddSingleton<IAmazonS3>(sp =>
         {
             var s3Options = sp.GetRequiredService<IOptions<S3Options>>().Value;
 
-            return new AWSOptions
+            var config = new AmazonS3Config
             {
-                Credentials = new Amazon.Runtime.BasicAWSCredentials(
-                    s3Options.AccessKey,
-                    s3Options.SecretKey),
-                DefaultClientConfig =
-                {
-                    ServiceURL = s3Options.Endpoint,
-                    UseHttp = !s3Options.WithSsl,
-                },
+                ServiceURL = s3Options.Endpoint,
+                UseHttp = !s3Options.WithSsl,
+                ForcePathStyle = true,
             };
-        });
 
-        services.AddAWSService<IAmazonS3>();
+            return new AmazonS3Client(s3Options.AccessKey, s3Options.SecretKey, config);
+        });
 
         services.AddTransient<IChunkSizeCalculator, ChunkSizeCalculator>();
 
