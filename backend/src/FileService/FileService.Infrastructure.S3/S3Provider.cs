@@ -76,8 +76,8 @@ public class S3Provider : IFileStorageProvider
                             Verb = HttpVerb.PUT,
                             UploadId = uploadId,
                             PartNumber = partNumber,
-                            Expires = DateTime.UtcNow.AddHours(_s3Options.UploadUrlExpirationHours),
-                            Protocol = _s3Options.WithSSL ? Protocol.HTTPS : Protocol.HTTP,
+                            Expires = DateTime.UtcNow.AddMinutes(_s3Options.UploadUrlExpirationMinutes),
+                            Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
                         };
 
                         string? url = await _s3Client.GetPreSignedURLAsync(request);
@@ -129,7 +129,7 @@ public class S3Provider : IFileStorageProvider
                 Key = storageKey.Value,
                 Verb = HttpVerb.GET,
                 Expires = DateTime.UtcNow.AddHours(_s3Options.DownloadUrlExpirationHours),
-                Protocol = _s3Options.WithSSL ? Protocol.HTTPS : Protocol.HTTP,
+                Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
             };
 
             string? response = await _s3Client.GetPreSignedURLAsync(request);
@@ -154,8 +154,8 @@ public class S3Provider : IFileStorageProvider
                 BucketName = bucketName,
                 Key = key,
                 Verb = HttpVerb.PUT,
-                Expires = DateTime.UtcNow.AddHours(6),
-                Protocol = _s3Options.WithSSL ? Protocol.HTTPS : Protocol.HTTP,
+                Expires = DateTime.UtcNow.AddMinutes(_s3Options.UploadUrlExpirationMinutes),
+                Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
             };
 
             string? response = await _s3Client.GetPreSignedURLAsync(request);

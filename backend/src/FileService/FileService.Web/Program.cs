@@ -3,6 +3,7 @@ using FileService.Core.Files;
 using FileService.Core.Multipart;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.Postgres.Repositories;
+using FileService.Infrastructure.S3;
 using FileService.Web;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -36,6 +37,12 @@ Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateAsyncScope())
+{
+    IS3BucketInitializer bucketInitializer = scope.ServiceProvider.GetRequiredService<IS3BucketInitializer>();
+    await bucketInitializer.InitializeAsync();
+}
 
 app.UseSharedExceptionHandling();
 

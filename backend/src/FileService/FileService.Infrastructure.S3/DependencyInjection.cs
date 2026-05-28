@@ -14,7 +14,7 @@ public static class DependencyInjection
 
         services.AddScoped<IFileStorageProvider, S3Provider>();
 
-        services.AddHostedService<S3BucketInitializationService>();
+        services.AddSingleton<IS3BucketInitializer, S3BucketInitializer>();
 
         services.AddSingleton<IAmazonS3>(sp =>
         {
@@ -23,7 +23,7 @@ public static class DependencyInjection
             var config = new AmazonS3Config
             {
                 ServiceURL = s3Option.Endpoint,
-                UseHttp = !s3Option.WithSSL,
+                UseHttp = !s3Option.WithSsl,
                 ForcePathStyle = true,
             };
 
