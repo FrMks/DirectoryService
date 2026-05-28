@@ -68,6 +68,7 @@ UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);
 StartMultipartUpload.MapFileEndpoints(app);
 CompleteMultipartUpload.MapFileEndpoints(app);
+DeleteFileEndpoint.MapDeleteFileEndpoint(app);
 
 app.Run();
 
