@@ -5,5 +5,5 @@ namespace FileService.Core.Files;
 
 public interface IChunkSizeCalculator
 {
-    Result<(long ChunkSize, int TotalChunks), Error> CalculateChunkSize(long fileSize, long recommendedChunkSizeBytes, int maxChunks);
+    Result<(long ChunkSize, int TotalChunks), Error> CalculateChunkSize(long fileSize);
 }

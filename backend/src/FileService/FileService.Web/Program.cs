@@ -58,6 +58,7 @@ app.UseHttpsRedirection();
 
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);
+StartMultipartUpload.MapFileEndpoints(app);
 
 app.Run();
 

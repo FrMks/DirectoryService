@@ -7,11 +7,11 @@ public sealed class MediaAssetFactory : IMediaAssetFactory
 {
     public Result<VideoAsset, Error> CreateVideoForUpload(MediaData mediaData, MediaOwner owner)
     {
-        return VideoAsset.CreateForUpload(Guid.NewGuid(), mediaData, owner);
+        return VideoAsset.CreateForUpload(Guid.NewGuid(), mediaData);
     }
 
     public Result<PreviewAsset, Error> CreatePreviewForUpload(MediaData mediaData, MediaOwner owner)
     {
-        return PreviewAsset.CreateForUpload(Guid.NewGuid(), mediaData, owner);
+        return PreviewAsset.CreateForUpload(Guid.NewGuid(), mediaData);
     }
 }

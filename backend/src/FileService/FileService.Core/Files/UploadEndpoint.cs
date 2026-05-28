@@ -12,7 +12,7 @@ public static class UploadEndpoint
     {
         endpoints.MapPost("/files", async Task<IResult> (
             [FromForm] IFormFile formFile,
-            [FromServices] IS3Provider storage,
+            [FromServices] IFileStorageProvider storage,
             [FromServices] IFileKeyGenerator fileKeyGenerator,
             CancellationToken cancellationToken) =>
         {

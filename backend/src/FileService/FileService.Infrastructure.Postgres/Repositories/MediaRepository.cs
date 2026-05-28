@@ -1,13 +1,15 @@
-﻿using FileService.Core;
+﻿using CSharpFunctionalExtensions;
+using FileService.Core;
 using FileService.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Shared;
 
 namespace FileService.Infrastructure.Postgres.Repositories;
 
 public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaRepository> logger) : IMediaRepository
 {
-    public async Task AddAsync(MediaAsset mediaAsset, CancellationToken cancellationToken)
+    public async Task<Result<Guid, Error>> AddAsync(MediaAsset mediaAsset, CancellationToken cancellationToken)
     {
         try
         {
@@ -15,10 +17,12 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
             await dbContext.SaveChangesAsync(cancellationToken);
 
             logger.LogInformation("Successfully added to the database with id{mediaAsset}", mediaAsset.Id);
+            return mediaAsset.Id;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Database error occurred when added media asset to a database.");
+            return Error.Failure("database.error", "Error when added media asset to a database.");
         }
     }
 
