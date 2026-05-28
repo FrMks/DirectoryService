@@ -1,5 +1,6 @@
 ﻿using FileService.Core;
 using FileService.Core.Files;
+using FileService.Core.Multipart;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Web;
@@ -59,6 +60,7 @@ app.UseHttpsRedirection();
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);
 StartMultipartUpload.MapFileEndpoints(app);
+CompleteMultipartUpload.MapFileEndpoints(app);
 
 app.Run();
 

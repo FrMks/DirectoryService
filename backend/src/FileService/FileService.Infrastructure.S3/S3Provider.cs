@@ -177,7 +177,7 @@ public class S3Provider : IFileStorageProvider
     {
         try
         {
-            var request = new CompleteMultipartUploadRequest
+            var request = new Amazon.S3.Model.CompleteMultipartUploadRequest
             {
                 BucketName = storageKey.Bucket,
                 Key = storageKey.Value,
@@ -185,7 +185,8 @@ public class S3Provider : IFileStorageProvider
                 PartETags = partETags.Select(p => new PartETag(p.PartNumber, p.ETag)).ToList(),
             };
 
-            var response = await _s3Client.CompleteMultipartUploadAsync(request, cancellationToken);
+            CompleteMultipartUploadResponse response = await _s3Client
+                .CompleteMultipartUploadAsync(request, cancellationToken);
 
             return response.Key;
         }

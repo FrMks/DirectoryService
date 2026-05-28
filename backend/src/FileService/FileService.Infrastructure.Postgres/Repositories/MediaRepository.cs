@@ -1,4 +1,5 @@
-﻿using CSharpFunctionalExtensions;
+﻿using System.Linq.Expressions;
+using CSharpFunctionalExtensions;
 using FileService.Core;
 using FileService.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +39,22 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
             logger.LogError(e, "Database error occurred when retrieving media asset by id.");
             return null;
         }
+    }
+
+    public async Task<Result<MediaAsset, Error>> GetBy(
+        Expression<Func<MediaAsset, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        MediaAsset? mediaAsset = await dbContext.MediaAssets.FirstOrDefaultAsync(predicate, cancellationToken);
+        if (mediaAsset is null)
+            return Error.NotFound(null, "media file");
+
+        return mediaAsset;
+    }
+
+    public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
+    {
+        return await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(MediaAsset mediaAsset, CancellationToken cancellationToken)
