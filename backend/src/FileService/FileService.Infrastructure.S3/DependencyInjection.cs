@@ -1,4 +1,5 @@
-﻿using Amazon.S3;
+﻿using Amazon.Extensions.NETCore.Setup;
+using Amazon.S3;
 using FileService.Core.Files;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,19 +17,24 @@ public static class DependencyInjection
 
         services.AddSingleton<IS3BucketInitializer, S3BucketInitializer>();
 
-        services.AddSingleton<IAmazonS3>(sp =>
+        services.AddDefaultAWSOptions(sp =>
         {
-            var s3Option = sp.GetRequiredService<IOptions<S3Options>>().Value;
+            var s3Options = sp.GetRequiredService<IOptions<S3Options>>().Value;
 
-            var config = new AmazonS3Config
+            return new AWSOptions
             {
-                ServiceURL = s3Option.Endpoint,
-                UseHttp = !s3Option.WithSsl,
-                ForcePathStyle = true,
+                Credentials = new Amazon.Runtime.BasicAWSCredentials(
+                    s3Options.AccessKey,
+                    s3Options.SecretKey),
+                DefaultClientConfig =
+                {
+                    ServiceURL = s3Options.Endpoint,
+                    UseHttp = !s3Options.WithSsl,
+                },
             };
-
-            return new AmazonS3Client(s3Option.AccessKey, s3Option.SecretKey, config);
         });
+
+        services.AddAWSService<IAmazonS3>();
 
         services.AddTransient<IChunkSizeCalculator, ChunkSizeCalculator>();
 
