@@ -34,12 +34,12 @@ public static class CompleteMultipartUpload
 public sealed class CompleteMultipartUploadHandler
 {
     private readonly ILogger<CompleteMultipartUploadHandler> _logger;
-    private readonly IFileStorageProvider _s3Provider;
+    private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
 
     public CompleteMultipartUploadHandler(
         ILogger<CompleteMultipartUploadHandler> logger,
-        IFileStorageProvider s3Provider,
+        IS3Provider s3Provider,
         IMediaRepository mediaRepository)
     {
         _logger = logger;

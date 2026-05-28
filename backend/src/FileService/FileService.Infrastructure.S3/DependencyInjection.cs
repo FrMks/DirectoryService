@@ -12,7 +12,7 @@ public static class DependencyInjection
     {
         services.Configure<S3Options>(configuration.GetSection(nameof(S3Options)));
 
-        services.AddScoped<IFileStorageProvider, S3Provider>();
+        services.AddScoped<IS3Provider, S3Provider>();
 
         services.AddSingleton<IS3BucketInitializer, S3BucketInitializer>();
 

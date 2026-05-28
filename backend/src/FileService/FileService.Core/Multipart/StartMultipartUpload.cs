@@ -33,13 +33,13 @@ public static class StartMultipartUpload
 public sealed class StartMultipartUploadHandler
 {
     private readonly ILogger<StartMultipartUploadHandler> _logger;
-    private readonly IFileStorageProvider _s3Provider;
+    private readonly IS3Provider _s3Provider;
     private readonly IChunkSizeCalculator _chunkSizeCalculator;
     private readonly IMediaRepository _mediaRepository;
 
     public StartMultipartUploadHandler(
         ILogger<StartMultipartUploadHandler> logger,
-        IFileStorageProvider s3Provider,
+        IS3Provider s3Provider,
         IChunkSizeCalculator chunkSizeCalculator,
         IMediaRepository mediaRepository)
     {

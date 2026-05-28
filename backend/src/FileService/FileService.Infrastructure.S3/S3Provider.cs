@@ -10,7 +10,7 @@ using Shared;
 
 namespace FileService.Infrastructure.S3;
 
-public class S3Provider : IFileStorageProvider
+public class S3Provider : IS3Provider
 {
     private readonly IAmazonS3 _s3Client;
     private readonly S3Options _s3Options;
@@ -101,25 +101,83 @@ public class S3Provider : IFileStorageProvider
         }
     }
 
-    public async Task UploadFileAsync(
+    public async Task<UnitResult<Error>> UploadFileAsync(
+        StorageKey storageKey,
         Stream stream,
-        string bucketName,
-        string key,
-        string contentType,
+        MediaData mediaData,
         CancellationToken cancellationToken)
     {
-        var request = new PutObjectRequest
+        try
         {
-            BucketName = bucketName,
-            Key = key,
-            InputStream = stream,
-            ContentType = contentType,
-        };
+            var request = new PutObjectRequest
+            {
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
+                InputStream = stream,
+                ContentType = mediaData.ContentType.Value,
+            };
 
-        await _s3Client.PutObjectAsync(request, cancellationToken);
+            await _s3Client.PutObjectAsync(request, cancellationToken);
+
+            return UnitResult.Success<Error>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error uploading file to bucket {BucketName} and key {Key}", storageKey.Bucket, storageKey.Value);
+            return S3ErrorMapper.ToError(ex);
+        }
     }
 
-    public async Task<Result<string?, Error>> GenerateDownloadUrlAsync(StorageKey storageKey)
+    public async Task<Result<string, Error>> DownloadFileAsync(
+        StorageKey storageKey,
+        string tempPath,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetObjectRequest
+            {
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
+            };
+
+            using GetObjectResponse response = await _s3Client.GetObjectAsync(request, cancellationToken);
+            await using var fileStream = File.Create(tempPath);
+            await response.ResponseStream.CopyToAsync(fileStream, cancellationToken);
+
+            return tempPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error downloading file from bucket {BucketName} and key {Key}", storageKey.Bucket, storageKey.Value);
+            return S3ErrorMapper.ToError(ex);
+        }
+    }
+
+    public async Task<Result<string, Error>> DeleteFileAsync(
+        StorageKey storageKey,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new DeleteObjectRequest
+            {
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
+            };
+
+            await _s3Client.DeleteObjectAsync(request, cancellationToken);
+
+            return storageKey.Value;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting file from bucket {BucketName} and key {Key}", storageKey.Bucket, storageKey.Value);
+            return S3ErrorMapper.ToError(ex);
+        }
+    }
+
+    public async Task<Result<string, Error>> GenerateDownloadUrlAsync(StorageKey storageKey)
     {
         try
         {
@@ -143,28 +201,29 @@ public class S3Provider : IFileStorageProvider
         }
     }
 
-    public async Task<Result<string?, Error>> GenerateUploadUrlAsync(
-        string bucketName,
-        string key)
+    public async Task<Result<string, Error>> GenerateUploadUrlAsync(
+        StorageKey storageKey,
+        MediaData mediaData,
+        CancellationToken cancellationToken)
     {
         try
         {
             var request = new GetPreSignedUrlRequest
             {
-                BucketName = bucketName,
-                Key = key,
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
                 Verb = HttpVerb.PUT,
                 Expires = DateTime.UtcNow.AddMinutes(_s3Options.UploadUrlExpirationMinutes),
                 Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
             };
 
-            string? response = await _s3Client.GetPreSignedURLAsync(request);
+            string response = await _s3Client.GetPreSignedURLAsync(request);
 
             return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error generating upload url for bucket {BucketName} and key {Key}", bucketName, key);
+            _logger.LogError(ex, "Error generating upload url for bucket {BucketName} and key {Key}", storageKey.Bucket, storageKey.Value);
             return S3ErrorMapper.ToError(ex);
         }
     }
@@ -195,5 +254,21 @@ public class S3Provider : IFileStorageProvider
             _logger.LogError(ex, "Error completing multipart upload for bucket {BucketName} and key {Key}", storageKey.Bucket, storageKey.Value);
             return S3ErrorMapper.ToError(ex);
         }
+    }
+
+    public async Task<Result<IReadOnlyList<string>, Error>> GenerateDownloadUrlsAsync(IEnumerable<StorageKey> storageKeys)
+    {
+        var urls = new List<string>();
+
+        foreach (StorageKey storageKey in storageKeys)
+        {
+            Result<string, Error> urlResult = await GenerateDownloadUrlAsync(storageKey);
+            if (urlResult.IsFailure)
+                return urlResult.Error;
+
+            urls.Add(urlResult.Value);
+        }
+
+        return urls;
     }
 }

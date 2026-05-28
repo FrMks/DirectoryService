@@ -1,4 +1,4 @@
-using FileService.Domain;
+﻿using FileService.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +13,7 @@ public static class GetDownloadUrlEndpoint
         endpoints.MapGet("/files/url", async Task<IResult> (
             string bucket,
             string key,
-            [FromServices] IFileStorageProvider storage) =>
+            [FromServices] IS3Provider storage) =>
         {
             var storageKeyResult = StorageKey.Create(bucket, null, key);
             if (storageKeyResult.IsFailure)
