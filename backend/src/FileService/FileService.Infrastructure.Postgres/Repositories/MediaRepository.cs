@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using FileService.Core;
-using FileService.Domain;
+using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shared;

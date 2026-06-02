@@ -1,4 +1,4 @@
-﻿using FileService.Domain;
+﻿using FileService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

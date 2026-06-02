@@ -1,6 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
 using FileService.Domain;
+using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.Enums.AssetTypeEnum;
+using FileService.Domain.ValueObjects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

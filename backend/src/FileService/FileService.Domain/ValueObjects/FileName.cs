@@ -1,9 +1,7 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.ValueObjects;
 
 /// <summary>
 /// Чтобы проверить, что имя не пустое и у файла есть расширение.

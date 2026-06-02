@@ -3,7 +3,7 @@ using Amazon.S3.Model;
 using CSharpFunctionalExtensions;
 using FileService.Contracts;
 using FileService.Core.Files;
-using FileService.Domain;
+using FileService.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared;

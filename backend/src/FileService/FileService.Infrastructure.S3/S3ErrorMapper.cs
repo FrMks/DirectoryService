@@ -1,4 +1,5 @@
 ﻿using Amazon.S3;
+using FileService.Domain.Errors;
 using Shared;
 
 namespace FileService.Infrastructure.S3;

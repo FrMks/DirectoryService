@@ -1,7 +1,11 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.Enums;
+using FileService.Domain.Enums.AssetTypeEnum;
+using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.Entities;
 
 public class VideoAsset : MediaAsset
 {

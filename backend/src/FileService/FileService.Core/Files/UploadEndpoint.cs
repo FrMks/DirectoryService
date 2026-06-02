@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using FileService.Domain;
+using FileService.Domain.ValueObjects;
 
 namespace FileService.Core.Files;
 

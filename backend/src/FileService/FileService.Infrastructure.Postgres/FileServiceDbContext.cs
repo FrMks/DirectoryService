@@ -1,4 +1,5 @@
-﻿using FileService.Domain;
+﻿using FileService.Domain.Entities;
+using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

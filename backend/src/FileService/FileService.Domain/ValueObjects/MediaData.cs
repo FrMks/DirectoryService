@@ -1,9 +1,7 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.ValueObjects;
 
 public sealed record MediaData
 {

@@ -1,6 +1,6 @@
 ﻿using Shared;
 
-namespace FileService.Infrastructure.S3;
+namespace FileService.Domain.Errors;
 
 public static class FileError
 {

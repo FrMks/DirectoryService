@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
-using FileService.Domain;
+using FileService.Domain.Entities.MediaAssetEntity;
 using Shared;
 
 namespace FileService.Core;

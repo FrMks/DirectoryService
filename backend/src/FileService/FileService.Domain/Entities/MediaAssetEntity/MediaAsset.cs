@@ -1,8 +1,10 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Enums;
+using FileService.Domain.Enums.AssetTypeEnum;
+using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.Entities.MediaAssetEntity;
 
 public abstract class MediaAsset
 {

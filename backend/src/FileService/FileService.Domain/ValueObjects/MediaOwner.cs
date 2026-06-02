@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.ValueObjects;
 
 /// <summary>
 /// Файл нужне, чтобы ответить на вопрос кому принадлежит этот файл.

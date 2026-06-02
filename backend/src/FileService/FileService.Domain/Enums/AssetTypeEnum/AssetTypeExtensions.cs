@@ -1,4 +1,6 @@
-﻿namespace FileService.Domain;
+﻿using FileService.Domain.Enums.AssetTypeEnum;
+
+namespace FileService.Domain;
 
 public static class AssetTypeExtensions
 {

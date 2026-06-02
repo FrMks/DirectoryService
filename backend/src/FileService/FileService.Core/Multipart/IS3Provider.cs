@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
-using FileService.Domain;
+using FileService.Domain.ValueObjects;
 using Shared;
 
 namespace FileService.Core.Files;
