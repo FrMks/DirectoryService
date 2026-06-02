@@ -7,6 +7,9 @@ using Shared;
 
 namespace FileService.Domain.Entities;
 
+/// <summary>
+/// Lifecycle: upload image => mark uploaded => mark ready
+/// </summary>
 public class PreviewAsset : MediaAsset
 {
     private PreviewAsset()

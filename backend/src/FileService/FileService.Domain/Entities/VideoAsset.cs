@@ -7,6 +7,9 @@ using Shared;
 
 namespace FileService.Domain.Entities;
 
+/// <summary>
+/// upload original video -> mark uploaded -> process/convert video -> mark ready
+/// </summary>
 public class VideoAsset : MediaAsset
 {
     private VideoAsset()
