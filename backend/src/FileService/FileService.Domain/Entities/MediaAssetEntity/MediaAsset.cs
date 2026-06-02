@@ -12,6 +12,9 @@ public abstract class MediaAsset
 
     public MediaData MediaData { get; protected set; } = null!;
 
+    /// <summary>
+    /// AssetType says what role this file has in your business (videoAsset or previewAsset),rather than what kind of file it is (mp4, jpg и т.д.)
+    /// </summary>
     public AssetType AssetType { get; protected set; }
 
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
@@ -27,10 +30,13 @@ public abstract class MediaAsset
     /// Путь к финальной версии, который потом будет исопльзовать система
     /// Для видео финальная версия отличается от raw, потому что видео после загрузки конвертируется в HLS
     /// videos/hls/{video-id}/master.m3u8
-    /// Для превью финальная версия аткая же, как raw, потому что превью не требует обработки
+    /// Для превью финальная версия такая же, как raw, потому что превью не требует обработки
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
 
+    /// <summary>
+    /// Who or what owns this media. Context="lesson", "course", "user", "department" + entityId
+    /// </summary>
     public MediaOwner Owner { get; protected set; } = null!;
 
     public MediaStatus Status { get; protected set; }

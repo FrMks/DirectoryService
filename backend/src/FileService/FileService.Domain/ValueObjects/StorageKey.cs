@@ -4,6 +4,7 @@ using Shared;
 namespace FileService.Domain.ValueObjects;
 
 /// <summary>
+/// Describes where the file is stored in S3/MinIO.
 /// Bucket = "videos"
 /// Prefix = "raw"
 /// Key = "{video-id}"
@@ -14,14 +15,29 @@ public sealed record StorageKey
 {
     public static StorageKey None { get; } = new(string.Empty, string.Empty, string.Empty);
 
+    /// <summary>
+    /// S3 bucket name, e.g. "videos" or "previews"
+    /// </summary>
     public string Bucket { get; init; }
 
+    /// <summary>
+    /// Is like a folder/category inside the bucket 'raw' - original files, 'hls' - converted video files, 'thumbnails' - preview images...
+    /// </summary>
     public string Prefix { get; init; }
 
+    /// <summary>
+    /// Final object name
+    /// </summary>
     public string Key { get; init; }
 
+    /// <summary>
+    /// prefix + key, e.g. "raw/{video-id}"
+    /// </summary>
     public string Value { get; init; }
 
+    /// <summary>
+    /// bucket + prefix + key, e.g. "videos/raw/{video-id}"
+    /// </summary>
     public string FullPath { get; init; }
 
     private StorageKey() { }
