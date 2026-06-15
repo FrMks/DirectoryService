@@ -96,7 +96,7 @@ public sealed class CompleteMultipartUploadHandler
             return completeResult.Error;
         }
 
-        UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded();
+        UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded(DateTime.UtcNow);
         if (markUploadedResult.IsFailure)
         {
             _logger.LogWarning(

@@ -51,6 +51,13 @@ public sealed record StorageKey
         FullPath = string.IsNullOrWhiteSpace(Bucket) ? Value : $"{Bucket}/{Value}";
     }
 
+    /// <summary>
+    /// Factory method to create StorageKey with validation and normalization.
+    /// </summary>
+    /// <param name="bucket">S3 bucket name, e.g. "videos" or "previews".</param>
+    /// <param name="prefix">Prefix for the storage key.</param>
+    /// <param name="key">Final object name.</param>
+    /// <returns>Result containing the created StorageKey or an error.</returns>
     public static Result<StorageKey, Error> Create(string bucket, string? prefix, string key)
     {
         Result<string, Error> normalizedBucketResult = NormalizeSegment(bucket);

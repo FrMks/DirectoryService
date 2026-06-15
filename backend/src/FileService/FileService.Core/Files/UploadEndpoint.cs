@@ -19,7 +19,7 @@ public static class UploadEndpoint
         {
             var key = fileKeyGenerator.GenerateRawFileKey(
                 new FileKeyContext(formFile.FileName, formFile.ContentType));
-            await using var stream = formFile.OpenReadStream();
+            await using Stream stream = formFile.OpenReadStream();
 
             var storageKeyResult = StorageKey.Create("preview", null, key);
             if (storageKeyResult.IsFailure)

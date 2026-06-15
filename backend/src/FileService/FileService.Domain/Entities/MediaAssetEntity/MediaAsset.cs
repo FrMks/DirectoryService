@@ -80,16 +80,6 @@ public abstract class MediaAsset
         }
     }
 
-    public UnitResult<Error> MarkUploaded()
-    {
-        if (Status != MediaStatus.UPLOADING)
-            return UnitResult.Success<Error>();
-
-        Status = MediaStatus.UPLOADED;
-        UpdatedAt = DateTime.UtcNow;
-        return UnitResult.Success<Error>();
-    }
-
     #region Status
 
     public UnitResult<Error> MarkUploaded(DateTime timestamp)

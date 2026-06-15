@@ -10,6 +10,7 @@ public static class GetDownloadUrlEndpoint
 {
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
+        // /files/url?bucket=preview&key=image.png
         endpoints.MapGet("/files/url", async Task<IResult> (
             string bucket,
             string key,
