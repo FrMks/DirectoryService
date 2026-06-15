@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using FileService.Domain.ValueObjects;
 
 namespace FileService.Core.Files;
 
@@ -18,16 +19,48 @@ public static class UploadEndpoint
         {
             var key = fileKeyGenerator.GenerateRawFileKey(
                 new FileKeyContext(formFile.FileName, formFile.ContentType));
-            await using var stream = formFile.OpenReadStream();
+            await using Stream stream = formFile.OpenReadStream();
 
-            await storage.UploadFileAsync(
+            var storageKeyResult = StorageKey.Create("preview", null, key);
+            if (storageKeyResult.IsFailure)
+            {
+                return Results.BadRequest(storageKeyResult.Error);
+            }
+
+            var fileNameResult = FileName.Create(formFile.FileName);
+            if (fileNameResult.IsFailure)
+            {
+                return Results.BadRequest(fileNameResult.Error);
+            }
+
+            var contentTypeResult = ContentType.Create(formFile.ContentType);
+            if (contentTypeResult.IsFailure)
+            {
+                return Results.BadRequest(contentTypeResult.Error);
+            }
+
+            var mediaDataResult = MediaData.Create(
+                fileNameResult.Value,
+                contentTypeResult.Value,
+                formFile.Length,
+                1);
+            if (mediaDataResult.IsFailure)
+            {
+                return Results.BadRequest(mediaDataResult.Error);
+            }
+
+            var uploadResult = await storage.UploadFileAsync(
+                storageKeyResult.Value,
                 stream,
-                "pictures",
-                key,
-                formFile.ContentType,
+                mediaDataResult.Value,
                 cancellationToken);
 
-            return Results.Ok(new { key });
+            if (uploadResult.IsFailure)
+            {
+                return Results.BadRequest(uploadResult.Error);
+            }
+
+            return Results.Ok(new { key = storageKeyResult.Value.Value });
         }).DisableAntiforgery();
 
         return endpoints;

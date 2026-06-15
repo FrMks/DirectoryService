@@ -1,29 +1,33 @@
 ﻿using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Util;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace FileService.Infrastructure.S3;
 
-public class S3BucketInitializationService : BackgroundService
+public interface IS3BucketInitializer
+{
+    Task InitializeAsync(CancellationToken cancellationToken = default);
+}
+
+public sealed class S3BucketInitializer : IS3BucketInitializer
 {
     private readonly S3Options _s3Options;
     private readonly IAmazonS3 _s3Client;
-    private ILogger<S3BucketInitializationService> _logger;
+    private ILogger<S3BucketInitializer> _logger;
 
-    public S3BucketInitializationService(
+    public S3BucketInitializer(
         IOptions<S3Options> s3Options,
         IAmazonS3 s3Client,
-        ILogger<S3BucketInitializationService> logger)
+        ILogger<S3BucketInitializer> logger)
     {
         _s3Options = s3Options.Value;
         _s3Client = s3Client;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -40,7 +44,7 @@ public class S3BucketInitializationService : BackgroundService
                 string.Join(", ", _s3Options.RequiredBuckets));
 
             Task[] tasks = _s3Options.RequiredBuckets
-                .Select(bucketName => InitializeBucketAsync(bucketName, stoppingToken))
+                .Select(bucketName => InitializeBucketAsync(bucketName, cancellationToken))
                 .ToArray();
 
             await Task.WhenAll(tasks);
@@ -64,17 +68,20 @@ public class S3BucketInitializationService : BackgroundService
             if (bucketExists)
             {
                 _logger.LogInformation("Bucket {Bucket} already exists", bucketName);
-                return;
+            }
+            else
+            {
+                _logger.LogInformation("Creating bucket '{BucketName}'", bucketName);
+
+                var putBucketRequest = new PutBucketRequest
+                {
+                    BucketName = bucketName,
+                };
+
+                await _s3Client.PutBucketAsync(putBucketRequest, cancellationToken);
             }
 
-            _logger.LogInformation("Creatin bucket '{BucketName}'", bucketExists);
-
-            var putBucketRequest = new PutBucketRequest
-            {
-                BucketName = bucketName,
-            };
-
-            string policy = $$$"""
+            string policy = $$"""
                                {
                                  "Version": "2012-10-17",
                                      "Statement": [
@@ -89,8 +96,6 @@ public class S3BucketInitializationService : BackgroundService
                                      ]    
                                }
                                """;
-
-            await _s3Client.PutBucketAsync(putBucketRequest, cancellationToken);
 
             var putPolicyRequest = new PutBucketPolicyRequest
             {

@@ -8,9 +8,17 @@ public record S3Options
 
     public string SecretKey { get; init; } = string.Empty;
 
-    public bool WithSSL { get; init; } = false;
+    public bool WithSsl { get; init; } = false;
 
     public int DownloadUrlExpirationHours { get; init; } = 24;
 
     public IReadOnlyList<string> RequiredBuckets { get; init; } = [];
+
+    public int UploadUrlExpirationMinutes { get; init; } = 15;
+
+    public int MaxConcurrentRequests { get; init; } = 20;
+
+    public long RecommendedChunkSizeBytes { get; init; } = 100 * 1024 * 1024; // 100 MB
+
+    public int MaxChunks { get; init; } = 100;
 }

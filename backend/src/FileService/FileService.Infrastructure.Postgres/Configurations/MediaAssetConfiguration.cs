@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
-using FileService.Domain;
+using FileService.Domain.Entities;
+using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.Enums.AssetTypeEnum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

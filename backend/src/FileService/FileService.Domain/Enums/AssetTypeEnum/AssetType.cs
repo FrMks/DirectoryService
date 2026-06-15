@@ -1,4 +1,4 @@
-﻿namespace FileService.Domain;
+﻿namespace FileService.Domain.Enums.AssetTypeEnum;
 
 /// <summary>
 /// Бизнес тип ассета
@@ -7,5 +7,4 @@ public enum AssetType
 {
     VIDEO,
     PREVIEW,
-    AVATAR,
 }

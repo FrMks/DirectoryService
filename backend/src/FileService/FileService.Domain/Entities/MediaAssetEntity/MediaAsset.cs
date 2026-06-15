@@ -1,7 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Enums;
+using FileService.Domain.Enums.AssetTypeEnum;
+using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.Entities.MediaAssetEntity;
 
 public abstract class MediaAsset
 {
@@ -9,6 +12,9 @@ public abstract class MediaAsset
 
     public MediaData MediaData { get; protected set; } = null!;
 
+    /// <summary>
+    /// AssetType says what role this file has in your business (videoAsset or previewAsset),rather than what kind of file it is (mp4, jpg и т.д.)
+    /// </summary>
     public AssetType AssetType { get; protected set; }
 
     public DateTime CreatedAt { get; protected set; } = DateTime.UtcNow;
@@ -24,10 +30,13 @@ public abstract class MediaAsset
     /// Путь к финальной версии, который потом будет исопльзовать система
     /// Для видео финальная версия отличается от raw, потому что видео после загрузки конвертируется в HLS
     /// videos/hls/{video-id}/master.m3u8
-    /// Для превью финальная версия аткая же, как raw, потому что превью не требует обработки
+    /// Для превью финальная версия такая же, как raw, потому что превью не требует обработки
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
 
+    /// <summary>
+    /// Who or what owns this media. Context="lesson", "course", "user", "department" + entityId
+    /// </summary>
     public MediaOwner Owner { get; protected set; } = null!;
 
     public MediaStatus Status { get; protected set; }
@@ -39,7 +48,7 @@ public abstract class MediaAsset
         MediaData mediaData,
         MediaStatus status,
         AssetType assetType,
-        MediaOwner owner,
+        // MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey)
     {
@@ -47,12 +56,31 @@ public abstract class MediaAsset
         MediaData = mediaData;
         Status = status;
         AssetType = assetType;
-        Owner = owner;
+        // Owner = owner;
         RawKey = rawKey;
         FinalKey = finalKey;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = CreatedAt;
     }
+
+    public static Result<MediaAsset, Error> CreateForUpload(MediaData mediaData, AssetType assetType)
+    {
+        var assetId = Guid.NewGuid();
+
+        switch (assetType)
+        {
+            case AssetType.VIDEO:
+                var videoResult = VideoAsset.CreateForUpload(assetId, mediaData);
+                return videoResult.IsFailure ? videoResult.Error : videoResult.Value;
+            case AssetType.PREVIEW:
+                var previewResult = PreviewAsset.CreateForUpload(assetId, mediaData);
+                return previewResult.IsFailure ? previewResult.Error : previewResult.Value;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(assetType), assetType, null);
+        }
+    }
+
+    #region Status
 
     public UnitResult<Error> MarkUploaded(DateTime timestamp)
     {
@@ -108,4 +136,6 @@ public abstract class MediaAsset
         UpdatedAt = timestamp;
         return UnitResult.Success<Error>();
     }
+
+    #endregion
 }

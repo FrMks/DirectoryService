@@ -1,8 +1,15 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.Enums;
+using FileService.Domain.Enums.AssetTypeEnum;
+using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.Entities;
 
+/// <summary>
+/// upload original video -> mark uploaded -> process/convert video -> mark ready
+/// </summary>
 public class VideoAsset : MediaAsset
 {
     private VideoAsset()
@@ -12,11 +19,18 @@ public class VideoAsset : MediaAsset
         Guid id,
         MediaData mediaData,
         MediaStatus status,
-        MediaOwner owner,
+        // MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey,
         StorageKey hlsRootKey)
-            : base(id, mediaData, status, AssetType.VIDEO, owner, rawKey, finalKey)
+            : base(
+                id,
+                mediaData,
+                status,
+                AssetType.VIDEO,
+                // owner,
+                rawKey,
+                finalKey)
     {
         HlsRootKey = hlsRootKey;
     }
@@ -58,7 +72,8 @@ public class VideoAsset : MediaAsset
         return UnitResult.Success<Error>();
     }
 
-    public static Result<VideoAsset, Error> CreateForUpload(Guid id, MediaData mediaData, MediaOwner owner)
+    // public static Result<VideoAsset, Error> CreateForUpload(Guid id, MediaData mediaData, MediaOwner owner)
+    public static Result<VideoAsset, Error> CreateForUpload(Guid id, MediaData mediaData)
     {
         UnitResult<Error> validationResult = ValidateForUpload(mediaData);
         if (validationResult.IsFailure)
@@ -76,7 +91,7 @@ public class VideoAsset : MediaAsset
             id,
             mediaData,
             MediaStatus.UPLOADING,
-            owner,
+            // owner,
             rawKey.Value,
             StorageKey.None,
             hlsRootKey.Value);

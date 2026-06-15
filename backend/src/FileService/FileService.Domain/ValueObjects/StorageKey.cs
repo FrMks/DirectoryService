@@ -1,9 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.ValueObjects;
 
 /// <summary>
+/// Describes where the file is stored in S3/MinIO.
 /// Bucket = "videos"
 /// Prefix = "raw"
 /// Key = "{video-id}"
@@ -14,14 +15,29 @@ public sealed record StorageKey
 {
     public static StorageKey None { get; } = new(string.Empty, string.Empty, string.Empty);
 
+    /// <summary>
+    /// S3 bucket name, e.g. "videos" or "previews"
+    /// </summary>
     public string Bucket { get; init; }
 
+    /// <summary>
+    /// Is like a folder/category inside the bucket 'raw' - original files, 'hls' - converted video files, 'thumbnails' - preview images...
+    /// </summary>
     public string Prefix { get; init; }
 
+    /// <summary>
+    /// Final object name
+    /// </summary>
     public string Key { get; init; }
 
+    /// <summary>
+    /// prefix + key, e.g. "raw/{video-id}"
+    /// </summary>
     public string Value { get; init; }
 
+    /// <summary>
+    /// bucket + prefix + key, e.g. "videos/raw/{video-id}"
+    /// </summary>
     public string FullPath { get; init; }
 
     private StorageKey() { }
@@ -35,6 +51,13 @@ public sealed record StorageKey
         FullPath = string.IsNullOrWhiteSpace(Bucket) ? Value : $"{Bucket}/{Value}";
     }
 
+    /// <summary>
+    /// Factory method to create StorageKey with validation and normalization.
+    /// </summary>
+    /// <param name="bucket">S3 bucket name, e.g. "videos" or "previews".</param>
+    /// <param name="prefix">Prefix for the storage key.</param>
+    /// <param name="key">Final object name.</param>
+    /// <returns>Result containing the created StorageKey or an error.</returns>
     public static Result<StorageKey, Error> Create(string bucket, string? prefix, string key)
     {
         Result<string, Error> normalizedBucketResult = NormalizeSegment(bucket);

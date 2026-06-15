@@ -1,4 +1,6 @@
-﻿using FileService.Core.Files.FileKey;
+using FileService.Core.Files;
+using FileService.Core.Files.FileKey;
+using FileService.Core.Multipart;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +11,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddCore(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddScoped<StartMultipartUploadHandler>();
+        services.AddScoped<CompleteMultipartUploadHandler>();
+        services.AddSingleton<IFileKeyGenerator, FileKeyGenerator>();
+
         var redisConnectionString = configuration.GetConnectionString("Redis");
 
         if (string.IsNullOrWhiteSpace(redisConnectionString))
@@ -29,8 +35,6 @@ public static class DependencyInjection
                 Expiration = TimeSpan.FromMinutes(5),
             };
         });
-
-        services.AddSingleton<IFileKeyGenerator, FileKeyGenerator>();
 
         return services;
     }

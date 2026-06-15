@@ -1,14 +1,14 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Enums;
 using Shared;
 
-namespace FileService.Domain;
+namespace FileService.Domain.ValueObjects;
 
-/// <summary>
-/// Файл нельзя проверять только по расширению. Пользователь может отправить video.mp4, 
-/// но Content-Type будет image/png. Domain должен такое поймать
-/// </summary>
 public sealed record ContentType
 {
+    /// <summary>
+    /// This is MIME type/content type. For example: "video/mp4", "image/png", "application/pdf"  
+    /// </summary>
     public string Value { get; init; }
 
     public MediaType Category { get; init; }
