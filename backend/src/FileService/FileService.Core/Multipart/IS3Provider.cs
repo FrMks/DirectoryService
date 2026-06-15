@@ -48,4 +48,5 @@ public interface IS3Provider
         StorageKey storageKey,
         MediaData mediaData,
         CancellationToken cancellationToken);
+
 }

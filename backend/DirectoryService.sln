@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Infrastructure.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Web", "src\FileService\FileService.Web\FileService.Web.csproj", "{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.IntegrationTests", "tests\FileService.IntegrationTests\FileService.IntegrationTests.csproj", "{242468C0-082E-40F4-894F-1E7773C88E11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -190,6 +192,18 @@ Global
 		{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2}.Release|x64.Build.0 = Release|Any CPU
 		{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2}.Release|x86.ActiveCfg = Release|Any CPU
 		{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2}.Release|x86.Build.0 = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|x64.Build.0 = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Debug|x86.Build.0 = Debug|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x64.ActiveCfg = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x64.Build.0 = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x86.ActiveCfg = Release|Any CPU
+		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -208,5 +222,6 @@ Global
 		{47259490-3CF4-4893-B78E-428053E68C96} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 		{DCAFD6B7-4F45-4252-B8A6-63081DBC188B} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 		{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
+		{242468C0-082E-40F4-894F-1E7773C88E11} = {5A7A728E-A785-4E5C-AED0-8E3F30CA740E}
 	EndGlobalSection
 EndGlobal
