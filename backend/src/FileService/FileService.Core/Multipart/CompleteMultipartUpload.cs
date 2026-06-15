@@ -108,6 +108,7 @@ public sealed class CompleteMultipartUploadHandler
             return markUploadedResult.Error;
         }
 
+        await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
         await _mediaRepository.SaveAsync(cancellationToken);
 
         _logger.LogInformation(
