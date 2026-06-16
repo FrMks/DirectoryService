@@ -1,8 +1,5 @@
-﻿using System.ComponentModel;
-using System.Data.Common;
+﻿using System.Data.Common;
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
-using DotNet.Testcontainers.Configurations;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Respawn;
 using Testcontainers.PostgreSql;
@@ -17,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using FileService.Infrastructure.Postgres;
 using Npgsql;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace FileService.IntegrationTests.Infrastructure;
 
@@ -75,6 +73,24 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
             services.AddScoped<FileServiceDbContext>(_ =>
                 new FileServiceDbContext(_dbContainer.GetConnectionString()));
         });
+
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            string minioEndpoint = $"http://localhost:{_minioContainer.GetMappedPublicPort(9000)}";
+
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["S3Options:Endpoint"] = minioEndpoint,
+                ["S3Options:AccessKey"] = "minioadmin",
+                ["S3Options:SecretKey"] = "minioadmin",
+                ["S3Options:WithSsl"] = "false",
+                ["S3Options:RequiredBuckets:0"] = "videos",
+                ["S3Options:RequiredBuckets:1"] = "preview",
+                ["S3Options:UploadUrlExpirationMinutes"] = "15",
+                ["S3Options:DownloadUrlExpirationHours"] = "24",
+                ["S3Options:MaxConcurrentRequests"] = "20",
+            });
+        });
     }
 
     public async Task InitializeAsync()
@@ -86,9 +102,8 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
         FileServiceDbContext dbContext = scope.ServiceProvider.GetRequiredService<FileServiceDbContext>();
 
         // Создаем миграции, чтобы тесты могли работать с тестовой БД развернутой в контейнере
-        await dbContext.Database.MigrateAsync();
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.MigrateAsync();
 
         IS3BucketInitializer bucketInitializer = scope.ServiceProvider.GetRequiredService<IS3BucketInitializer>();
         await bucketInitializer.InitializeAsync();
@@ -97,7 +112,17 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
         await InitializeRespawner();
     }
 
-    Task IAsyncLifetime.DisposeAsync() => throw new NotImplementedException();
+    // Добавили new, чтобы сказать, чтобы именно этот вызывался для dispose этого класса
+    public new async Task DisposeAsync()
+    {
+        await _dbContainer.StopAsync();
+        await _minioContainer.StopAsync();
+        await _dbContainer.DisposeAsync();
+        await _minioContainer.DisposeAsync();
+
+        await _dbConnection.CloseAsync();
+        await _dbConnection.DisposeAsync();
+    }
 
     public async Task ResetStorageAsync()
     {
@@ -140,6 +165,11 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
             }
             while (listResponse.IsTruncated == true); // если объектов много
         }
+    }
+
+    public async Task ResetDatabaseAsync()
+    {
+        await _respawner.ResetAsync(_dbConnection);
     }
 
     private async Task InitializeRespawner()
