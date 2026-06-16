@@ -274,18 +274,26 @@ public class S3Provider : IS3Provider
 
     public async Task<Result<StorageObjectMetadata, Error>> GetMetadataAsync(StorageKey storageKey, CancellationToken cancellationToken)
     {
-        var request = new GetObjectMetadataRequest
+        try
         {
-            BucketName = storageKey.Bucket,
-            Key = storageKey.Value,
-        };
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
+            };
 
-        GetObjectMetadataResponse response =
-            await _s3Client.GetObjectMetadataAsync(request, cancellationToken);
+            GetObjectMetadataResponse response =
+                await _s3Client.GetObjectMetadataAsync(request, cancellationToken);
 
-        return new StorageObjectMetadata(
-            response.Headers.ContentType,
-            response.Headers.ContentLength,
-            response.ETag);
+            return new StorageObjectMetadata(
+                response.Headers.ContentType,
+                response.Headers.ContentLength,
+                response.ETag);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error for get metadata was include in GetMetadataAsync method.");
+            return S3ErrorMapper.ToError(ex);
+        }
     }
 }
