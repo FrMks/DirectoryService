@@ -271,4 +271,21 @@ public class S3Provider : IS3Provider
 
         return urls;
     }
+
+    public async Task<Result<StorageObjectMetadata, Error>> GetMetadataAsync(StorageKey storageKey, CancellationToken cancellationToken)
+    {
+        var request = new GetObjectMetadataRequest
+        {
+            BucketName = storageKey.Bucket,
+            Key = storageKey.Value,
+        };
+
+        GetObjectMetadataResponse response =
+            await _s3Client.GetObjectMetadataAsync(request, cancellationToken);
+
+        return new StorageObjectMetadata(
+            response.Headers.ContentType,
+            response.Headers.ContentLength,
+            response.ETag);
+    }
 }
