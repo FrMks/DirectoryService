@@ -145,8 +145,9 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
             {
                 // Список найденных объектов, у каждого есть Key
                 listResponse = await s3Client.ListObjectsV2Async(listRequest);
+                IReadOnlyList<S3Object> objects = listResponse.S3Objects ?? [];
 
-                if (listResponse.S3Objects.Count > 0)
+                if (objects.Count > 0)
                 {
                     var deleteRequest = new DeleteObjectsRequest
                     {
