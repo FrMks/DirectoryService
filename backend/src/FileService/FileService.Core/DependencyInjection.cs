@@ -1,6 +1,7 @@
-using FileService.Core.Files;
+﻿using FileService.Core.Files;
 using FileService.Core.Files.FileKey;
 using FileService.Core.Multipart;
+using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<StartMultipartUploadHandler>();
         services.AddScoped<CompleteMultipartUploadHandler>();
         services.AddSingleton<IFileKeyGenerator, FileKeyGenerator>();
+        services.AddScoped<StartUploadHandler>();
 
         var redisConnectionString = configuration.GetConnectionString("Redis");
 
