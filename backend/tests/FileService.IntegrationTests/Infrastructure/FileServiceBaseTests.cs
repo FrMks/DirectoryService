@@ -18,9 +18,12 @@ public class FileServiceBaseTests : IClassFixture<FileServiceTestWebFactory>, IA
     protected FileServiceBaseTests(FileServiceTestWebFactory factory)
     {
         Services = factory.Services;
+        Client = factory.CreateClient();
         _resetDatabase = factory.ResetDatabaseAsync;
         _resetStorage = factory.ResetStorageAsync;
     }
+
+    protected HttpClient Client { get; }
 
     protected IServiceProvider Services { get; set; }
 
