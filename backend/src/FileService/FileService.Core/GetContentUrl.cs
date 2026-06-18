@@ -11,6 +11,7 @@ using Shared;
 
 namespace FileService.Core;
 
+// Дай только ссылку
 public static class GetContentUrl
 {
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)

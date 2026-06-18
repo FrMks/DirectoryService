@@ -140,6 +140,65 @@ public class SimpleUploadTests : FileServiceBaseTests
         asset.UploadedObject.Should().BeNull();
     }
 
+    [Fact]
+    public async Task GetFileById_WhenAssetReady_ReturnsMetadataAndContentUrl()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+
+        HttpResponseMessage completeResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/complete",
+            content: null);
+        completeResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        HttpResponseMessage fileResponse = await Client.GetAsync($"/files/{upload.MediaAssetId}");
+
+        fileResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        FileResponse? file = await fileResponse.Content.ReadFromJsonAsync<FileResponse>();
+        file.Should().NotBeNull();
+        file!.Id.Should().Be(upload.MediaAssetId);
+        file.FileName.Should().Be("preview.png");
+        file.ContentType.Should().Be(ContentType);
+        file.Size.Should().Be(bytes.Length);
+        file.Status.Should().Be(MediaStatus.READY.ToString());
+        file.AssetType.Should().Be(AssetType);
+        file.Context.Should().Be("lesson");
+        file.ContextId.Should().NotBeEmpty();
+        file.ContentUrl.Should().NotBeNullOrWhiteSpace();
+        file.CreatedAt.Should().BeBefore(DateTime.UtcNow.AddSeconds(1));
+        file.UpdatedAt.Should().BeBefore(DateTime.UtcNow.AddSeconds(1));
+
+        using var downloadHttpClient = new HttpClient();
+        byte[] downloadedBytes = await downloadHttpClient.GetByteArrayAsync(file.ContentUrl);
+
+        downloadedBytes.Should().Equal(bytes);
+    }
+
+    [Fact]
+    public async Task GetFileById_WhenAssetIsNotReady_ReturnsMetadataWithoutContentUrl()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+
+        HttpResponseMessage fileResponse = await Client.GetAsync($"/files/{upload.MediaAssetId}");
+
+        fileResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        FileResponse? file = await fileResponse.Content.ReadFromJsonAsync<FileResponse>();
+        file.Should().NotBeNull();
+        file!.Id.Should().Be(upload.MediaAssetId);
+        file.FileName.Should().Be("preview.png");
+        file.ContentType.Should().Be(ContentType);
+        file.Size.Should().Be(bytes.Length);
+        file.Status.Should().Be(MediaStatus.UPLOADING.ToString());
+        file.AssetType.Should().Be(AssetType);
+        file.Context.Should().Be("lesson");
+        file.ContextId.Should().NotBeEmpty();
+        file.ContentUrl.Should().BeNull();
+    }
+
     private async Task<StartUploadResponse> StartUploadAsync(long size)
     {
         var request = new StartUploadRequest(
