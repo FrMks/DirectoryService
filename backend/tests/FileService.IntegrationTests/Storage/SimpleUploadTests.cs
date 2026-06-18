@@ -1,5 +1,6 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net;
 using FileService.Contracts;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Enums;
@@ -88,6 +89,55 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         asset.Status.Should().Be(MediaStatus.READY);
         asset.UploadedObject.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetContentUrl_WhenAssetReady_ReturnsDownloadUrl()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+
+        HttpResponseMessage completeResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/complete",
+            content: null);
+        completeResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        HttpResponseMessage contentUrlResponse = await Client.GetAsync(
+            $"/files/{upload.MediaAssetId}/content-url");
+
+        contentUrlResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        GetContentUrlResponse? contentUrl =
+            await contentUrlResponse.Content.ReadFromJsonAsync<GetContentUrlResponse>();
+        contentUrl.Should().NotBeNull();
+        contentUrl!.MediaAssetId.Should().Be(upload.MediaAssetId);
+        contentUrl.Url.Should().NotBeNullOrWhiteSpace();
+        contentUrl.Method.Should().Be("GET");
+        contentUrl.ExpiresAt.Should().BeAfter(DateTimeOffset.UtcNow);
+
+        using var downloadHttpClient = new HttpClient();
+        byte[] downloadedBytes = await downloadHttpClient.GetByteArrayAsync(contentUrl.Url);
+
+        downloadedBytes.Should().Equal(bytes);
+    }
+
+    [Fact]
+    public async Task GetContentUrl_WhenAssetIsNotReady_ReturnsBadRequest()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+
+        HttpResponseMessage contentUrlResponse = await Client.GetAsync(
+            $"/files/{upload.MediaAssetId}/content-url");
+
+        contentUrlResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.UPLOADING);
+        asset.UploadedObject.Should().BeNull();
     }
 
     private async Task<StartUploadResponse> StartUploadAsync(long size)
