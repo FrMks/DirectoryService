@@ -34,6 +34,8 @@ public abstract class MediaAsset
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
 
+    public StorageReference? UploadedObject { get; protected set; }
+
     /// <summary>
     /// Who or what owns this media. Context="lesson", "course", "user", "department" + entityId
     /// </summary>
@@ -141,4 +143,19 @@ public abstract class MediaAsset
     }
 
     #endregion
+
+    public UnitResult<Error> AttachUploadedObject(StorageReference storageReference)
+    {
+        if (Status != MediaStatus.UPLOADING)
+        {
+            return Error.Validation(
+                "media.invalid.status",
+                $"Cannot attach uploaded object while media asset is in status {Status}");
+        }
+
+        UploadedObject = storageReference;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
 }

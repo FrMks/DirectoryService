@@ -2,12 +2,14 @@
 using FileService.Contracts;
 using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.ValueObjects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using StackExchange.Redis;
 
 namespace FileService.Core.UploadAndCompleteOnlyOneUrl;
 
@@ -93,6 +95,19 @@ public sealed class CompleteUploadHandler
                 "media.content-type.mismatch",
                 "Uploaded object content type does not match expected content type");
         }
+
+        Result<StorageReference, Error> storageReferenceResult = StorageReference.Create(
+            mediaAsset.RawKey,
+            metadata.SizeBytes,
+            metadata.ContentType,
+            metadata.ETag);
+        if (storageReferenceResult.IsFailure)
+            return storageReferenceResult.Error;
+
+        UnitResult<Error> attachUploadedObjectResult = mediaAsset
+            .AttachUploadedObject(storageReferenceResult.Value);
+        if (attachUploadedObjectResult.IsFailure)
+            return attachUploadedObjectResult.Error;
 
         UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded(DateTime.UtcNow);
         if (markUploadedResult.IsFailure)
