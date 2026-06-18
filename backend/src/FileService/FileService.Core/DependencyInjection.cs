@@ -16,6 +16,7 @@ public static class DependencyInjection
         services.AddScoped<CompleteMultipartUploadHandler>();
         services.AddSingleton<IFileKeyGenerator, FileKeyGenerator>();
         services.AddScoped<StartUploadHandler>();
+        services.AddScoped<CompleteUploadHandler>();
 
         var redisConnectionString = configuration.GetConnectionString("Redis");
 

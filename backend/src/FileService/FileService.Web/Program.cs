@@ -71,6 +71,7 @@ StartMultipartUpload.MapFileEndpoints(app);
 CompleteMultipartUpload.MapFileEndpoints(app);
 DeleteFileEndpoint.MapDeleteFileEndpoint(app);
 UploadWithoutIFormFile.MapFileEndpoints(app);
+CompleteUpload.MapFileEndpoints(app);
 
 app.Run();
 

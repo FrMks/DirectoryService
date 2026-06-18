@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Contracts;
 using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
@@ -46,17 +47,65 @@ public sealed class CompleteUploadHandler
         _mediaRepository = mediaRepository;
     }
 
+    // Find asset => check status => read storage metadata => compare metadata 
+    // => mark ready => save => return success
     public async Task<UnitResult<Error>> Handle(
-        Guid mediaAssetIt,
+        Guid mediaAssetId,
         CancellationToken cancellationToken)
     {
         Result<MediaAsset, Error> mediaAssetResult = await _mediaRepository
-            .GetBy(m => m.Id == mediaAssetIt, cancellationToken);
+            .GetBy(m => m.Id == mediaAssetId, cancellationToken);
         if (mediaAssetResult.IsFailure)
             return mediaAssetResult.Error;
 
-        if (mediaAssetResult.Value.Status == Domain.Enums.MediaStatus.DELETED
-            || mediaAssetResult.Value.Status == Domain.Enums.MediaStatus.FAILED)
-            return mediaAssetResult.Error;
+        MediaAsset mediaAsset = mediaAssetResult.Value;
+
+        if (mediaAsset.Status == Domain.Enums.MediaStatus.READY)
+            return UnitResult.Success<Error>();
+
+        if (mediaAsset.Status != Domain.Enums.MediaStatus.UPLOADING)
+        {
+            return Error.Validation(
+                "media.invalid.status",
+                $"Cannot complete upload for media asset in status {mediaAsset.Status}");
+        }
+
+        Result<StorageObjectMetadata, Error> metadataResult =
+            await _s3Provider.GetMetadataAsync(mediaAsset.RawKey, cancellationToken);
+        if (metadataResult.IsFailure)
+            return metadataResult.Error;
+
+        StorageObjectMetadata metadata = metadataResult.Value;
+
+        if (metadata.SizeBytes != mediaAsset.MediaData.Size)
+        {
+            return Error.Validation(
+                "media.size.mismatch",
+                "Uploaded object size does not match expected size");
+        }
+
+        if (!string.Equals(
+                metadata.ContentType,
+                mediaAsset.MediaData.ContentType.Value,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return Error.Validation(
+                "media.content-type.mismatch",
+                "Uploaded object content type does not match expected content type");
+        }
+
+        UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded(DateTime.UtcNow);
+        if (markUploadedResult.IsFailure)
+            return markUploadedResult.Error;
+
+        UnitResult<Error> markReadyResult = mediaAsset.MarkReady(
+            mediaAsset.RawKey,
+            DateTime.UtcNow);
+        if (markReadyResult.IsFailure)
+            return markReadyResult.Error;
+
+        await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
+
+        return UnitResult.Success<Error>();
     }
 }
