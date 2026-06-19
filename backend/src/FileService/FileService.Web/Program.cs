@@ -76,6 +76,7 @@ GetContentUrl.MapFileEndpoints(app);
 GetFileById.MapFileEndpoints(app);
 GetFilesByTargetEntity.MapFileEndpoints(app);
 CancelPendingUpload.MapFileEndpoints(app);
+AbortMultipartUpload.MapFileEndpoints(app);
 
 app.Run();
 

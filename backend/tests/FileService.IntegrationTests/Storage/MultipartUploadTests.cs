@@ -92,6 +92,54 @@ public class MultipartUploadTests : FileServiceBaseTests
         asset.Status.Should().Be(MediaStatus.UPLOADING);
     }
 
+    [Fact]
+    public async Task MultipartUpload_Abort_MarksAssetDeletedAndPreventsComplete()
+    {
+        // Arrange
+        byte[] bytes = new byte[27 * 1024 * 1024];
+        Random.Shared.NextBytes(bytes);
+
+        StartMultipartUploadResponse upload = await StartMultipartUpload(bytes.Length);
+        List<PartETagDto> partETags = await UploadPartsAsync(upload, bytes);
+
+        var abortRequest = new AbortMultipartUploadDto(
+            upload.MediaAssetId,
+            upload.UploadId);
+
+        // Act
+        HttpResponseMessage abortResponse = await Client.PostAsJsonAsync(
+            "/files/abort-multipart-upload",
+            abortRequest);
+
+        // Assert
+        abortResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.DELETED);
+
+        var completeRequest = new CompleteMultipartUploadRequest(
+            upload.MediaAssetId,
+            upload.UploadId,
+            partETags);
+
+        HttpResponseMessage completeResponse = await Client.PostAsJsonAsync(
+            "/files/complete-upload",
+            completeRequest);
+
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        await ExecuteWithStorage(async storage =>
+        {
+            Result<StorageObjectMetadata, Error> result = await storage.GetMetadataAsync(
+                asset.RawKey,
+                CancellationToken.None);
+
+            result.IsFailure.Should().BeTrue();
+        });
+    }
+
     private async Task<List<PartETagDto>> UploadPartsAsync(
         StartMultipartUploadResponse upload,
         byte[] bytes)
