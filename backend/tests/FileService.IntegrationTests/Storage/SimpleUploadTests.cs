@@ -254,7 +254,7 @@ public class SimpleUploadTests : FileServiceBaseTests
         await CompleteUploadAsync(upload.MediaAssetId);
 
         HttpResponseMessage deleteResponse = await Client.PostAsync(
-            $"/files/{upload.MediaAssetId}",
+            $"/files/{upload.MediaAssetId}/delete",
             content: null);
         deleteResponse.IsSuccessStatusCode.Should().BeTrue();
 
@@ -343,6 +343,101 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         asset.Status.Should().Be(MediaStatus.READY);
         asset.UploadedObject.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task DeleteFile_WhenAssetReady_MarksAssetDeletedAndRemovesStorageObject()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+        await CompleteUploadAsync(upload.MediaAssetId);
+
+        MediaAsset assetBeforeDelete = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        HttpResponseMessage deleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/delete",
+            content: null);
+
+        deleteResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        MediaAsset assetAfterDelete = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        assetAfterDelete.Status.Should().Be(MediaStatus.DELETED);
+        assetAfterDelete.UploadedObject.Should().NotBeNull();
+
+        await ExecuteWithStorage(async storage =>
+        {
+            var metadataResult = await storage.GetMetadataAsync(
+                assetBeforeDelete.UploadedObject!.Key,
+                CancellationToken.None);
+
+            metadataResult.IsFailure.Should().BeTrue();
+        });
+    }
+
+    [Fact]
+    public async Task DeleteFile_WhenAlreadyDeleted_ReturnsSuccess()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+        await CompleteUploadAsync(upload.MediaAssetId);
+
+        HttpResponseMessage firstDeleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/delete",
+            content: null);
+        firstDeleteResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        HttpResponseMessage secondDeleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/delete",
+            content: null);
+
+        secondDeleteResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.DELETED);
+    }
+
+    [Fact]
+    public async Task DeleteFile_WhenAssetIsUploading_ReturnsBadRequest()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+
+        HttpResponseMessage deleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/delete",
+            content: null);
+
+        deleteResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.UPLOADING);
+    }
+
+    [Fact]
+    public async Task GetContentUrl_WhenAssetDeleted_ReturnsBadRequest()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+        await CompleteUploadAsync(upload.MediaAssetId);
+
+        HttpResponseMessage deleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/delete",
+            content: null);
+        deleteResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        HttpResponseMessage contentUrlResponse = await Client.GetAsync(
+            $"/files/{upload.MediaAssetId}/content-url");
+
+        contentUrlResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     private async Task<StartUploadResponse> StartUploadAsync(
