@@ -22,11 +22,14 @@ public class ChunkSizeCalculator : IChunkSizeCalculator
         if (fileSize <= _options.RecommendedChunkSizeBytes)
             return (fileSize, 1);
 
-        int calculatedChunks = (int)Math.Ceiling((double)fileSize / _options.RecommendedChunkSizeBytes);
+        long chunkSize = _options.RecommendedChunkSizeBytes;
+        int actualChunks = (int)Math.Ceiling((double)fileSize / chunkSize);
 
-        int actualChunks = Math.Min(calculatedChunks, _options.MaxChunks);
-
-        long chunkSize = (fileSize + actualChunks - 1) / actualChunks;
+        if (actualChunks > _options.MaxChunks)
+        {
+            actualChunks = _options.MaxChunks;
+            chunkSize = (fileSize + actualChunks - 1) / actualChunks;
+        }
 
         return (chunkSize, actualChunks);
     }

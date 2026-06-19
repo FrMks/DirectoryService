@@ -24,7 +24,7 @@ public class MultipartUploadTests : FileServiceBaseTests
     public async Task MultipartUpload_Complete_WithAllParts_Succeeds()
     {
         // Arrange
-        byte[] bytes = new byte[12 * 1024 * 1024];
+        byte[] bytes = new byte[27 * 1024 * 1024];
         Random.Shared.NextBytes(bytes);
 
         // Act
