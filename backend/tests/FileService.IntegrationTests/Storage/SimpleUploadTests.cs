@@ -199,15 +199,88 @@ public class SimpleUploadTests : FileServiceBaseTests
         file.ContentUrl.Should().BeNull();
     }
 
-    private async Task<StartUploadResponse> StartUploadAsync(long size)
+    [Fact]
+    public async Task GetFilesByTargetEntity_ReturnsOnlyFilesForRequestedTargetEntity()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        Guid targetEntityId = Guid.NewGuid();
+        Guid otherTargetEntityId = Guid.NewGuid();
+
+        StartUploadResponse readyUpload = await StartUploadAsync(bytes.Length, contextId: targetEntityId);
+        await PutFileToStorageAsync(readyUpload.UploadUrl, bytes);
+        await CompleteUploadAsync(readyUpload.MediaAssetId);
+
+        StartUploadResponse pendingUpload = await StartUploadAsync(bytes.Length, contextId: targetEntityId);
+
+        StartUploadResponse otherUpload = await StartUploadAsync(bytes.Length, contextId: otherTargetEntityId);
+        await PutFileToStorageAsync(otherUpload.UploadUrl, bytes);
+        await CompleteUploadAsync(otherUpload.MediaAssetId);
+
+        HttpResponseMessage response = await Client.GetAsync(
+            $"/files?context=lesson&contextId={targetEntityId}");
+
+        response.IsSuccessStatusCode.Should().BeTrue();
+
+        IReadOnlyList<FileResponse>? files =
+            await response.Content.ReadFromJsonAsync<IReadOnlyList<FileResponse>>();
+        files.Should().NotBeNull();
+        files!.Should().HaveCount(2);
+        files.Select(x => x.Id).Should().BeEquivalentTo([
+            readyUpload.MediaAssetId,
+            pendingUpload.MediaAssetId,
+        ]);
+
+        FileResponse readyFile = files.Single(x => x.Id == readyUpload.MediaAssetId);
+        readyFile.Status.Should().Be(MediaStatus.READY.ToString());
+        readyFile.Context.Should().Be("lesson");
+        readyFile.ContextId.Should().Be(targetEntityId);
+        readyFile.ContentUrl.Should().NotBeNullOrWhiteSpace();
+
+        FileResponse pendingFile = files.Single(x => x.Id == pendingUpload.MediaAssetId);
+        pendingFile.Status.Should().Be(MediaStatus.UPLOADING.ToString());
+        pendingFile.Context.Should().Be("lesson");
+        pendingFile.ContextId.Should().Be(targetEntityId);
+        pendingFile.ContentUrl.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetFilesByTargetEntity_DoesNotReturnDeletedFiles()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        Guid targetEntityId = Guid.NewGuid();
+
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length, contextId: targetEntityId);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+        await CompleteUploadAsync(upload.MediaAssetId);
+
+        HttpResponseMessage deleteResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}",
+            content: null);
+        deleteResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        HttpResponseMessage response = await Client.GetAsync(
+            $"/files?context=lesson&contextId={targetEntityId}");
+
+        response.IsSuccessStatusCode.Should().BeTrue();
+
+        IReadOnlyList<FileResponse>? files =
+            await response.Content.ReadFromJsonAsync<IReadOnlyList<FileResponse>>();
+        files.Should().NotBeNull();
+        files.Should().BeEmpty();
+    }
+
+    private async Task<StartUploadResponse> StartUploadAsync(
+        long size,
+        string context = "lesson",
+        Guid? contextId = null)
     {
         var request = new StartUploadRequest(
             FileName: "preview.png",
             AssetType: AssetType,
             ContentType: ContentType,
             Size: size,
-            Context: "lesson",
-            ContextId: Guid.NewGuid());
+            Context: context,
+            ContextId: contextId ?? Guid.NewGuid());
 
         HttpResponseMessage startResponse = await Client.PostAsJsonAsync("/files/uploads", request);
         startResponse.IsSuccessStatusCode.Should().BeTrue();
@@ -221,6 +294,15 @@ public class SimpleUploadTests : FileServiceBaseTests
         upload.RequiredHeaders["Content-Type"].Should().Be(ContentType);
 
         return upload;
+    }
+
+    private async Task CompleteUploadAsync(Guid mediaAssetId)
+    {
+        HttpResponseMessage completeResponse = await Client.PostAsync(
+            $"/files/{mediaAssetId}/complete",
+            content: null);
+
+        completeResponse.IsSuccessStatusCode.Should().BeTrue();
     }
 
     private static async Task PutFileToStorageAsync(string uploadUrl, byte[] bytes)

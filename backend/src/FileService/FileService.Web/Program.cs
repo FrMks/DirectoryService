@@ -74,6 +74,7 @@ UploadWithoutIFormFile.MapFileEndpoints(app);
 CompleteUpload.MapFileEndpoints(app);
 GetContentUrl.MapFileEndpoints(app);
 GetFileById.MapFileEndpoints(app);
+GetFilesByTargetEntity.MapFileEndpoints(app);
 
 app.Run();
 

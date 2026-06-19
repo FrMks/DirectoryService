@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<CompleteUploadHandler>();
         services.AddScoped<GetContentUrlHandler>();
         services.AddScoped<GetFileByIdHandler>();
+        services.AddScoped<GetFilesByTargetEntityHandler>();
 
         var redisConnectionString = configuration.GetConnectionString("Redis");
 

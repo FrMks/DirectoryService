@@ -15,6 +15,10 @@ public interface IMediaRepository
         Expression<Func<MediaAsset, bool>> predicate,
         CancellationToken cancellationToken = default);
 
+    Task<Result<IReadOnlyList<MediaAsset>, Error>> GetManyBy(
+        Expression<Func<MediaAsset, bool>> predicate,
+        CancellationToken cancellationToken = default);
+
     Task<int> SaveAsync(CancellationToken cancellationToken = default);
 
     Task UpdateAsync(MediaAsset mediaAsset, CancellationToken cancellationToken);
