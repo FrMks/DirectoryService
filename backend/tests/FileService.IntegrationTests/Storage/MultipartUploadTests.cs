@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Net;
 using CSharpFunctionalExtensions;
 using FileService.Contracts;
 using FileService.Domain.Entities.MediaAssetEntity;
@@ -57,6 +58,38 @@ public class MultipartUploadTests : FileServiceBaseTests
             result.Value.SizeBytes.Should().Be(bytes.Length);
             result.Value.ContentType.Should().Be(ContentType);
         });
+    }
+
+    [Fact]
+    public async Task MultipartUpload_Complete_WithMissingPart_ReturnsBadRequest()
+    {
+        // Arrange
+        byte[] bytes = new byte[27 * 1024 * 1024];
+        Random.Shared.NextBytes(bytes);
+
+        StartMultipartUploadResponse upload = await StartMultipartUpload(bytes.Length);
+        List<PartETagDto> partETags = await UploadPartsAsync(upload, bytes);
+        IReadOnlyList<PartETagDto> invalidPartETags = partETags
+            .Take(partETags.Count - 1)
+            .ToList();
+
+        var completeMultipartUploadRequest = new CompleteMultipartUploadRequest(
+            upload.MediaAssetId,
+            upload.UploadId,
+            invalidPartETags);
+
+        // Act
+        HttpResponseMessage completeResponse = await Client.PostAsJsonAsync(
+            "/files/complete-upload",
+            completeMultipartUploadRequest);
+
+        // Assert
+        completeResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.UPLOADING);
     }
 
     private async Task<List<PartETagDto>> UploadPartsAsync(
