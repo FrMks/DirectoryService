@@ -269,6 +269,82 @@ public class SimpleUploadTests : FileServiceBaseTests
         files.Should().BeEmpty();
     }
 
+    [Fact]
+    public async Task CancelPendingUpload_BeforePut_MarksAssetDeleted()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+
+        HttpResponseMessage cancelResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/cancel",
+            content: null);
+
+        cancelResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.DELETED);
+        asset.UploadedObject.Should().BeNull();
+
+        HttpResponseMessage contentUrlResponse = await Client.GetAsync(
+            $"/files/{upload.MediaAssetId}/content-url");
+        contentUrlResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task CancelPendingUpload_AfterPut_MarksAssetDeletedAndRemovesStorageObject()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+
+        MediaAsset assetBeforeCancel = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        HttpResponseMessage cancelResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/cancel",
+            content: null);
+
+        cancelResponse.IsSuccessStatusCode.Should().BeTrue();
+
+        MediaAsset assetAfterCancel = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        assetAfterCancel.Status.Should().Be(MediaStatus.DELETED);
+        assetAfterCancel.UploadedObject.Should().BeNull();
+
+        await ExecuteWithStorage(async storage =>
+        {
+            var metadataResult = await storage.GetMetadataAsync(
+                assetBeforeCancel.RawKey,
+                CancellationToken.None);
+
+            metadataResult.IsFailure.Should().BeTrue();
+        });
+    }
+
+    [Fact]
+    public async Task CancelPendingUpload_WhenAssetReady_ReturnsBadRequest()
+    {
+        byte[] bytes = [1, 2, 3, 4, 5];
+        StartUploadResponse upload = await StartUploadAsync(bytes.Length);
+        await PutFileToStorageAsync(upload.UploadUrl, bytes);
+        await CompleteUploadAsync(upload.MediaAssetId);
+
+        HttpResponseMessage cancelResponse = await Client.PostAsync(
+            $"/files/{upload.MediaAssetId}/cancel",
+            content: null);
+
+        cancelResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        MediaAsset asset = await ExecuteInDb(db =>
+            db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
+
+        asset.Status.Should().Be(MediaStatus.READY);
+        asset.UploadedObject.Should().NotBeNull();
+    }
+
     private async Task<StartUploadResponse> StartUploadAsync(
         long size,
         string context = "lesson",
