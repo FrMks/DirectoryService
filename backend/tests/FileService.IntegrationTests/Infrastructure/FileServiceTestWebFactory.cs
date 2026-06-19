@@ -89,6 +89,7 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
                 ["S3Options:UploadUrlExpirationMinutes"] = "15",
                 ["S3Options:DownloadUrlExpirationHours"] = "24",
                 ["S3Options:MaxConcurrentRequests"] = "20",
+                ["S3Options:RecommendedChunkSizeBytes"] = "5242880",
             });
         });
     }
