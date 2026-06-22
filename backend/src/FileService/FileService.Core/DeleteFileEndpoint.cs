@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core;
 
@@ -24,15 +25,15 @@ public static class DeleteFileEndpoint
             MediaAsset? mediaAsset = await mediaRepository.GetByIdAsync(mediaAssetId, cancellationToken);
             if (mediaAsset is null)
             {
-                return Results.NotFound(Error.NotFound("media.not.found", "Media asset was not found"));
+                return new ErrorsResult(Error.NotFound("media.not.found", "Media asset was not found"));
             }
 
             if (mediaAsset.Status == MediaStatus.DELETED)
-                return Results.Ok();
+                return Results.Ok(Envelope.Ok());
 
             if (mediaAsset.Status != MediaStatus.READY)
             {
-                return Results.BadRequest(Error.Validation(
+                return new ErrorsResult(Error.Validation(
                     "media.invalid.status",
                     $"Cannot delete media asset in status {mediaAsset.Status}"));
             }
@@ -43,19 +44,19 @@ public static class DeleteFileEndpoint
                 .DeleteFileAsync(keyToDelete, cancellationToken);
             if (deletedFileResult.IsFailure)
             {
-                return Results.BadRequest(deletedFileResult.Error);
+                return new ErrorsResult(deletedFileResult.Error);
             }
 
             UnitResult<Error> markDeletedResult = mediaAsset
                 .MarkDeleted(DateTime.UtcNow);
             if (markDeletedResult.IsFailure)
             {
-                return Results.BadRequest(markDeletedResult.Error);
+                return new ErrorsResult(markDeletedResult.Error);
             }
 
             await mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
 
-            return Results.Ok(new { key = deletedFileResult.Value });
+            return Results.Ok(Envelope.Ok(new { key = deletedFileResult.Value }));
         });
 
         return endpoints;

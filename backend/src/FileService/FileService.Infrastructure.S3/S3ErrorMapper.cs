@@ -1,5 +1,6 @@
 ﻿using Amazon.S3;
 using FileService.Domain.Errors;
+using System.Net;
 using Shared;
 
 namespace FileService.Infrastructure.S3;
@@ -8,6 +9,9 @@ public static class S3ErrorMapper
 {
     public static Error ToError(Exception ex) => ex switch
     {
+        AmazonS3Exception { StatusCode: HttpStatusCode.NotFound }
+            => FileError.ObjectNotFound(),
+
         AmazonS3Exception { ErrorCode: "NoSuchBucket" }
             => FileError.BucketNotFound(),
 

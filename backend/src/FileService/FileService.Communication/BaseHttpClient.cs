@@ -8,8 +8,8 @@ namespace FileService.Communication;
 
 public abstract class BaseHttpClient
 {
-    protected readonly HttpClient HttpClient;
     protected readonly ILogger Logger;
+    protected readonly HttpClient HttpClient;
 
     protected BaseHttpClient(HttpClient httpClient, ILogger logger)
     {
@@ -24,8 +24,8 @@ public abstract class BaseHttpClient
     {
         try
         {
-            Envelope<TResponse>? envelope = await response.Content
-                .ReadFromJsonAsync<Envelope<TResponse>>(cancellationToken);
+            HttpEnvelope<TResponse>? envelope = await response.Content
+                .ReadFromJsonAsync<HttpEnvelope<TResponse>>(cancellationToken);
 
             if (envelope is null)
             {
@@ -40,7 +40,7 @@ public abstract class BaseHttpClient
 
             if (!response.IsSuccessStatusCode)
             {
-                Errors errors = envelope.Errors
+                Errors errors = envelope.GetErrors()
                     ?? Error.Failure(
                         "http.unknown_error",
                         $"Service returned {response.StatusCode}").ToErrors();
@@ -53,15 +53,14 @@ public abstract class BaseHttpClient
                 return errors;
             }
 
-            if (envelope.IsError)
+            Errors? envelopeErrors = envelope.GetErrors();
+            if (envelopeErrors is not null)
             {
-                Errors errors = envelope.Errors!;
-
                 Logger.LogWarning(
                     "Service returned errors in envelope. Errors: {Errors}",
-                    string.Join("; ", errors.Select(error => error.Message)));
+                    string.Join("; ", envelopeErrors.Select(error => error.Message)));
 
-                return errors;
+                return envelopeErrors;
             }
 
             if (envelope.Result is null)

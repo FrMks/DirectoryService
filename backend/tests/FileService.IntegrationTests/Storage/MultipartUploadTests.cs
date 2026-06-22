@@ -191,9 +191,8 @@ public class MultipartUploadTests : FileServiceBaseTests
         HttpResponseMessage startResponse = await Client.PostAsJsonAsync("/files/multipart-upload", startMultipartUploadRequest);
         startResponse.IsSuccessStatusCode.Should().BeTrue();
 
-        StartMultipartUploadResponse? upload = await startResponse.Content.ReadFromJsonAsync<StartMultipartUploadResponse>();
-        upload.Should().NotBeNull();
-        upload!.MediaAssetId.Should().NotBeEmpty();
+        StartMultipartUploadResponse upload = await startResponse.ReadEnvelopeResultAsync<StartMultipartUploadResponse>();
+        upload.MediaAssetId.Should().NotBeEmpty();
         upload.UploadId.Should().NotBeEmpty();
         upload.ChunkSize.Should().BeGreaterThan(1);
         upload.ChunkUploadUrls.Should().NotBeNullOrEmpty();
