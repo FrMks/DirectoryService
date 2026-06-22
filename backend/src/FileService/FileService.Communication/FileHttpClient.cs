@@ -83,6 +83,28 @@ internal sealed class FileHttpClient : BaseHttpClient, IFileCommunicationService
                 "file-service.unavailable",
                 "File Service is unavailable").ToErrors();
         }
+        catch (Polly.Timeout.TimeoutRejectedException ex)
+        {
+            Logger.LogWarning(
+                ex,
+                "File Service request timed out. Uri: {RequestUri}",
+                requestUri);
+
+            return Error.Failure(
+                "file-service.timeout",
+                "File Service request timed out").ToErrors();
+        }
+        catch (Polly.CircuitBreaker.BrokenCircuitException ex)
+        {
+            Logger.LogWarning(
+                ex,
+                "File Service circuit breaker is open. Uri: {RequestUri}",
+                requestUri);
+
+            return Error.Failure(
+                "file-service.unavailable",
+                "File Service is temporarily unavailable").ToErrors();
+        }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Unexpected File Service client error. Uri: {RequestUri}", requestUri);

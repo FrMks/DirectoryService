@@ -22,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
     <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
   </ItemGroup>
