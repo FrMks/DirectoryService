@@ -7,30 +7,89 @@ namespace FileService.Communication;
 
 internal sealed class FileHttpClient : BaseHttpClient, IFileCommunicationService
 {
-
     public FileHttpClient(HttpClient httpClient, ILogger<FileHttpClient> logger)
         : base(httpClient, logger)
     {
     }
 
-    public async Task<Result<GetContentUrlResponse, Errors>> GetContentUrlAsync(Guid fileId, CancellationToken cancellationToken)
+    public Task<Result<FileResponse, Errors>> GetMediaAssetByIdAsync(
+        Guid mediaAssetId,
+        CancellationToken cancellationToken)
+    {
+        return SendGetAsync<FileResponse>(
+            $"files/{mediaAssetId:D}",
+            cancellationToken);
+    }
+
+    public Task<Result<IReadOnlyList<FileResponse>, Errors>> GetFilesByOwnerAsync(
+        string context,
+        Guid entityId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(context))
+        {
+            return Task.FromResult<Result<IReadOnlyList<FileResponse>, Errors>>(
+                Error.Validation(
+                    "file-service.context.required",
+                    "File owner context is required").ToErrors());
+        }
+
+        string escapedContext = Uri.EscapeDataString(context);
+
+        return SendGetAsync<IReadOnlyList<FileResponse>>(
+            $"files?context={escapedContext}&contextId={entityId:D}",
+            cancellationToken);
+    }
+
+    public Task<Result<GetContentUrlResponse, Errors>> GetContentUrlAsync(
+        Guid fileId,
+        CancellationToken cancellationToken)
+    {
+        return SendGetAsync<GetContentUrlResponse>(
+            $"files/{fileId:D}/content-url",
+            cancellationToken);
+    }
+
+    private async Task<Result<TResponse, Errors>> SendGetAsync<TResponse>(
+        string requestUri,
+        CancellationToken cancellationToken)
+        where TResponse : class
     {
         try
         {
             using HttpResponseMessage response = await HttpClient.GetAsync(
-            $"files/{fileId:D}/content-url",
-            cancellationToken);
+                requestUri,
+                cancellationToken);
 
-            return await HandleResponseAsync<GetContentUrlResponse>(response, cancellationToken);
+            return await HandleResponseAsync<TResponse>(response, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException ex)
+        {
+            Logger.LogWarning(ex, "File Service request timed out. Uri: {RequestUri}", requestUri);
+
+            return Error.Failure(
+                "file-service.timeout",
+                "File Service request timed out").ToErrors();
+        }
+        catch (HttpRequestException ex)
+        {
+            Logger.LogError(ex, "File Service is unavailable. Uri: {RequestUri}", requestUri);
+
+            return Error.Failure(
+                "file-service.unavailable",
+                "File Service is unavailable").ToErrors();
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error getting media asset for {fileId}", fileId);
-            return Error.Failure("server.internal", "Failed to request medias assets info").ToErrors();
+            Logger.LogError(ex, "Unexpected File Service client error. Uri: {RequestUri}", requestUri);
+
+            return Error.Failure(
+                "file-service.client.failure",
+                "Failed to process File Service request").ToErrors();
         }
     }
-
-    public Task<Result<IReadOnlyList<FileResponse>, Errors>> GetFilesByOwnerAsync(string context, Guid entityID, CancellationToken cancellationToken) => throw new NotImplementedException();
-
-    public Task<Result<FileResponse, Errors>> GetMideAssetById(Guid mediaAssetId, CancellationToken cancellationToken) => throw new NotImplementedException();
 }

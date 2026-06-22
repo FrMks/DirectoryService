@@ -6,13 +6,13 @@ namespace FileService.Communication;
 
 public interface IFileCommunicationService
 {
-    Task<Result<FileResponse, Errors>> GetMideAssetById(
+    Task<Result<FileResponse, Errors>> GetMediaAssetByIdAsync(
         Guid mediaAssetId,
         CancellationToken cancellationToken);
 
     Task<Result<IReadOnlyList<FileResponse>, Errors>> GetFilesByOwnerAsync(
         string context,
-        Guid entityID,
+        Guid entityId,
         CancellationToken cancellationToken);
 
     Task<Result<GetContentUrlResponse, Errors>> GetContentUrlAsync(

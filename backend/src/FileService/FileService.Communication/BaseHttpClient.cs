@@ -85,6 +85,10 @@ public abstract class BaseHttpClient
                 "http.invalid_json",
                 "Service returned invalid JSON.").ToErrors();
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             Logger.LogError(
