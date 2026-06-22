@@ -23,7 +23,7 @@ public static class FileServiceExtensions
                     .Value;
 
                 clientConfig.BaseAddress = new Uri(fileOptions.Url);
-                clientConfig.Timeout = TimeSpan.FromSeconds(fileOptions.TimeoutSeconds);
+                clientConfig.Timeout = Timeout.InfiniteTimeSpan;
             });
 
         httpClientBuilder
