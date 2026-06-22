@@ -52,6 +52,17 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
         return mediaAsset;
     }
 
+    public async Task<Result<IReadOnlyList<MediaAsset>, Error>> GetManyBy(
+        Expression<Func<MediaAsset, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        IReadOnlyList<MediaAsset> mediaAssets = await dbContext.MediaAssets
+            .Where(predicate)
+            .ToListAsync(cancellationToken);
+
+        return Result.Success<IReadOnlyList<MediaAsset>, Error>(mediaAssets);
+    }
+
     public async Task<int> SaveAsync(CancellationToken cancellationToken = default)
     {
         return await dbContext.SaveChangesAsync(cancellationToken);

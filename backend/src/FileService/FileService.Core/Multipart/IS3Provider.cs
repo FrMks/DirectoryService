@@ -48,4 +48,13 @@ public interface IS3Provider
         StorageKey storageKey,
         MediaData mediaData,
         CancellationToken cancellationToken);
+
+    Task<Result<StorageObjectMetadata, Error>> GetMetadataAsync(
+        StorageKey storageKey,
+        CancellationToken cancellationToken);
+
+    Task<UnitResult<Error>> AbortMultipartUploadAsync(
+        StorageKey storageKey,
+        string uploadId,
+        CancellationToken cancellationToken);
 }

@@ -271,4 +271,60 @@ public class S3Provider : IS3Provider
 
         return urls;
     }
+
+    public async Task<Result<StorageObjectMetadata, Error>> GetMetadataAsync(StorageKey storageKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new GetObjectMetadataRequest
+            {
+                BucketName = storageKey.Bucket,
+                Key = storageKey.Value,
+            };
+
+            GetObjectMetadataResponse response =
+                await _s3Client.GetObjectMetadataAsync(request, cancellationToken);
+
+            return new StorageObjectMetadata(
+                response.Headers.ContentType,
+                response.Headers.ContentLength,
+                response.ETag);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error for get metadata was include in GetMetadataAsync method.");
+            return S3ErrorMapper.ToError(ex);
+        }
+    }
+
+    public async Task<UnitResult<Error>> AbortMultipartUploadAsync(
+        StorageKey storageKey,
+        string uploadId,
+        CancellationToken cancellationToken)
+    {
+        var request = new AbortMultipartUploadRequest
+        {
+            BucketName = storageKey.Bucket,
+            Key = storageKey.Value,
+            UploadId = uploadId,
+        };
+
+        try
+        {
+            AbortMultipartUploadResponse response = await _s3Client
+                .AbortMultipartUploadAsync(request, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Error aborting multipart upload for bucket {BucketName}, key {Key}, uploadId {UploadId}",
+                storageKey.Bucket,
+                storageKey.Value,
+                uploadId);
+            return S3ErrorMapper.ToError(ex);
+        }
+
+        return UnitResult.Success<Error>();
+    }
 }

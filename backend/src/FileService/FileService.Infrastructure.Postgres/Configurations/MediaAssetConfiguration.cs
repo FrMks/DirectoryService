@@ -65,6 +65,22 @@ namespace FileService.Infrastructure.Postgres.Configurations
                 mb.Property(rk => rk.FullPath).HasColumnName("final_key_full_path");
             });
 
+            builder.OwnsOne(m => m.UploadedObject, ub =>
+            {
+                ub.Property(x => x.SizeBytes).HasColumnName("uploaded_object_size_bytes");
+                ub.Property(x => x.ContentType).HasColumnName("uploaded_object_content_type");
+                ub.Property(x => x.ETag).HasColumnName("uploaded_object_etag");
+
+                ub.OwnsOne(x => x.Key, kb =>
+                {
+                    kb.Property(k => k.Bucket).HasColumnName("uploaded_object_key_bucket");
+                    kb.Property(k => k.Prefix).HasColumnName("uploaded_object_key_prefix");
+                    kb.Property(k => k.Key).HasColumnName("uploaded_object_key_key");
+                    kb.Property(k => k.Value).HasColumnName("uploaded_object_key_value");
+                    kb.Property(k => k.FullPath).HasColumnName("uploaded_object_key_full_path");
+                });
+            });
+
             builder.OwnsOne(m => m.Owner, mb =>
             {
                 mb.Property(o => o.Context).HasColumnName("owner_context").HasMaxLength(50);

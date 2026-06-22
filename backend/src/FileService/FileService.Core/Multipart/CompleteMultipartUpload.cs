@@ -109,7 +109,6 @@ public sealed class CompleteMultipartUploadHandler
         }
 
         await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
-        await _mediaRepository.SaveAsync(cancellationToken);
 
         _logger.LogInformation(
             "Completed multipart upload {UploadId} for media asset {MediaAssetId}",

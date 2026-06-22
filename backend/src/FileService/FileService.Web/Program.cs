@@ -1,6 +1,7 @@
 ﻿using FileService.Core;
 using FileService.Core.Files;
 using FileService.Core.Multipart;
+using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Infrastructure.S3;
@@ -69,6 +70,13 @@ GetDownloadUrlEndpoint.MapFileEndpoints(app);
 StartMultipartUpload.MapFileEndpoints(app);
 CompleteMultipartUpload.MapFileEndpoints(app);
 DeleteFileEndpoint.MapDeleteFileEndpoint(app);
+UploadWithoutIFormFile.MapFileEndpoints(app);
+CompleteUpload.MapFileEndpoints(app);
+GetContentUrl.MapFileEndpoints(app);
+GetFileById.MapFileEndpoints(app);
+GetFilesByTargetEntity.MapFileEndpoints(app);
+CancelPendingUpload.MapFileEndpoints(app);
+AbortMultipartUpload.MapFileEndpoints(app);
 
 app.Run();
 

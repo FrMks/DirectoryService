@@ -86,7 +86,14 @@ public sealed class StartMultipartUploadHandler
             return Error.Validation("asset.type.invalid", ex.Message);
         }
 
-        Result<MediaAsset, Error> mediaAssetResult = MediaAsset.CreateForUpload(mediaDataResult.Value, assetType);
+        Result<MediaOwner, Error> mediaOwnerResult = MediaOwner.Create(request.Context, request.ContextId);
+        if (mediaOwnerResult.IsFailure)
+            return mediaOwnerResult.Error;
+
+        Result<MediaAsset, Error> mediaAssetResult = MediaAsset.CreateForUpload(
+            mediaDataResult.Value,
+            assetType,
+            mediaOwnerResult.Value);
         if (mediaAssetResult.IsFailure)
             return mediaAssetResult.Error;
 

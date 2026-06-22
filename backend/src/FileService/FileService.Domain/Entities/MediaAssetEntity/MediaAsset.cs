@@ -34,6 +34,8 @@ public abstract class MediaAsset
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
 
+    public StorageReference? UploadedObject { get; protected set; }
+
     /// <summary>
     /// Who or what owns this media. Context="lesson", "course", "user", "department" + entityId
     /// </summary>
@@ -48,7 +50,7 @@ public abstract class MediaAsset
         MediaData mediaData,
         MediaStatus status,
         AssetType assetType,
-        // MediaOwner owner,
+        MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey)
     {
@@ -56,24 +58,27 @@ public abstract class MediaAsset
         MediaData = mediaData;
         Status = status;
         AssetType = assetType;
-        // Owner = owner;
+        Owner = owner;
         RawKey = rawKey;
         FinalKey = finalKey;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = CreatedAt;
     }
 
-    public static Result<MediaAsset, Error> CreateForUpload(MediaData mediaData, AssetType assetType)
+    public static Result<MediaAsset, Error> CreateForUpload(
+        MediaData mediaData,
+        AssetType assetType,
+        MediaOwner owner)
     {
         var assetId = Guid.NewGuid();
 
         switch (assetType)
         {
             case AssetType.VIDEO:
-                var videoResult = VideoAsset.CreateForUpload(assetId, mediaData);
+                var videoResult = VideoAsset.CreateForUpload(assetId, mediaData, owner);
                 return videoResult.IsFailure ? videoResult.Error : videoResult.Value;
             case AssetType.PREVIEW:
-                var previewResult = PreviewAsset.CreateForUpload(assetId, mediaData);
+                var previewResult = PreviewAsset.CreateForUpload(assetId, mediaData, owner);
                 return previewResult.IsFailure ? previewResult.Error : previewResult.Value;
             default:
                 throw new ArgumentOutOfRangeException(nameof(assetType), assetType, null);
@@ -138,4 +143,19 @@ public abstract class MediaAsset
     }
 
     #endregion
+
+    public UnitResult<Error> AttachUploadedObject(StorageReference storageReference)
+    {
+        if (Status != MediaStatus.UPLOADING)
+        {
+            return Error.Validation(
+                "media.invalid.status",
+                $"Cannot attach uploaded object while media asset is in status {Status}");
+        }
+
+        UploadedObject = storageReference;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
 }
