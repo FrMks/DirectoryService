@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
     <PackageId>FileService.Communication</PackageId>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>Francuzov Maksim</Authors>
     <Company>FrMks</Company>
     <Description>Typed HTTP client for consuming the public File Service API with shared contracts, configurable options, and structured error handling.</Description>
