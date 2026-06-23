@@ -13,7 +13,8 @@ public static class FileServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<FileServiceOptions>(configuration.GetSection(nameof(FileServiceOptions)));
+        services.Configure<FileServiceOptions>(
+            configuration.GetSection(FileServiceOptions.SectionName));
 
         IHttpClientBuilder httpClientBuilder = services
             .AddHttpClient<IFileCommunicationService, FileHttpClient>((serviceProvider, clientConfig) =>
