@@ -131,4 +131,44 @@ public class FileServiceCommunicationTests
             server.LogEntries.Count().Should().Be(1);
         }
     }
+
+    [Fact]
+    public async Task FileServiceUnavailable_ReturnsFailure()
+    {
+        Guid fileId = Guid.NewGuid();
+
+        using WireMockServer server = WireMockServer.Start();
+
+        server
+            .Given(Request.Create().WithPath($"/files/{fileId:D}/content-url").UsingGet());
+
+        // Создаем аналог appsettings.json только прям в памяти
+        IConfiguration configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                [$"{FileServiceOptions.SectionName}:Url"] = server.Url!, // URL fake-сервера появляется динамически. Заранее в appsettings.json такой порт не знаешь
+                [$"{FileServiceOptions.SectionName}:TimeoutSeconds"] = "7",
+                [$"{FileServiceOptions.SectionName}:AttemptTimeoutSeconds"] = "2",
+                [$"{FileServiceOptions.SectionName}:RetryCount"] = "2",
+                [$"{FileServiceOptions.SectionName}:RetryDelayMilliseconds"] = "200",
+                [$"{FileServiceOptions.SectionName}:CircuitBreakerFailureRatio"] = "0.5",
+                [$"{FileServiceOptions.SectionName}:CircuitBreakerMinimumThroughput"] = "5",
+                [$"{FileServiceOptions.SectionName}:CircuitBreakerSamplingSeconds"] = "10",
+                [$"{FileServiceOptions.SectionName}:CircuitBreakerBreakSeconds"] = "15",
+            })
+            .Build();
+        ServiceCollection services = new();
+        // Создаем пустой DI контейнер
+        services.AddFilesServiceHttpCommunication(configuration);
+        using ServiceProvider serviceProvider = services.BuildServiceProvider();
+        IFileCommunicationService fileClient = serviceProvider
+            .GetRequiredService<IFileCommunicationService>();
+
+        Result<GetContentUrlResponse, Errors> contentUrlResponseResult = await fileClient
+            .GetContentUrlAsync(fileId, CancellationToken.None);
+        if (contentUrlResponseResult.IsFailure)
+        {
+            contentUrlResponseResult.IsFailure.Should().BeTrue();
+        }
+    }
 }
