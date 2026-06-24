@@ -42,6 +42,8 @@ public sealed class Location
 
     public DateTime? DeletedAt { get; private set; }
 
+    public MediaAssetId? PreviewAssetId { get; private set; }
+
     public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
 
     #endregion
