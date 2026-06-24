@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.Multipart;
 
@@ -23,8 +24,8 @@ public static class AbortMultipartUpload
             CSharpFunctionalExtensions.UnitResult<Error> result = await handler.Handle(abortDto, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok()
-                : Results.BadRequest(result.Error);
+                ? Results.Ok(Envelope.Ok())
+                : new ErrorsResult(result.Error);
         });
 
         return endpoints;

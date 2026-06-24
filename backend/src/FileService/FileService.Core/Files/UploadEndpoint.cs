@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using FileService.Domain.ValueObjects;
+using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.Files;
 
@@ -24,19 +26,19 @@ public static class UploadEndpoint
             var storageKeyResult = StorageKey.Create("preview", null, key);
             if (storageKeyResult.IsFailure)
             {
-                return Results.BadRequest(storageKeyResult.Error);
+                return new ErrorsResult(storageKeyResult.Error);
             }
 
             var fileNameResult = FileName.Create(formFile.FileName);
             if (fileNameResult.IsFailure)
             {
-                return Results.BadRequest(fileNameResult.Error);
+                return new ErrorsResult(fileNameResult.Error);
             }
 
             var contentTypeResult = ContentType.Create(formFile.ContentType);
             if (contentTypeResult.IsFailure)
             {
-                return Results.BadRequest(contentTypeResult.Error);
+                return new ErrorsResult(contentTypeResult.Error);
             }
 
             var mediaDataResult = MediaData.Create(
@@ -46,7 +48,7 @@ public static class UploadEndpoint
                 1);
             if (mediaDataResult.IsFailure)
             {
-                return Results.BadRequest(mediaDataResult.Error);
+                return new ErrorsResult(mediaDataResult.Error);
             }
 
             var uploadResult = await storage.UploadFileAsync(
@@ -57,10 +59,10 @@ public static class UploadEndpoint
 
             if (uploadResult.IsFailure)
             {
-                return Results.BadRequest(uploadResult.Error);
+                return new ErrorsResult(uploadResult.Error);
             }
 
-            return Results.Ok(new { key = storageKeyResult.Value.Value });
+            return Results.Ok(Envelope.Ok(new { key = storageKeyResult.Value.Value }));
         }).DisableAntiforgery();
 
         return endpoints;

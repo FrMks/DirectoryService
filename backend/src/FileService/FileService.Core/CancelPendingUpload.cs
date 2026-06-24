@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core;
 
@@ -22,8 +23,8 @@ public static class CancelPendingUpload
             UnitResult<Error> result = await handler.Handle(mediaAssetId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok()
-                : Results.BadRequest(result.Error);
+                ? Results.Ok(Envelope.Ok())
+                : new ErrorsResult(result.Error);
         });
 
         return endpoints;

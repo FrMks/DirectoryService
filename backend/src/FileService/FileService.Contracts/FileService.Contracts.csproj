@@ -4,6 +4,19 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>FileService.Contracts</PackageId>
+    <Version>0.0.1</Version>
+    <Authors>Francuzov Maksim</Authors>
+    <Company>FrMks</Company>
+    <Description>Public request and response contracts for the File Service API.</Description>
+    <PackageTags>file-service;contracts;dto;api</PackageTags>
+    <RepositoryUrl>https://github.com/FrMks/DirectoryService</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/FrMks/DirectoryService</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
 </Project>

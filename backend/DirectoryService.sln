@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Web", "src\File
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.IntegrationTests", "tests\FileService.IntegrationTests\FileService.IntegrationTests.csproj", "{242468C0-082E-40F4-894F-1E7773C88E11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Communication", "src\FileService\FileService.Communication\FileService.Communication.csproj", "{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -204,6 +206,18 @@ Global
 		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x64.Build.0 = Release|Any CPU
 		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x86.ActiveCfg = Release|Any CPU
 		{242468C0-082E-40F4-894F-1E7773C88E11}.Release|x86.Build.0 = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|x64.Build.0 = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Debug|x86.Build.0 = Debug|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|x64.ActiveCfg = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|x64.Build.0 = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|x86.ActiveCfg = Release|Any CPU
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -223,5 +237,6 @@ Global
 		{DCAFD6B7-4F45-4252-B8A6-63081DBC188B} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 		{E861FFFD-3D7B-4C24-9D98-C557C04A2EF2} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 		{242468C0-082E-40F4-894F-1E7773C88E11} = {5A7A728E-A785-4E5C-AED0-8E3F30CA740E}
+		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 	EndGlobalSection
 EndGlobal

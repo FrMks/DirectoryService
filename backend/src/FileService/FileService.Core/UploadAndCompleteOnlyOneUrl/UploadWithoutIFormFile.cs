@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.UploadAndCompleteOnlyOneUrl;
 
@@ -18,16 +19,14 @@ public static class UploadWithoutIFormFile
 {
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/files/uploads", async Task<Microsoft.AspNetCore.Http.IResult> (
+        endpoints.MapPost("/files/uploads", async Task<EndpointResult<StartUploadResponse>> (
             [FromBody] StartUploadRequest request,
             [FromServices] StartUploadHandler handler,
             CancellationToken cancellationToken) =>
         {
             Result<StartUploadResponse, Error> result = await handler.Handle(request, cancellationToken);
 
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(result.Error);
+            return result;
         });
 
         return endpoints;

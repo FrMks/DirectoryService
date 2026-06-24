@@ -108,10 +108,9 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         contentUrlResponse.IsSuccessStatusCode.Should().BeTrue();
 
-        GetContentUrlResponse? contentUrl =
-            await contentUrlResponse.Content.ReadFromJsonAsync<GetContentUrlResponse>();
-        contentUrl.Should().NotBeNull();
-        contentUrl!.MediaAssetId.Should().Be(upload.MediaAssetId);
+        GetContentUrlResponse contentUrl =
+            await contentUrlResponse.ReadEnvelopeResultAsync<GetContentUrlResponse>();
+        contentUrl.MediaAssetId.Should().Be(upload.MediaAssetId);
         contentUrl.Url.Should().NotBeNullOrWhiteSpace();
         contentUrl.Method.Should().Be("GET");
         contentUrl.ExpiresAt.Should().BeAfter(DateTimeOffset.UtcNow);
@@ -156,9 +155,8 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         fileResponse.IsSuccessStatusCode.Should().BeTrue();
 
-        FileResponse? file = await fileResponse.Content.ReadFromJsonAsync<FileResponse>();
-        file.Should().NotBeNull();
-        file!.Id.Should().Be(upload.MediaAssetId);
+        FileResponse file = await fileResponse.ReadEnvelopeResultAsync<FileResponse>();
+        file.Id.Should().Be(upload.MediaAssetId);
         file.FileName.Should().Be("preview.png");
         file.ContentType.Should().Be(ContentType);
         file.Size.Should().Be(bytes.Length);
@@ -186,9 +184,8 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         fileResponse.IsSuccessStatusCode.Should().BeTrue();
 
-        FileResponse? file = await fileResponse.Content.ReadFromJsonAsync<FileResponse>();
-        file.Should().NotBeNull();
-        file!.Id.Should().Be(upload.MediaAssetId);
+        FileResponse file = await fileResponse.ReadEnvelopeResultAsync<FileResponse>();
+        file.Id.Should().Be(upload.MediaAssetId);
         file.FileName.Should().Be("preview.png");
         file.ContentType.Should().Be(ContentType);
         file.Size.Should().Be(bytes.Length);
@@ -221,10 +218,9 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        IReadOnlyList<FileResponse>? files =
-            await response.Content.ReadFromJsonAsync<IReadOnlyList<FileResponse>>();
-        files.Should().NotBeNull();
-        files!.Should().HaveCount(2);
+        IReadOnlyList<FileResponse> files =
+            await response.ReadEnvelopeResultAsync<IReadOnlyList<FileResponse>>();
+        files.Should().HaveCount(2);
         files.Select(x => x.Id).Should().BeEquivalentTo([
             readyUpload.MediaAssetId,
             pendingUpload.MediaAssetId,
@@ -263,9 +259,8 @@ public class SimpleUploadTests : FileServiceBaseTests
 
         response.IsSuccessStatusCode.Should().BeTrue();
 
-        IReadOnlyList<FileResponse>? files =
-            await response.Content.ReadFromJsonAsync<IReadOnlyList<FileResponse>>();
-        files.Should().NotBeNull();
+        IReadOnlyList<FileResponse> files =
+            await response.ReadEnvelopeResultAsync<IReadOnlyList<FileResponse>>();
         files.Should().BeEmpty();
     }
 
@@ -456,9 +451,8 @@ public class SimpleUploadTests : FileServiceBaseTests
         HttpResponseMessage startResponse = await Client.PostAsJsonAsync("/files/uploads", request);
         startResponse.IsSuccessStatusCode.Should().BeTrue();
 
-        StartUploadResponse? upload = await startResponse.Content.ReadFromJsonAsync<StartUploadResponse>();
-        upload.Should().NotBeNull();
-        upload!.MediaAssetId.Should().NotBeEmpty();
+        StartUploadResponse upload = await startResponse.ReadEnvelopeResultAsync<StartUploadResponse>();
+        upload.MediaAssetId.Should().NotBeEmpty();
         upload.UploadUrl.Should().NotBeNullOrWhiteSpace();
         upload.Method.Should().Be("PUT");
         upload.RequiredHeaders.Should().ContainKey("Content-Type");

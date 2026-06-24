@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 using StackExchange.Redis;
 
 namespace FileService.Core.UploadAndCompleteOnlyOneUrl;
@@ -25,8 +26,8 @@ public static class CompleteUpload
             UnitResult<Error> result = await handler.Handle(mediaAssetId, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok()
-                : Results.BadRequest(result.Error);
+                ? Results.Ok(Envelope.Ok())
+                : new ErrorsResult(result.Error);
         });
 
         return endpoints;
@@ -75,7 +76,16 @@ public sealed class CompleteUploadHandler
         Result<StorageObjectMetadata, Error> metadataResult =
             await _s3Provider.GetMetadataAsync(mediaAsset.RawKey, cancellationToken);
         if (metadataResult.IsFailure)
+        {
+            if (metadataResult.Error.Type == ErrorType.NotFound)
+            {
+                return Error.Validation(
+                    "media.upload.not.found",
+                    "The file must be uploaded before completing the upload");
+            }
+
             return metadataResult.Error;
+        }
 
         StorageObjectMetadata metadata = metadataResult.Value;
 

@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>FileService.Communication</PackageId>
+    <Version>0.0.2</Version>
+    <Authors>Francuzov Maksim</Authors>
+    <Company>FrMks</Company>
+    <Description>Typed HTTP client for consuming the public File Service API with shared contracts, configurable options, and structured error handling.</Description>
+    <PackageTags>file-service;http-client;typed-client;communication</PackageTags>
+    <RepositoryUrl>https://github.com/FrMks/DirectoryService</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/FrMks/DirectoryService</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CSharpFunctionalExtensions" Version="3.6.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FileService.Contracts\FileService.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

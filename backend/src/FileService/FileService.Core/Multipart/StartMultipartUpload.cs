@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.Files;
 
@@ -17,16 +18,14 @@ public static class StartMultipartUpload
 {
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/files/multipart-upload", async Task<Microsoft.AspNetCore.Http.IResult> (
+        endpoints.MapPost("/files/multipart-upload", async Task<EndpointResult<StartMultipartUploadResponse>> (
             [FromBody] StartMultipartUploadRequest request,
             [FromServices] StartMultipartUploadHandler handler,
             CancellationToken cancellationToken) =>
         {
             Result<StartMultipartUploadResponse, Error> result = await handler.Handle(request, cancellationToken);
 
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(result.Error);
+            return result;
         });
 
         return endpoints;

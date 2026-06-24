@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.Multipart;
 
@@ -23,8 +24,8 @@ public static class CompleteMultipartUpload
             UnitResult<Error> result = await handler.Handle(request, cancellationToken);
 
             return result.IsSuccess
-                ? Results.Ok()
-                : Results.BadRequest(result.Error);
+                ? Results.Ok(Envelope.Ok())
+                : new ErrorsResult(result.Error);
         });
 
         return endpoints;
@@ -68,6 +69,13 @@ public sealed class CompleteMultipartUploadHandler
 
         MediaAsset mediaAsset = mediaAssetResult.Value;
 
+        if (mediaAsset.Status != Domain.Enums.MediaStatus.UPLOADING)
+        {
+            return Error.Validation(
+                "media.asset.status.invalid",
+                $"Cannot complete multipart upload for media asset in status {mediaAsset.Status}");
+        }
+
         if (mediaAsset.MediaData.ExpectedChunksCount != request.PartETags.Count)
         {
             _logger.LogWarning(
@@ -77,7 +85,9 @@ public sealed class CompleteMultipartUploadHandler
                 mediaAsset.MediaData.ExpectedChunksCount,
                 request.PartETags.Count);
 
-            return Error.Failure(null, "The number of ETags does not match the number of chunks");
+            return Error.Validation(
+                "multipart.parts.count.invalid",
+                "The number of ETags does not match the number of chunks");
         }
 
         Result<string, Error> completeResult = await _s3Provider.CompleteMultipartUploadAsync(

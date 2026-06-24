@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using DirectoryService.Application;
+using FileService.Communication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi;
 using Serilog;
@@ -17,6 +18,7 @@ public static class DependencyInjection // docker compose up --build для ра
         return services
             .AddWebDependencies(configuration)
             .AddApplication(configuration)
+            .AddFilesServiceHttpCommunication(configuration)
             .AddSerilog()
             .AddCors(options =>
             {

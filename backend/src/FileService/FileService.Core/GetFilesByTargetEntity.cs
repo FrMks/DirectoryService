@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.Core;
 
@@ -16,7 +17,7 @@ public static class GetFilesByTargetEntity
 {
     public static IEndpointRouteBuilder MapFileEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/files", async Task<Microsoft.AspNetCore.Http.IResult> (
+        endpoints.MapGet("/files", async Task<EndpointResult<IReadOnlyList<FileResponse>>> (
             [FromQuery] string context,
             [FromQuery] Guid contextId,
             [FromServices] GetFilesByTargetEntityHandler handler,
@@ -24,9 +25,7 @@ public static class GetFilesByTargetEntity
         {
             Result<IReadOnlyList<FileResponse>, Error> result = await handler.Handle(context, contextId, cancellationToken);
 
-            return result.IsSuccess
-                ? Results.Ok(result.Value)
-                : Results.BadRequest(result.Error);
+            return result;
         });
 
         return endpoints;
