@@ -57,7 +57,7 @@ public sealed class Location
         return Result.Success(location);
     }
 
-    public void AttachPreview(LocationPreviewMetadata value)
+    public void SetPreview(LocationPreviewMetadata value)
     {
         PreviewMetadata = value;
         UpdatedAt = DateTime.UtcNow;

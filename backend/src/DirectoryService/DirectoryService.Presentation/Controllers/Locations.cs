@@ -46,12 +46,12 @@ public class Locations : ControllerBase
 
     [HttpPut("{locationId:guid}/preview-asset")]
     public async Task<EndpointResult<Guid>> AttachPreview(
-        [FromServices] ICommandHandler<Guid, AttachLocationPreviewCommand> handler,
+        [FromServices] ICommandHandler<Guid, SetLocationPreviewCommand> handler,
         [FromRoute] Guid locationId,
         [FromBody] AttachLocationPreviewRequest request,
         CancellationToken cancellationToken)
     {
-        AttachLocationPreviewCommand command = new(locationId, request);
+        SetLocationPreviewCommand command = new(locationId, request);
 
         Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
 

@@ -3,6 +3,6 @@ using Shared.Core.Abstractions;
 
 namespace DirectoryService.Application.Locations;
 
-public record AttachLocationPreviewCommand(
+public record SetLocationPreviewCommand(
     Guid LocationId,
     AttachLocationPreviewRequest Request) : ICommand;
