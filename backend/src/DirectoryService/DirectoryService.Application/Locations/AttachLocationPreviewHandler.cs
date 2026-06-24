@@ -18,20 +18,26 @@ public class AttachLocationPreviewHandler(
     ILogger<AttachLocationPreviewHandler> logger)
     : ICommandHandler<Guid, AttachLocationPreviewCommand>
 {
+    private const string LocationPreviewContext = "location";
+    private const string PreviewAssetType = "PREVIEW";
+    private const string ReadyStatus = "READY";
+    private const string DeletedStatus = "DELETED";
+
     public async Task<Result<Guid, Errors>> Handle(
         AttachLocationPreviewCommand command,
         CancellationToken cancellationToken)
     {
-        LocationId locationId = LocationId.FromValue(command.LocationId);
         Result<Location, Error> locationResult = await locationsRepository
-            .GetBy(l => l.Id == locationId, cancellationToken);
+            .GetBy(l => l.Id == command.LocationId, cancellationToken);
         if (locationResult.IsFailure)
         {
             logger.LogError(
-                "Cannot attach location preview," +
-                "becouse have problem: {error} when try to get location by id", locationResult.Error.Message);
+                "Cannot attach location preview because location {LocationId} was not found: {Error}",
+                command.LocationId,
+                locationResult.Error.Message);
             return locationResult.Error.ToErrors();
         }
+
         Location location = locationResult.Value;
 
         Result<FileResponse, Errors> mediaAssetResult = await fileCommunicationService
@@ -39,40 +45,65 @@ public class AttachLocationPreviewHandler(
         if (mediaAssetResult.IsFailure)
         {
             logger.LogError(
-                "Cannot attach location preview," +
-                "becouse have problem: {error} when try to get media asset by id", mediaAssetResult.Error);
+                "Cannot attach location preview because FileService rejected media asset {MediaAssetId}: {Error}",
+                command.Request.MediaAssetId,
+                mediaAssetResult.Error);
             return mediaAssetResult.Error;
         }
-        FileResponse mediaAsset = mediaAssetResult.Value;
-        if (!string.Equals(mediaAsset.Status, "READY", StringComparison.OrdinalIgnoreCase))
-            return Error.Validation("location.preview.asset.not.ready", "Location preview asset must be ready.").ToErrors();
 
-        if (!string.Equals(mediaAsset.AssetType, "PREVIEW", StringComparison.OrdinalIgnoreCase))
+        FileResponse mediaAsset = mediaAssetResult.Value;
+
+        if (mediaAsset.Id != command.Request.MediaAssetId)
+        {
+            return Error.Validation(
+                "location.preview.asset.id.mismatch",
+                "File Service returned another media asset.").ToErrors();
+        }
+
+        if (string.Equals(mediaAsset.Status, DeletedStatus, StringComparison.OrdinalIgnoreCase))
+        {
+            return Error.Validation(
+                "location.preview.asset.deleted",
+                "Location preview asset must not be deleted.").ToErrors();
+        }
+
+        if (!string.Equals(mediaAsset.Status, ReadyStatus, StringComparison.OrdinalIgnoreCase))
+        {
+            return Error.Validation("location.preview.asset.not.ready", "Location preview asset must be ready.").ToErrors();
+        }
+
+        if (!string.Equals(mediaAsset.AssetType, PreviewAssetType, StringComparison.OrdinalIgnoreCase))
+        {
             return Error.Validation("location.preview.asset.invalid.type", "Location preview asset must be a preview asset.").ToErrors();
+        }
 
         if (!mediaAsset.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+        {
             return Error.Validation("location.preview.asset.invalid.content-type", "Location preview asset must be an image.").ToErrors();
+        }
 
-        if (!string.Equals(mediaAsset.Context, "location", StringComparison.OrdinalIgnoreCase)
+        if (!string.Equals(mediaAsset.Context, LocationPreviewContext, StringComparison.OrdinalIgnoreCase)
             || mediaAsset.ContextId != location.Id.Value)
         {
             return Error.Validation("location.preview.asset.invalid.owner", "Location preview asset belongs to another entity.").ToErrors();
         }
 
         MediaAssetId mediaAssetIdResult = MediaAssetId.FromValue(mediaAsset.Id);
+        DateTime verifiedAt = DateTime.UtcNow;
+
         Result<LocationPreviewMetadata, Error> locationPreviewMetadataResult = LocationPreviewMetadata
             .Create(
                 mediaAssetIdResult,
                 mediaAsset.FileName,
                 mediaAsset.ContentType,
                 mediaAsset.Size,
-                DateTime.UtcNow,
-                DateTime.UtcNow);
+                verifiedAt,
+                verifiedAt);
         if (locationPreviewMetadataResult.IsFailure)
         {
             logger.LogError(
-                "Cannot attach location preview," +
-                "becouse have problem: {error} when try to create LocationPreviewMetadata", mediaAssetResult.Error);
+                "Cannot attach location preview because metadata creation failed: {Error}",
+                locationPreviewMetadataResult.Error.Message);
             return locationPreviewMetadataResult.Error.ToErrors();
         }
 

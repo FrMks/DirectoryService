@@ -42,25 +42,25 @@ public sealed record LocationPreviewMetadata
         DateTime lastVerifiedAt)
     {
         if (assetId is null)
-            return Result.Failure<LocationPreviewMetadata, Error>("Asset id is required.");
+            return Error.Validation("location.preview.asset-id.required", "Asset id is required.");
 
         if (string.IsNullOrWhiteSpace(fileName))
-            return Result.Failure<LocationPreviewMetadata, Error>("File name is required.");
+            return Error.Validation("location.preview.file-name.required", "File name is required.");
 
         if (string.IsNullOrWhiteSpace(contentType))
-            return Result.Failure<LocationPreviewMetadata, Error>("Content type is required.");
+            return Error.Validation("location.preview.content-type.required", "Content type is required.");
 
         if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            return Result.Failure<LocationPreviewMetadata, Error>("Location preview must be an image.");
+            return Error.Validation("location.preview.content-type.invalid", "Location preview must be an image.");
 
         if (size <= 0)
-            return Result.Failure<LocationPreviewMetadata, Error>("File size must be greater than zero.");
+            return Error.Validation("location.preview.size.invalid", "File size must be greater than zero.");
 
         if (attachedAt == default)
-            return Result.Failure<LocationPreviewMetadata, Error>("Attached date is required.");
+            return Error.Validation("location.preview.attached-at.required", "Attached date is required.");
 
         if (lastVerifiedAt == default)
-            return Result.Failure<LocationPreviewMetadata, Error>("Last verified date is required.");
+            return Error.Validation("location.preview.last-verified-at.required", "Last verified date is required.");
 
         return Result.Success<LocationPreviewMetadata, Error>(new LocationPreviewMetadata(
             assetId,

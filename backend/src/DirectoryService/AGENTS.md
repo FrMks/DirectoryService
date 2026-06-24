@@ -42,8 +42,11 @@ Use this file to keep Codex focused on the correct service layer and avoid unnec
 ## Current Location Preview Attachment State
 
 - The chosen scenario is a Location preview image backed by a FileService media asset.
-- `DirectoryService.Domain/Locations/Location.cs` has nullable `PreviewAssetId`.
+- `DirectoryService.Domain/Locations/Location.cs` has nullable `PreviewMetadata`, attached through `Location.AttachPreview(...)`.
 - `DirectoryService.Domain/Locations/ValueObjects/MediaAssetId.cs` wraps the external FileService asset `Guid`; DirectoryService should not generate this id itself.
-- `DirectoryService.Infrastructure.Postgres/Configurations/LocationConfiguration.cs` maps `PreviewAssetId` to nullable `uuid` column `preview_asset_id` with a nullable `ValueConverter<MediaAssetId?, Guid?>`.
-- Migration `20260624045953_AddPreviewAssetidToLocation` adds nullable `preview_asset_id` to `locations`; the migration was applied locally with `dotnet ef database update`.
-- Next work should add explicit attach/replace/delete operations, validate assets through `FileService.Communication`, and return degraded read state when FileService is unavailable.
+- `DirectoryService.Domain/Locations/ValueObjects/LocationPreviewMetadata.cs` stores the local attachment metadata used for display/degraded reads: asset id, file name, content type, size, attached time, and last verified time.
+- `DirectoryService.Infrastructure.Postgres/Configurations/LocationConfiguration.cs` maps `PreviewMetadata` columns into `locations`: `preview_asset_id`, `preview_file_name`, `preview_content_type`, `preview_size`, `preview_attached_at`, and `preview_last_verified_at`.
+- Migrations `20260624045953_AddPreviewAssetidToLocation` and `20260624100128_AddLocationPreviewMetadata` cover the Location preview persistence changes.
+- Explicit attach endpoint: `PUT /api/locations/{locationId:guid}/preview-asset` in `DirectoryService.Presentation/Controllers/Locations.cs`.
+- Attach logic lives in `DirectoryService.Application/Locations/AttachLocationPreviewHandler.cs`; it loads the Location, calls `FileService.Communication`, validates READY/PREVIEW/image/location ownership rules, creates `LocationPreviewMetadata`, attaches it, and saves via `ITransactionManager.SaveChangesAsync`.
+- Next work should add explicit replace/delete semantics if distinct from attach, then read DTO enrichment/degraded read behavior when FileService is unavailable.
