@@ -57,6 +57,12 @@ public sealed class Location
         return Result.Success(location);
     }
 
+    public void AttachPreview(LocationPreviewMetadata value)
+    {
+        PreviewMetadata = value;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SoftDelete()
     {
         IsActive = false;

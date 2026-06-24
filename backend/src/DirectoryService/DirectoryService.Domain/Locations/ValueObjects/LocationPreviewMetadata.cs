@@ -1,4 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
+using Shared;
 
 namespace DirectoryService.Domain.Locations.ValueObjects;
 
@@ -32,7 +33,7 @@ public sealed record LocationPreviewMetadata
 
     public DateTime LastVerifiedAt { get; }
 
-    public static Result<LocationPreviewMetadata> Create(
+    public static Result<LocationPreviewMetadata, Error> Create(
         MediaAssetId assetId,
         string fileName,
         string contentType,
@@ -41,27 +42,27 @@ public sealed record LocationPreviewMetadata
         DateTime lastVerifiedAt)
     {
         if (assetId is null)
-            return Result.Failure<LocationPreviewMetadata>("Asset id is required.");
+            return Result.Failure<LocationPreviewMetadata, Error>("Asset id is required.");
 
         if (string.IsNullOrWhiteSpace(fileName))
-            return Result.Failure<LocationPreviewMetadata>("File name is required.");
+            return Result.Failure<LocationPreviewMetadata, Error>("File name is required.");
 
         if (string.IsNullOrWhiteSpace(contentType))
-            return Result.Failure<LocationPreviewMetadata>("Content type is required.");
+            return Result.Failure<LocationPreviewMetadata, Error>("Content type is required.");
 
         if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
-            return Result.Failure<LocationPreviewMetadata>("Location preview must be an image.");
+            return Result.Failure<LocationPreviewMetadata, Error>("Location preview must be an image.");
 
         if (size <= 0)
-            return Result.Failure<LocationPreviewMetadata>("File size must be greater than zero.");
+            return Result.Failure<LocationPreviewMetadata, Error>("File size must be greater than zero.");
 
         if (attachedAt == default)
-            return Result.Failure<LocationPreviewMetadata>("Attached date is required.");
+            return Result.Failure<LocationPreviewMetadata, Error>("Attached date is required.");
 
         if (lastVerifiedAt == default)
-            return Result.Failure<LocationPreviewMetadata>("Last verified date is required.");
+            return Result.Failure<LocationPreviewMetadata, Error>("Last verified date is required.");
 
-        return Result.Success(new LocationPreviewMetadata(
+        return Result.Success<LocationPreviewMetadata, Error>(new LocationPreviewMetadata(
             assetId,
             fileName.Trim(),
             contentType.Trim(),

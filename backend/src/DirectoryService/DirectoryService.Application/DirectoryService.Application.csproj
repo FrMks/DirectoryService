@@ -13,6 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Dapper" Version="2.1.66" />
+      <PackageReference Include="FileService.Communication" Version="0.0.2" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />

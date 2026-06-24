@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared.Core.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
@@ -40,6 +40,23 @@ public class Locations : ControllerBase
 
         if (result.IsFailure)
             return result.ConvertFailure<GetLocationsResult>();
+
+        return result;
+    }
+
+    [HttpPut("{locationId:guid}/preview-asset")]
+    public async Task<EndpointResult<Guid>> AttachPreview(
+        [FromServices] ICommandHandler<Guid, AttachLocationPreviewCommand> handler,
+        [FromRoute] Guid locationId,
+        [FromBody] AttachLocationPreviewRequest request,
+        CancellationToken cancellationToken)
+    {
+        AttachLocationPreviewCommand command = new(locationId, request);
+
+        Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
 
         return result;
     }
