@@ -1,3 +1,3 @@
 ﻿namespace DirectoryService.Contracts.Locations;
 
-public record AttachLocationPreviewRequest(Guid MediaAssetid);
+public record AttachLocationPreviewRequest(Guid MediaAssetId);

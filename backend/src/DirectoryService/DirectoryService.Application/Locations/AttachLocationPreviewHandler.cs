@@ -35,7 +35,7 @@ public class AttachLocationPreviewHandler(
         Location location = locationResult.Value;
 
         Result<FileResponse, Errors> mediaAssetResult = await fileCommunicationService
-            .GetMediaAssetByIdAsync(command.Request.MediaAssetid, cancellationToken);
+            .GetMediaAssetByIdAsync(command.Request.MediaAssetId, cancellationToken);
         if (mediaAssetResult.IsFailure)
         {
             logger.LogError(
