@@ -70,14 +70,37 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(l => l.DeletedAt)
             .HasColumnName("deleted_at");
 
-        // MediaAssetId? - то что в доменной модели, Guid? - то что будет лежать в БД
-        ValueConverter<MediaAssetId?, Guid?> previewAssetIdConverter = new(
-            previewAssetId => previewAssetId == null ? null : previewAssetId.Value, // Если нет mediaAssetId, то ставим null, если есть ставим значение
-            value => value == null ? null : MediaAssetId.FromValue(value.Value)); // Если Guid в БД пустой, то ставим null, если есть получаем новое значение Value Object
+        builder.ComplexProperty(l => l.PreviewMetadata, previewMetadataBuilder =>
+        {
+            ValueConverter<MediaAssetId, Guid> previewAssetIdConverter = new(
+                previewAssetId => previewAssetId.Value,
+                value => MediaAssetId.FromValue(value));
 
-        builder.Property(l => l.PreviewAssetId)
-            .HasConversion(previewAssetIdConverter)
-            .HasColumnName("preview_asset_id");
+            previewMetadataBuilder
+                .Property(m => m.AssetId)
+                .HasConversion(previewAssetIdConverter)
+                .HasColumnName("preview_asset_id");
+
+            previewMetadataBuilder
+                .Property(m => m.FileName)
+                .HasColumnName("preview_file_name");
+
+            previewMetadataBuilder
+                .Property(m => m.ContentType)
+                .HasColumnName("preview_content_type");
+
+            previewMetadataBuilder
+                .Property(m => m.Size)
+                .HasColumnName("preview_size");
+
+            previewMetadataBuilder
+                .Property(m => m.AttachedAt)
+                .HasColumnName("preview_attached_at");
+
+            previewMetadataBuilder
+                .Property(m => m.LastVerifiedAt)
+                .HasColumnName("preview_last_verified_at");
+        });
 
         builder.HasMany(l => l.DepartmentLocations)
             .WithOne()
