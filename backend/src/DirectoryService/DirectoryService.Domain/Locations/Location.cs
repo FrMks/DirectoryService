@@ -63,6 +63,12 @@ public sealed class Location
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void RemovePreview()
+    {
+        PreviewMetadata = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void SoftDelete()
     {
         IsActive = false;

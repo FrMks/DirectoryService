@@ -45,13 +45,29 @@ public class Locations : ControllerBase
     }
 
     [HttpPut("{locationId:guid}/preview-asset")]
-    public async Task<EndpointResult<Guid>> AttachPreview(
+    public async Task<EndpointResult<Guid>> SetPreview(
         [FromServices] ICommandHandler<Guid, SetLocationPreviewCommand> handler,
         [FromRoute] Guid locationId,
         [FromBody] AttachLocationPreviewRequest request,
         CancellationToken cancellationToken)
     {
         SetLocationPreviewCommand command = new(locationId, request);
+
+        Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
+    }
+
+    [HttpDelete("{locationId:guid}/preview-asset")]
+    public async Task<EndpointResult<Guid>> DeletePreview(
+        [FromServices] ICommandHandler<Guid, RemoveLocationPreviewCommand> handler,
+        [FromRoute] Guid locationId,
+        CancellationToken cancellationToken)
+    {
+        RemoveLocationPreviewCommand command = new(locationId);
 
         Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
 
