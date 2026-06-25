@@ -76,4 +76,19 @@ public class Locations : ControllerBase
 
         return result;
     }
+
+    [HttpGet("{locationId:guid}")]
+    public async Task<EndpointResult<GetLocationResponse>> GetLocationById(
+        [FromServices] IQueryHandler<GetLocationByIdQuery, Result<GetLocationResponse, Errors>> handler,
+        [FromRoute] Guid locationId,
+        CancellationToken cancellationToken)
+    {
+        GetLocationByIdQuery query = new(locationId);
+        Result<GetLocationResponse, Errors> result = await handler.Handle(query, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<GetLocationResponse>();
+
+        return result;
+    }
 }
