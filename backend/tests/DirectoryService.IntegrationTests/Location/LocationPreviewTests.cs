@@ -164,6 +164,74 @@ public class LocationPreviewTests : DirectoryBaseTests
            });
     }
 
+    [Fact]
+    public async Task SuccessRemovePreviewFromLocation()
+    {
+        LocationId locationId = await CreateLocation();
+        Guid mediaAssetId = Guid.NewGuid();
+
+        FileResponse fileResponse = new(
+            mediaAssetId,
+            "office.jpg",
+            "image/jpeg",
+            123456,
+            "READY",
+            "PREVIEW",
+            "location",
+            locationId.Value,
+            "https://example.com/office.jpg",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        var fileCommunicationService = new FakeFileCommunicationService(fileResponse);
+        CancellationToken cancellationToken = CancellationToken.None;
+
+        Result<Guid, Errors> setPreviewResult = await ExecuteHandler(
+            fileCommunicationService,
+            async setLocationPrevieHandler =>
+            {
+                var command = new SetLocationPreviewCommand(
+                    locationId.Value,
+                    new AttachLocationPreviewRequest(mediaAssetId));
+
+                return await setLocationPrevieHandler.Handle(command, cancellationToken);
+            });
+
+        Assert.True(setPreviewResult.IsSuccess);
+        Assert.Equal(locationId.Value, setPreviewResult.Value);
+
+        await ExecuteInDb(async dbContext =>
+        {
+            var location = await dbContext.Locations
+                .FirstAsync(l => l.Id == locationId, cancellationToken);
+
+            Assert.NotNull(location.PreviewMetadata);
+            Assert.Equal(mediaAssetId, location.PreviewMetadata.AssetId.Value);
+            Assert.Equal("office.jpg", location.PreviewMetadata.FileName);
+            Assert.Equal("image/jpeg", location.PreviewMetadata.ContentType);
+            Assert.Equal(123456, location.PreviewMetadata.Size);
+        });
+
+        Result<Guid, Errors> removePreviewResult = await ExecuteRemoveHandler(
+            async removeLocationPreviewHandler =>
+            {
+                RemoveLocationPreviewCommand command = new RemoveLocationPreviewCommand(locationId);
+
+                return await removeLocationPreviewHandler.Handle(command, cancellationToken);
+            });
+
+        Assert.True(removePreviewResult.IsSuccess);
+        Assert.Equal(locationId.Value, removePreviewResult.Value);
+
+        await ExecuteInDb(async dbContext =>
+        {
+            var location = await dbContext.Locations
+                .FirstAsync(l => l.Id == locationId, cancellationToken);
+
+            Assert.Null(location.PreviewMetadata);
+        });
+    }
+
     private async Task<T> ExecuteHandler<T>(
         IFileCommunicationService fileCommunicationService,
         Func<SetLocationPreviewHandler, Task<T>> action) // функция которая принимает SetLocationPreviewHandler и возвращаем Task<T>
@@ -179,6 +247,19 @@ public class LocationPreviewTests : DirectoryBaseTests
             fileCommunicationService,
             transactionManager,
             logger);
+
+        return await action(handler);
+    }
+
+    private async Task<T> ExecuteRemoveHandler<T>(Func<RemoveLocationPreviewHandler, Task<T>> action)
+    {
+        AsyncServiceScope scope = Services.CreateAsyncScope();
+
+        ILocationsRepository locationsRepository = scope.ServiceProvider.GetRequiredService<ILocationsRepository>();
+        ITransactionManager transactionManager = scope.ServiceProvider.GetRequiredService<ITransactionManager>();
+        ILogger<RemoveLocationPreviewHandler> logger = scope.ServiceProvider.GetRequiredService<ILogger<RemoveLocationPreviewHandler>>();
+
+        var handler = new RemoveLocationPreviewHandler(locationsRepository, transactionManager, logger);
 
         return await action(handler);
     }
