@@ -1,7 +1,10 @@
 ﻿using CSharpFunctionalExtensions;
+using DirectoryService.Application.Database;
 using DirectoryService.Application.Locations;
 using DirectoryService.Application.Locations.Interfaces;
+using DirectoryService.Contracts.Locations.GetLocations;
 using DirectoryService.Domain.DepartmentLocations;
+using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using DirectoryService.IntegrationTests.Infrastructure;
 using FileService.Communication;
@@ -232,6 +235,95 @@ public class LocationPreviewTests : DirectoryBaseTests
         });
     }
 
+    [Fact]
+    public async Task DegradedRead()
+    {
+        LocationId locationId = await CreateLocation();
+        Guid mediaAssetId = Guid.NewGuid();
+
+        FileResponse fileResponse = new(
+            mediaAssetId,
+            "office.jpg",
+            "image/jpeg",
+            123456,
+            "READY",
+            "PREVIEW",
+            "location",
+            locationId.Value,
+            "https://example.com/office.jpg",
+            DateTime.UtcNow,
+            DateTime.UtcNow);
+
+        var fileCommunicationService = new FakeFileCommunicationService(fileResponse);
+        CancellationToken cancellationToken = CancellationToken.None;
+
+        Result<Guid, Errors> setPreviewResult = await ExecuteHandler(
+            fileCommunicationService,
+            async setLocationPrevieHandler =>
+            {
+                var command = new SetLocationPreviewCommand(
+                    locationId.Value,
+                    new AttachLocationPreviewRequest(mediaAssetId));
+
+                return await setLocationPrevieHandler.Handle(command, cancellationToken);
+            });
+
+        Assert.True(setPreviewResult.IsSuccess);
+        Assert.Equal(locationId.Value, setPreviewResult.Value);
+
+        await ExecuteInDb(async dbContext =>
+        {
+            var location = await dbContext.Locations
+                .FirstAsync(l => l.Id == locationId, cancellationToken);
+
+            Assert.NotNull(location.PreviewMetadata);
+            Assert.Equal(mediaAssetId, location.PreviewMetadata.AssetId.Value);
+            Assert.Equal("office.jpg", location.PreviewMetadata.FileName);
+            Assert.Equal("image/jpeg", location.PreviewMetadata.ContentType);
+            Assert.Equal(123456, location.PreviewMetadata.Size);
+        });
+
+        var unavailableFileCommunicationService = new FailingFileCommunicationService();
+
+        Result<GetLocationResponse, Errors> getLocationByIdResult = await ExecuteGetLocationByIdHandler(
+            unavailableFileCommunicationService,
+            async getLocationByIdHandler =>
+            {
+                var query = new GetLocationByIdQuery(locationId);
+
+                return await getLocationByIdHandler.Handle(query, cancellationToken);
+            });
+
+        Assert.True(getLocationByIdResult.IsSuccess);
+        Assert.Equal(locationId.Value, getLocationByIdResult.Value.Id);
+        Assert.Equal(mediaAssetId, getLocationByIdResult.Value.Preview.AssetId);
+        Assert.Equal("TemporarilyUnavailable", getLocationByIdResult.Value.Preview.Status);
+        Assert.Equal("office.jpg", getLocationByIdResult.Value.Preview.FileName);
+        Assert.Equal("image/jpeg", getLocationByIdResult.Value.Preview.ContentType);
+        Assert.Equal(123456, getLocationByIdResult.Value.Preview.Size);
+        Assert.Null(getLocationByIdResult.Value.Preview.ContentUrl);
+        Assert.Equal(
+            "File Service is temporarily unavailable",
+            getLocationByIdResult.Value.Preview.Message);
+    }
+
+    private async Task<T> ExecuteGetLocationByIdHandler<T>(
+        IFileCommunicationService fileCommunicationService,
+        Func<GetLocationByIdHandler, Task<T>> action)
+    {
+        AsyncServiceScope scope = Services.CreateAsyncScope();
+
+        IReadDbContext dbContext = scope.ServiceProvider.GetRequiredService<IReadDbContext>();
+        ILogger<GetLocationByIdHandler> logger = scope.ServiceProvider.GetRequiredService<ILogger<GetLocationByIdHandler>>();
+
+        var handler = new GetLocationByIdHandler(
+            dbContext,
+            fileCommunicationService,
+            logger);
+
+        return await action(handler);
+    }
+
     private async Task<T> ExecuteHandler<T>(
         IFileCommunicationService fileCommunicationService,
         Func<SetLocationPreviewHandler, Task<T>> action) // функция которая принимает SetLocationPreviewHandler и возвращаем Task<T>
@@ -278,6 +370,35 @@ public class LocationPreviewTests : DirectoryBaseTests
             CancellationToken cancellationToken)
         {
             return Task.FromResult<Result<FileResponse, Errors>>(_response);
+        }
+
+        public Task<Result<IReadOnlyList<FileResponse>, Errors>> GetFilesByOwnerAsync(
+            string context,
+            Guid entityId,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Result<GetContentUrlResponse, Errors>> GetContentUrlAsync(
+            Guid fileId,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private sealed class FailingFileCommunicationService : IFileCommunicationService
+    {
+        public Task<Result<FileResponse, Errors>> GetMediaAssetByIdAsync(
+            Guid mediaAssetId,
+            CancellationToken cancellationToken)
+        {
+            Errors errors = Error.Failure(
+                "file-service.unavailable",
+                "File Service is unavailable").ToErrors();
+
+            return Task.FromResult<Result<FileResponse, Errors>>(errors);
         }
 
         public Task<Result<IReadOnlyList<FileResponse>, Errors>> GetFilesByOwnerAsync(
