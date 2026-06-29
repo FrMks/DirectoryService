@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using DirectoryService.Infrastructure.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DirectoryService.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(DirectoryServiceDbContext))]
-    partial class DirectoryServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260624045953_AddPreviewAssetidToLocation")]
+    partial class AddPreviewAssetidToLocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,6 +156,10 @@ namespace DirectoryService.Infrastructure.Postgres.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("name");
 
+                    b.Property<Guid?>("PreviewAssetId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("preview_asset_id");
+
                     b.Property<string>("Timezone")
                         .IsRequired()
                         .HasColumnType("text")
@@ -183,35 +190,6 @@ namespace DirectoryService.Infrastructure.Postgres.Migrations
                                 .HasMaxLength(100)
                                 .HasColumnType("character varying(100)")
                                 .HasColumnName("street");
-                        });
-
-                    b.ComplexProperty(typeof(Dictionary<string, object>), "PreviewMetadata", "DirectoryService.Domain.Locations.Location.PreviewMetadata#LocationPreviewMetadata", b1 =>
-                        {
-                            b1.Property<Guid>("AssetId")
-                                .HasColumnType("uuid")
-                                .HasColumnName("preview_asset_id");
-
-                            b1.Property<DateTime>("AttachedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("preview_attached_at");
-
-                            b1.Property<string>("ContentType")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("preview_content_type");
-
-                            b1.Property<string>("FileName")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("preview_file_name");
-
-                            b1.Property<DateTime>("LastVerifiedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("preview_last_verified_at");
-
-                            b1.Property<long>("Size")
-                                .HasColumnType("bigint")
-                                .HasColumnName("preview_size");
                         });
 
                     b.HasKey("Id")

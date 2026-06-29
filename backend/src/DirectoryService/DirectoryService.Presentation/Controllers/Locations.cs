@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared.Core.Abstractions;
 using DirectoryService.Application.Locations;
 using DirectoryService.Contracts.Locations;
@@ -40,6 +40,54 @@ public class Locations : ControllerBase
 
         if (result.IsFailure)
             return result.ConvertFailure<GetLocationsResult>();
+
+        return result;
+    }
+
+    [HttpPut("{locationId:guid}/preview-asset")]
+    public async Task<EndpointResult<Guid>> SetPreview(
+        [FromServices] ICommandHandler<Guid, SetLocationPreviewCommand> handler,
+        [FromRoute] Guid locationId,
+        [FromBody] AttachLocationPreviewRequest request,
+        CancellationToken cancellationToken)
+    {
+        SetLocationPreviewCommand command = new(locationId, request);
+
+        Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
+    }
+
+    [HttpDelete("{locationId:guid}/preview-asset")]
+    public async Task<EndpointResult<Guid>> DeletePreview(
+        [FromServices] ICommandHandler<Guid, RemoveLocationPreviewCommand> handler,
+        [FromRoute] Guid locationId,
+        CancellationToken cancellationToken)
+    {
+        RemoveLocationPreviewCommand command = new(locationId);
+
+        Result<Guid, Errors> result = await handler.Handle(command, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<Guid>();
+
+        return result;
+    }
+
+    [HttpGet("{locationId:guid}")]
+    public async Task<EndpointResult<GetLocationResponse>> GetLocationById(
+        [FromServices] IQueryHandler<GetLocationByIdQuery, Result<GetLocationResponse, Errors>> handler,
+        [FromRoute] Guid locationId,
+        CancellationToken cancellationToken)
+    {
+        GetLocationByIdQuery query = new(locationId);
+        Result<GetLocationResponse, Errors> result = await handler.Handle(query, cancellationToken);
+
+        if (result.IsFailure)
+            return result.ConvertFailure<GetLocationResponse>();
 
         return result;
     }

@@ -2,7 +2,6 @@
 using CSharpFunctionalExtensions;
 using DirectoryService.Application.Database;
 using Shared.Core.Abstractions;
-using Shared.Core.Database;
 using Shared.Core.Extensions;
 using DirectoryService.Contracts.Locations.GetLocations;
 using DirectoryService.Domain.Locations;

@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using DirectoryService.Application.Database;
 using DirectoryService.Infrastructure.Postgres;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 using Respawn;
+using Shared.Core.Database;
 using Testcontainers.PostgreSql;
 
 namespace DirectoryService.IntegrationTests.Infrastructure;
@@ -31,9 +33,17 @@ public class DirectoryTestWebFactory : WebApplicationFactory<DirectoryService.Pr
         {
             // Удаляем зарегистрированные в DI в Program.cs 
             services.RemoveAll<DirectoryServiceDbContext>();
+            services.RemoveAll<IReadDbContext>();
+            services.RemoveAll<IDbConnectionFactory>();
             
             // И подменяем
             services.AddScoped<DirectoryServiceDbContext>(_ =>
+                new DirectoryServiceDbContext(_dbContainer.GetConnectionString()));
+
+            services.AddScoped<IReadDbContext, DirectoryServiceDbContext>(_ =>
+                new DirectoryServiceDbContext(_dbContainer.GetConnectionString()));
+
+            services.AddScoped<IDbConnectionFactory, DirectoryServiceDbContext>(_ =>
                 new DirectoryServiceDbContext(_dbContainer.GetConnectionString()));
         });
     }

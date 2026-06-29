@@ -3,26 +3,27 @@ using DirectoryService.Domain.Locations;
 using DirectoryService.Domain.Locations.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DirectoryService.Infrastructure.Postgres.Configurations;
 
-public class LocationConfiguration : IEntityTypeConfiguration<Location> 
+public class LocationConfiguration : IEntityTypeConfiguration<Location>
 {
     public void Configure(EntityTypeBuilder<Location> builder)
     {
         builder.ToTable("locations");
-        
+
         builder.HasKey(l => l.Id).HasName("pk_locations");
 
         builder.Property(l => l.Id)
             .HasConversion(l => l.Value, locationId => LocationId.FromValue(locationId))
             .HasColumnName("id");
-        
+
         builder.Property(l => l.Name)
             .HasConversion(l => l.Value, name => Name.Create(name).Value)
             .HasColumnName("name")
             .HasMaxLength(LengthConstants.LENGTH120);
-        
+
         builder.HasIndex(nameof(Location.Name))
             .IsUnique();
 
@@ -35,14 +36,14 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
                 .HasMaxLength(LengthConstants.LENGTH100)
                 .HasColumnName("street")
                 .HasMaxLength(LengthConstants.LENGTH100);
-            
+
             addressBuilder
                 .Property(l => l.City)
                 .IsRequired()
                 .HasMaxLength(LengthConstants.LENGTH60)
                 .HasColumnName("city")
                 .HasMaxLength(LengthConstants.LENGTH60);
-            
+
             addressBuilder
                 .Property(l => l.Country)
                 .IsRequired()
@@ -56,18 +57,50 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
         builder.Property(l => l.Timezone)
             .HasConversion(l => l.Value, timezone => Timezone.Create(timezone).Value)
             .HasColumnName("timezone");
-        
+
         builder.Property(l => l.IsActive)
             .HasColumnName("is_active");
-        
+
         builder.Property(l => l.CreatedAt)
             .HasColumnName("created_at");
-        
+
         builder.Property(l => l.UpdatedAt)
             .HasColumnName("updated_at");
 
         builder.Property(l => l.DeletedAt)
             .HasColumnName("deleted_at");
+
+        builder.ComplexProperty(l => l.PreviewMetadata, previewMetadataBuilder =>
+        {
+            ValueConverter<MediaAssetId, Guid> previewAssetIdConverter = new(
+                previewAssetId => previewAssetId.Value,
+                value => MediaAssetId.FromValue(value));
+
+            previewMetadataBuilder
+                .Property(m => m.AssetId)
+                .HasConversion(previewAssetIdConverter)
+                .HasColumnName("preview_asset_id");
+
+            previewMetadataBuilder
+                .Property(m => m.FileName)
+                .HasColumnName("preview_file_name");
+
+            previewMetadataBuilder
+                .Property(m => m.ContentType)
+                .HasColumnName("preview_content_type");
+
+            previewMetadataBuilder
+                .Property(m => m.Size)
+                .HasColumnName("preview_size");
+
+            previewMetadataBuilder
+                .Property(m => m.AttachedAt)
+                .HasColumnName("preview_attached_at");
+
+            previewMetadataBuilder
+                .Property(m => m.LastVerifiedAt)
+                .HasColumnName("preview_last_verified_at");
+        });
 
         builder.HasMany(l => l.DepartmentLocations)
             .WithOne()

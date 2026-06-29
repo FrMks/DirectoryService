@@ -42,6 +42,8 @@ public sealed class Location
 
     public DateTime? DeletedAt { get; private set; }
 
+    public LocationPreviewMetadata? PreviewMetadata { get; private set; }
+
     public IReadOnlyList<DepartmentLocation> DepartmentLocations { get; private set; } = null!;
 
     #endregion
@@ -53,6 +55,18 @@ public sealed class Location
         Location location = new(id, name, address, timezone, departmentLocations);
 
         return Result.Success(location);
+    }
+
+    public void SetPreview(LocationPreviewMetadata value)
+    {
+        PreviewMetadata = value;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemovePreview()
+    {
+        PreviewMetadata = null;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void SoftDelete()

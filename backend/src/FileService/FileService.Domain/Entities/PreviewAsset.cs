@@ -38,7 +38,7 @@ public class PreviewAsset : MediaAsset
     public const string BUCKET = "preview";
     public const string RAW_PREFIX = "raw";
 
-    public static readonly string[] AllowedExtensions = ["jpg", "jpeg", "png", "webp"];
+    public static readonly string[] AllowedExtensions = ["jpg", "jpeg", "png", "webp", "tiff"];
 
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {

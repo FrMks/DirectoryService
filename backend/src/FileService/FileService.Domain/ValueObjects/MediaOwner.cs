@@ -18,6 +18,7 @@ public sealed record MediaOwner
         "course",
         "user",
         "department",
+        "location",
     ];
 
     public string Context { get; init; }

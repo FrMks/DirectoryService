@@ -32,6 +32,7 @@ FileService:
 - `src/FileService/FileService.Domain` - file-service domain concepts
 - `src/FileService/FileService.Contracts` - external DTOs and contracts when needed
 - `src/FileService/FileService.Core` - Minimal API slices, interfaces, storage abstractions, orchestration
+- `src/FileService/FileService.Communication` - typed HTTP client for other backend services; public methods include `GetMediaAssetByIdAsync`, `GetFilesByOwnerAsync`, and `GetContentUrlAsync`
 - `src/FileService/FileService.Infrastructure.Postgres` - Postgres-specific persistence
 - `src/FileService/FileService.Infrastructure.S3` - S3/MinIO client and storage implementation
 - `src/FileService/FileService.Web` - API host, controllers, DI, app settings
@@ -48,6 +49,7 @@ FileService:
 - `FileService.Web` may depend on `FileService.Core`, `Contracts`, `Domain`, and infrastructure projects.
 - `FileService.Infrastructure.*` may depend on `FileService.Core`, `Contracts`, and `Domain`.
 - `FileService.Core` owns Minimal API endpoint slices and interfaces for infrastructure dependencies.
+- Cross-service consumers should depend on `FileService.Contracts`/`FileService.Communication`, not on `FileService.Domain` or infrastructure projects.
 
 ## Backend Rules
 
@@ -58,6 +60,7 @@ FileService:
 - If an API contract changes, check `Contracts`, `Presentation`, and integration tests together.
 - If persistence changes, check repository code, EF configuration, and migrations together.
 - For FileService upload flows, Minimal API slices in Core should call storage abstractions, not `S3Provider` directly.
+- For DirectoryService attachments to FileService assets, store the public `MediaAssetId` (`Guid`) and local display/stale metadata only. Do not persist FileService storage keys, S3 object paths, presigned URLs, or FileService internal lifecycle state in DirectoryService.
 
 ## Common Commands
 
