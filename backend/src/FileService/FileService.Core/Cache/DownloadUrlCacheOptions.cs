@@ -1,4 +1,4 @@
-﻿namespace FileService.Core;
+﻿namespace FileService.Core.Cache;
 
 public sealed record DownloadUrlCacheOptions
 {

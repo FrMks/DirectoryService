@@ -1,4 +1,5 @@
-﻿using FileService.Core.Files;
+﻿using FileService.Core.Cache;
+using FileService.Core.Files;
 using FileService.Core.Files.FileKey;
 using FileService.Core.Multipart;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
@@ -22,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<GetFilesByTargetEntityHandler>();
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
+        services.AddScoped<DowloadUrlCacheService>();
 
         services.Configure<DownloadUrlCacheOptions>(
             configuration.GetSection(DownloadUrlCacheOptions.SectionName));
