@@ -35,12 +35,16 @@ public static class DependencyInjection
             setup.Configuration = redisConnectionString;
         });
 
+        DownloadUrlCacheOptions downloadUrlCacheSection = configuration
+            .GetSection(DownloadUrlCacheOptions.SectionName)
+            .Get<DownloadUrlCacheOptions>() ?? new DownloadUrlCacheOptions();
+
         services.AddHybridCache(options =>
         {
             options.DefaultEntryOptions = new HybridCacheEntryOptions
             {
-                LocalCacheExpiration = TimeSpan.FromMinutes(35),
-                Expiration = TimeSpan.FromMinutes(35),
+                LocalCacheExpiration = TimeSpan.FromMinutes(downloadUrlCacheSection.ExpirationMinutes),
+                Expiration = TimeSpan.FromMinutes(downloadUrlCacheSection.ExpirationMinutes),
             };
         });
 
