@@ -3,10 +3,11 @@ using FileService.Contracts;
 using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shared;
 using Shared.Framework.EndpointResults;
 
@@ -36,15 +37,21 @@ public sealed class GetContentUrlHandler
     private readonly ILogger<GetContentUrlHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly HybridCache _hybridCache;
+    private readonly IOptions<DownloadUrlCacheOptions> _downloadUrlCacheOptions;
 
     public GetContentUrlHandler(
         ILogger<GetContentUrlHandler> logger,
         IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        HybridCache hybridCache,
+        IOptions<DownloadUrlCacheOptions> downloadUrlCacheOptions)
     {
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _hybridCache = hybridCache;
+        _downloadUrlCacheOptions = downloadUrlCacheOptions;
     }
 
     public async Task<Result<GetContentUrlResponse, Error>> Handle(
@@ -72,14 +79,55 @@ public sealed class GetContentUrlHandler
                 "Uploaded object is null when we try get content url");
         }
 
-        Result<string, Error> downloadUrlResult = await _s3Provider.GenerateDownloadUrlAsync(mediaAsset.UploadedObject.Key);
+        Result<string, Error> downloadUrlResult = await GetDownloadUrlFromCache(mediaAsset, cancellationToken);
         if (downloadUrlResult.IsFailure)
+        {
             return downloadUrlResult.Error;
+        }
 
         return new GetContentUrlResponse(
             mediaAsset.Id,
             downloadUrlResult.Value,
             "GET",
             DateTimeOffset.UtcNow.AddMinutes(60));
+    }
+
+    private async Task<Result<string, Error>> GetDownloadUrlFromCache(MediaAsset mediaAsset, CancellationToken cancellationToken)
+    {
+        string cacheKey = $"file-service:download-url:{mediaAsset.Id}";
+
+        var cacheOptions = new HybridCacheEntryOptions
+        {
+            LocalCacheExpiration = TimeSpan.FromMinutes(_downloadUrlCacheOptions.Value.ExpirationMinutes),
+            Expiration = TimeSpan.FromMinutes(_downloadUrlCacheOptions.Value.ExpirationMinutes),
+        };
+
+        string downloadUrl;
+
+        try
+        {
+            downloadUrl = await _hybridCache.GetOrCreateAsync(
+                cacheKey,
+                async cancellationToken =>
+                {
+                    Result<string, Error> downloadUrlResult = await _s3Provider.GenerateDownloadUrlAsync(mediaAsset.UploadedObject.Key);
+                    if (downloadUrlResult.IsFailure)
+                        throw new InvalidOperationException(downloadUrlResult.Error.Message);
+
+                    return downloadUrlResult.Value;
+                },
+                cacheOptions,
+                cancellationToken: cancellationToken);
+
+            return Result.Success<string, Error>(downloadUrl);
+        }
+        catch (InvalidOperationException exception)
+        {
+            _logger.LogError(exception, "Failed to generate download URL for media asset {MediaAssetId}", mediaAsset.Id);
+
+            return Error.Failure(
+                "media.download.url.generation.failed",
+                exception.Message);
+        }
     }
 }

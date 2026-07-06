@@ -23,6 +23,9 @@ public static class DependencyInjection
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
 
+        services.Configure<DownloadUrlCacheOptions>(
+            configuration.GetSection(DownloadUrlCacheOptions.SectionName));
+
         var redisConnectionString = configuration.GetConnectionString("Redis");
 
         if (string.IsNullOrWhiteSpace(redisConnectionString))
