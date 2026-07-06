@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Core.Cache;
 using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.ValueObjects;
@@ -37,15 +38,18 @@ public sealed class GetFilesByTargetEntityHandler
     private readonly ILogger<GetFilesByTargetEntityHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly DownloadUrlCacheService _downloadUrlCacheService;
 
     public GetFilesByTargetEntityHandler(
         ILogger<GetFilesByTargetEntityHandler> logger,
         IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        DownloadUrlCacheService downloadUrlCacheService)
     {
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _downloadUrlCacheService = downloadUrlCacheService;
     }
 
     public async Task<Result<IReadOnlyList<FileResponse>, Error>> Handle(
@@ -80,7 +84,7 @@ public sealed class GetFilesByTargetEntityHandler
                 && mediaAsset.UploadedObject != null)
             {
                 Result<string, Error> downloadurlResult =
-                    await _s3Provider.GenerateDownloadUrlAsync(mediaAsset.UploadedObject.Key);
+                    await _downloadUrlCacheService.GetDownloadUrlFromCache(mediaAsset, cancellationToken);
                 if (downloadurlResult.IsFailure)
                     return downloadurlResult.Error;
 

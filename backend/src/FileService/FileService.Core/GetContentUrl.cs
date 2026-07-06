@@ -1,12 +1,14 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Core.Cache;
 using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shared;
 using Shared.Framework.EndpointResults;
 
@@ -34,17 +36,17 @@ public static class GetContentUrl
 public sealed class GetContentUrlHandler
 {
     private readonly ILogger<GetContentUrlHandler> _logger;
-    private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly DownloadUrlCacheService _downloadUrlCacheService;
 
     public GetContentUrlHandler(
         ILogger<GetContentUrlHandler> logger,
-        IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        DownloadUrlCacheService downloadUrlCacheService)
     {
         _logger = logger;
-        _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _downloadUrlCacheService = downloadUrlCacheService;
     }
 
     public async Task<Result<GetContentUrlResponse, Error>> Handle(
@@ -72,14 +74,16 @@ public sealed class GetContentUrlHandler
                 "Uploaded object is null when we try get content url");
         }
 
-        Result<string, Error> downloadUrlResult = await _s3Provider.GenerateDownloadUrlAsync(mediaAsset.UploadedObject.Key);
+        Result<string, Error> downloadUrlResult = await _downloadUrlCacheService.GetDownloadUrlFromCache(mediaAsset, cancellationToken);
         if (downloadUrlResult.IsFailure)
+        {
             return downloadUrlResult.Error;
+        }
 
         return new GetContentUrlResponse(
             mediaAsset.Id,
             downloadUrlResult.Value,
             "GET",
-            DateTimeOffset.UtcNow.AddHours(24));
+            DateTimeOffset.UtcNow.AddMinutes(60));
     }
 }

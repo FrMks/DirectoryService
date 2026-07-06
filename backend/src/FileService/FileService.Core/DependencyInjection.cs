@@ -1,4 +1,5 @@
-﻿using FileService.Core.Files;
+﻿using FileService.Core.Cache;
+using FileService.Core.Files;
 using FileService.Core.Files.FileKey;
 using FileService.Core.Multipart;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
@@ -22,27 +23,22 @@ public static class DependencyInjection
         services.AddScoped<GetFilesByTargetEntityHandler>();
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
+        services.AddScoped<DownloadUrlCacheService>();
 
-        var redisConnectionString = configuration.GetConnectionString("Redis");
+        services.Configure<DownloadUrlCacheOptions>(
+            configuration.GetSection(DownloadUrlCacheOptions.SectionName));
 
-        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        string? redisConnectionString = configuration.GetConnectionString("Redis");
+
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
-            return services;
+            services.AddStackExchangeRedisCache(setup =>
+            {
+                setup.Configuration = redisConnectionString;
+            });
         }
 
-        services.AddStackExchangeRedisCache(setup =>
-        {
-            setup.Configuration = redisConnectionString;
-        });
-
-        services.AddHybridCache(options =>
-        {
-            options.DefaultEntryOptions = new HybridCacheEntryOptions
-            {
-                LocalCacheExpiration = TimeSpan.FromMinutes(5),
-                Expiration = TimeSpan.FromMinutes(5),
-            };
-        });
+        services.AddHybridCache();
 
         return services;
     }
