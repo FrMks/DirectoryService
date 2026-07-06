@@ -36,20 +36,15 @@ public static class GetContentUrl
 public sealed class GetContentUrlHandler
 {
     private readonly ILogger<GetContentUrlHandler> _logger;
-    private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
-    private readonly HybridCache _hybridCache;
-    private readonly IOptions<DownloadUrlCacheOptions> _downloadUrlCacheOptions;
-    private readonly DowloadUrlCacheService _downloadUrlCacheService;
+    private readonly DownloadUrlCacheService _downloadUrlCacheService;
 
     public GetContentUrlHandler(
         ILogger<GetContentUrlHandler> logger,
-        IS3Provider s3Provider,
         IMediaRepository mediaRepository,
-        DowloadUrlCacheService downloadUrlCacheService)
+        DownloadUrlCacheService downloadUrlCacheService)
     {
         _logger = logger;
-        _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
         _downloadUrlCacheService = downloadUrlCacheService;
     }

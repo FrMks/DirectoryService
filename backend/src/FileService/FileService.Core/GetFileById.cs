@@ -35,18 +35,15 @@ public static class GetFileById
 public sealed class GetFileByIdHandler
 {
     private readonly ILogger<GetFileByIdHandler> _logger;
-    private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
-    private readonly DowloadUrlCacheService _downloadUrlCacheService;
+    private readonly DownloadUrlCacheService _downloadUrlCacheService;
 
     public GetFileByIdHandler(
         ILogger<GetFileByIdHandler> logger,
-        IS3Provider s3Provider,
         IMediaRepository mediaRepository,
-        DowloadUrlCacheService downloadUrlCacheService)
+        DownloadUrlCacheService downloadUrlCacheService)
     {
         _logger = logger;
-        _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
         _downloadUrlCacheService = downloadUrlCacheService;
     }

@@ -9,18 +9,18 @@ using Shared;
 
 namespace FileService.Core.Cache;
 
-public sealed class DowloadUrlCacheService
+public sealed class DownloadUrlCacheService
 {
     private readonly IS3Provider _s3Provider;
     private readonly HybridCache _hybridCache;
     private readonly IOptions<DownloadUrlCacheOptions> _downloadUrlCacheOptions;
-    private readonly ILogger<DowloadUrlCacheService> _logger;
+    private readonly ILogger<DownloadUrlCacheService> _logger;
 
-    public DowloadUrlCacheService(
+    public DownloadUrlCacheService(
         IS3Provider s3Provider,
         HybridCache hybridCache,
         IOptions<DownloadUrlCacheOptions> downloadUrlCacheOptions,
-        ILogger<DowloadUrlCacheService> logger)
+        ILogger<DownloadUrlCacheService> logger)
     {
         _s3Provider = s3Provider;
         _hybridCache = hybridCache;

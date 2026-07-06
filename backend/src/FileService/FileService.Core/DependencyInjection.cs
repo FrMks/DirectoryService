@@ -23,35 +23,22 @@ public static class DependencyInjection
         services.AddScoped<GetFilesByTargetEntityHandler>();
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
-        services.AddScoped<DowloadUrlCacheService>();
+        services.AddScoped<DownloadUrlCacheService>();
 
         services.Configure<DownloadUrlCacheOptions>(
             configuration.GetSection(DownloadUrlCacheOptions.SectionName));
 
-        var redisConnectionString = configuration.GetConnectionString("Redis");
+        string? redisConnectionString = configuration.GetConnectionString("Redis");
 
-        if (string.IsNullOrWhiteSpace(redisConnectionString))
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
-            return services;
+            services.AddStackExchangeRedisCache(setup =>
+            {
+                setup.Configuration = redisConnectionString;
+            });
         }
 
-        services.AddStackExchangeRedisCache(setup =>
-        {
-            setup.Configuration = redisConnectionString;
-        });
-
-        DownloadUrlCacheOptions downloadUrlCacheSection = configuration
-            .GetSection(DownloadUrlCacheOptions.SectionName)
-            .Get<DownloadUrlCacheOptions>() ?? new DownloadUrlCacheOptions();
-
-        services.AddHybridCache(options =>
-        {
-            options.DefaultEntryOptions = new HybridCacheEntryOptions
-            {
-                LocalCacheExpiration = TimeSpan.FromMinutes(downloadUrlCacheSection.ExpirationMinutes),
-                Expiration = TimeSpan.FromMinutes(downloadUrlCacheSection.ExpirationMinutes),
-            };
-        });
+        services.AddHybridCache();
 
         return services;
     }

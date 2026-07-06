@@ -38,13 +38,13 @@ public sealed class GetFilesByTargetEntityHandler
     private readonly ILogger<GetFilesByTargetEntityHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
-    private readonly DowloadUrlCacheService _downloadUrlCacheService;
+    private readonly DownloadUrlCacheService _downloadUrlCacheService;
 
     public GetFilesByTargetEntityHandler(
         ILogger<GetFilesByTargetEntityHandler> logger,
         IS3Provider s3Provider,
         IMediaRepository mediaRepository,
-        DowloadUrlCacheService downloadUrlCacheService)
+        DownloadUrlCacheService downloadUrlCacheService)
     {
         _logger = logger;
         _s3Provider = s3Provider;
