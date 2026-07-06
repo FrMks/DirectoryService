@@ -186,7 +186,7 @@ public class S3Provider : IS3Provider
                 BucketName = storageKey.Bucket,
                 Key = storageKey.Value,
                 Verb = HttpVerb.GET,
-                Expires = DateTime.UtcNow.AddHours(_s3Options.DownloadUrlExpirationHours),
+                Expires = DateTime.UtcNow.AddMinutes(_s3Options.DownloadUrlExpirationMinutes),
                 Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
             };
 

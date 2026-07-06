@@ -80,6 +80,6 @@ public sealed class GetContentUrlHandler
             mediaAsset.Id,
             downloadUrlResult.Value,
             "GET",
-            DateTimeOffset.UtcNow.AddHours(24));
+            DateTimeOffset.UtcNow.AddMinutes(60));
     }
 }
