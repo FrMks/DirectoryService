@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Framework.EndpointResults;
@@ -37,15 +38,18 @@ public sealed class AbortMultipartUploadHandler
     private readonly ILogger<AbortMultipartUploadHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly HybridCache _hybridCache;
 
     public AbortMultipartUploadHandler(
         ILogger<AbortMultipartUploadHandler> logger,
         IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        HybridCache hybridCache)
     {
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _hybridCache = hybridCache;
     }
 
     public async Task<UnitResult<Error>> Handle(
@@ -81,6 +85,10 @@ public sealed class AbortMultipartUploadHandler
             return markDeletedResult.Error;
 
         await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
+
+        await _hybridCache.RemoveAsync(
+                $"file-service:download-url:{mediaAsset.Id}",
+                cancellationToken);
 
         return UnitResult.Success<Error>();
     }

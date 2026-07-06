@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Caching.Hybrid;
 using Shared;
 using Shared.Framework.EndpointResults;
 
@@ -20,6 +21,7 @@ public static class DeleteFileEndpoint
             [FromRoute] Guid mediaAssetId,
             [FromServices] IMediaRepository mediaRepository,
             [FromServices] IS3Provider storage,
+            [FromServices] HybridCache hybridCache,
             CancellationToken cancellationToken) =>
         {
             MediaAsset? mediaAsset = await mediaRepository.GetByIdAsync(mediaAssetId, cancellationToken);
@@ -55,6 +57,10 @@ public static class DeleteFileEndpoint
             }
 
             await mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
+
+            await hybridCache.RemoveAsync(
+                $"file-service:download-url:{mediaAssetId}",
+                cancellationToken);
 
             return Results.Ok(Envelope.Ok(new { key = deletedFileResult.Value }));
         });
