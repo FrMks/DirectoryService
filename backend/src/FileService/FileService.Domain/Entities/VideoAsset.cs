@@ -104,4 +104,6 @@ public class VideoAsset : MediaAsset
 
         return MarkReady(finalKey.Value, timestamp);
     }
+
+    public override bool RequiresProcessing() => true;
 }

@@ -21,6 +21,8 @@ public abstract class MediaAsset
 
     public DateTime UpdatedAt { get; protected set; } = DateTime.UtcNow;
 
+    #region Keys
+
     /// <summary>
     /// Путь к исходной версии videos/raw/{video-id} или preview/raw/{preview-id}
     /// </summary>
@@ -33,6 +35,13 @@ public abstract class MediaAsset
     /// Для превью финальная версия такая же, как raw, потому что превью не требует обработки
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
+
+    /// <summary>
+    /// Если обработка не требуется, то UploadedKey = FinalKey, иначе UploadedKey = RawKey.
+    /// </summary>
+    public StorageKey? UploadedKey => RequiresProcessing() ? RawKey : FinalKey;
+
+    #endregion
 
     public StorageReference? UploadedObject { get; protected set; }
 
@@ -158,4 +167,9 @@ public abstract class MediaAsset
 
         return UnitResult.Success<Error>();
     }
+
+    /// <summary>
+    /// Требует ли обработку.
+    /// </summary>
+    public virtual bool RequiresProcessing() => false;
 }
