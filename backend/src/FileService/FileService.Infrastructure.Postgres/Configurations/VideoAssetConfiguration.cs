@@ -16,5 +16,14 @@ public class VideoAssetConfiguration : IEntityTypeConfiguration<VideoAsset>
             mb.Property(k => k.Value).HasColumnName("hls_root_key_value");
             mb.Property(k => k.FullPath).HasColumnName("hls_root_key_full_path");
         });
+
+        builder.OwnsOne(v => v.Metadata, mb =>
+        {
+            mb.Property(m => m.Codec).HasColumnName("metadata_codec");
+            mb.Property(m => m.Containter).HasColumnName("metadata_containter");
+            mb.Property(m => m.Duration).HasColumnName("metadata_duration");
+            mb.Property(m => m.Height).HasColumnName("metadata_height");
+            mb.Property(m => m.Width).HasColumnName("metadata_width");
+        });
     }
 }

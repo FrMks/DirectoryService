@@ -46,6 +46,8 @@ public class VideoAsset : MediaAsset
 
     public StorageKey HlsRootKey { get; init; }
 
+    public VideoMetadata? Metadata { get; private set; }
+
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
         if (!AllowedExtensions.Contains(mediaData.FileName.Extension))
