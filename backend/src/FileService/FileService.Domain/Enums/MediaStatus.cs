@@ -7,6 +7,8 @@ public enum MediaStatus
 {
     UPLOADING,
     UPLOADED,
+    PENDING_PROCESSING,
+    PROCESSING,
     READY,
     FAILED,
     DELETED,

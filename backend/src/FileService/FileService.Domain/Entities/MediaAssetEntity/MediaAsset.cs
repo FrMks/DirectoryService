@@ -129,17 +129,7 @@ public abstract class MediaAsset
         if (Status == target)
             return UnitResult.Success<Error>();
 
-        bool allowed = Status switch
-        {
-            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
-            MediaStatus.UPLOADED => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
-            MediaStatus.READY => target == MediaStatus.DELETED,
-            MediaStatus.FAILED => target == MediaStatus.DELETED,
-            MediaStatus.DELETED => false,
-            _ => false,
-        };
-
-        if (!allowed)
+        if (!CanChangeStatusTo(target))
         {
             return Error.Validation(
                 "media.invalid.status-transition",
@@ -172,4 +162,18 @@ public abstract class MediaAsset
     /// Требует ли обработку.
     /// </summary>
     public virtual bool RequiresProcessing() => false;
+
+    protected virtual bool CanChangeStatusTo(MediaStatus target)
+    {
+        return Status switch
+        {
+            // Если текущий, то можно перейти в => ....
+            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.UPLOADED => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.READY => target == MediaStatus.DELETED,
+            MediaStatus.FAILED => target == MediaStatus.DELETED,
+            MediaStatus.DELETED => false,
+            _ => false,
+        };
+    }
 }

@@ -119,4 +119,20 @@ public class VideoAsset : MediaAsset
 
         return UnitResult.Success<Error>();
     }
+
+    protected override bool CanChangeStatusTo(MediaStatus target)
+    {
+        return Status switch
+        {
+            // Если текущий, то можно перейти в => ....
+            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.UPLOADED => target is MediaStatus.PENDING_PROCESSING or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.PENDING_PROCESSING => target is MediaStatus.PROCESSING or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.PROCESSING => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.READY => target == MediaStatus.DELETED,
+            MediaStatus.FAILED => target == MediaStatus.DELETED,
+            MediaStatus.DELETED => false,
+            _ => false,
+        };
+    }
 }
