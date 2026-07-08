@@ -108,4 +108,15 @@ public class VideoAsset : MediaAsset
     }
 
     public override bool RequiresProcessing() => true;
+
+    public UnitResult<Error> SetMetadata(VideoMetadata metadata)
+    {
+        if (metadata is null)
+            return Error.Validation("video.metadata.required", "Video metadata is required");
+
+        Metadata = metadata;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
 }

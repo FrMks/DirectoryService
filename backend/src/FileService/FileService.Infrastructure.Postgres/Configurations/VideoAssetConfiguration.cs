@@ -20,7 +20,7 @@ public class VideoAssetConfiguration : IEntityTypeConfiguration<VideoAsset>
         builder.OwnsOne(v => v.Metadata, mb =>
         {
             mb.Property(m => m.Codec).HasColumnName("metadata_codec");
-            mb.Property(m => m.Containter).HasColumnName("metadata_containter");
+            mb.Property(m => m.Container).HasColumnName("metadata_container");
             mb.Property(m => m.Duration).HasColumnName("metadata_duration");
             mb.Property(m => m.Height).HasColumnName("metadata_height");
             mb.Property(m => m.Width).HasColumnName("metadata_width");

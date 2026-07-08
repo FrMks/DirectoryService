@@ -5,4 +5,4 @@ public sealed record VideoMetadata(
     int? Width,
     int? Height,
     string? Codec,
-    string? Containter);
+    string? Container);
