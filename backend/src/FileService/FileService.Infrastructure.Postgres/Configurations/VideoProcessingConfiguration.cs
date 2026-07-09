@@ -47,12 +47,13 @@ public class VideoProcessingConfiguration : IEntityTypeConfiguration<VideoProces
             // Так как таблицы разные, то processing_steps нужна колонка, которая указывает на родителя
             sb.WithOwner().HasForeignKey("VideoProcessingId");
             sb.Property<Guid>("VideoProcessingId").HasColumnName("video_processing_id");
+            sb.HasIndex("VideoProcessingId").HasDatabaseName("ix_processing_steps_video_processing_id");
 
             sb.HasIndex(s => new { s.StepType }).HasDatabaseName("ix_processing_steps_step_type");
             sb.HasIndex(s => new { s.Status }).HasDatabaseName("ix_processing_steps_status");
         });
 
-        builder.HasIndex(x => x.VideoAssetId).HasDatabaseName("ix_video_processing_video_asset_id");
+        builder.HasIndex(x => x.VideoAssetId).HasDatabaseName("ux_video_processing_video_asset_id").IsUnique();
         builder.HasIndex(x => x.Status).HasDatabaseName("ix_video_processing_status");
         builder.HasIndex(x => new { x.Status, x.StartedAt }).HasDatabaseName("ix_video_processing_status_started_at");
     }
