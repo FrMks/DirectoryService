@@ -98,15 +98,6 @@ public class VideoAsset : MediaAsset
             hlsRootKey.Value);
     }
 
-    public UnitResult<Error> CompleteProcessing(DateTime timestamp)
-    {
-        Result<StorageKey, Error> finalKey = HlsRootKey.AppendSegment(MASTER_PLAYLIST_NAME);
-        if (finalKey.IsFailure)
-            return finalKey.Error;
-
-        return MarkReady(finalKey.Value, timestamp);
-    }
-
     public override bool RequiresProcessing() => true;
 
     public UnitResult<Error> SetMetadata(VideoMetadata metadata)
@@ -119,6 +110,34 @@ public class VideoAsset : MediaAsset
 
         return UnitResult.Success<Error>();
     }
+
+    #region Status
+
+    public UnitResult<Error> CompleteProcessing(DateTime timestamp)
+    {
+        Result<StorageKey, Error> finalKey = HlsRootKey.AppendSegment(MASTER_PLAYLIST_NAME);
+        if (finalKey.IsFailure)
+            return finalKey.Error;
+
+        return MarkReady(finalKey.Value, timestamp);
+    }
+
+    public UnitResult<Error> MarkPendingProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PENDING_PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> StartProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> FailProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.FAILED, timestamp);
+    }
+
+    #endregion
 
     protected override bool CanChangeStatusTo(MediaStatus target)
     {
