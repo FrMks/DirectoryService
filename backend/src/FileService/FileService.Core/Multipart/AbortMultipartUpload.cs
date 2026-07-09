@@ -76,7 +76,7 @@ public sealed class AbortMultipartUploadHandler
         }
 
         UnitResult<Error> result = await _s3Provider
-            .AbortMultipartUploadAsync(mediaAsset.RawKey, abortDto.UploadId, cancellationToken);
+            .AbortMultipartUploadAsync(mediaAsset.UploadedKey, abortDto.UploadId, cancellationToken);
         if (result.IsFailure)
             return result.Error;
 

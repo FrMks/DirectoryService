@@ -100,7 +100,7 @@ public sealed class StartUploadHandler
             return addMediaAssetResult.Error;
 
         Result<string, Error> uploadUrlResult = await _s3Provider.GenerateUploadUrlAsync(
-            mediaAssetResult.Value.RawKey,
+            mediaAssetResult.Value.UploadedKey, // Куда клиент должен загрузить файл. Для видео RawKey, для Preview - FinalKey
             mediaAssetResult.Value.MediaData,
             cancellationToken);
         if (uploadUrlResult.IsFailure)

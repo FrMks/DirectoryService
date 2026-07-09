@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Framework.EndpointResults;
-using StackExchange.Redis;
 
 namespace FileService.Core.UploadAndCompleteOnlyOneUrl;
 
@@ -73,8 +72,9 @@ public sealed class CompleteUploadHandler
                 $"Cannot complete upload for media asset in status {mediaAsset.Status}");
         }
 
+        // Мы проверяем объект, который клиент загрузил. Значит надо смотреть на uplaod destination.
         Result<StorageObjectMetadata, Error> metadataResult =
-            await _s3Provider.GetMetadataAsync(mediaAsset.RawKey, cancellationToken);
+            await _s3Provider.GetMetadataAsync(mediaAsset.UploadedKey, cancellationToken);
         if (metadataResult.IsFailure)
         {
             if (metadataResult.Error.Type == ErrorType.NotFound)
@@ -107,7 +107,7 @@ public sealed class CompleteUploadHandler
         }
 
         Result<StorageReference, Error> storageReferenceResult = StorageReference.Create(
-            mediaAsset.RawKey,
+            mediaAsset.UploadedKey,
             metadata.SizeBytes,
             metadata.ContentType,
             metadata.ETag);

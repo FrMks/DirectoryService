@@ -106,14 +106,14 @@ public sealed class StartMultipartUploadHandler
             mediaAssetResult.Value.Status);
 
         Result<string, Error> startUploadResult = await _s3Provider.StartMultipartUploadAsync(
-            mediaAssetResult.Value.RawKey,
+            mediaAssetResult.Value.UploadedKey,
             mediaAssetResult.Value.MediaData,
             cancellationToken);
         if (startUploadResult.IsFailure)
             return startUploadResult.Error;
 
         Result<IReadOnlyList<ChunkUploadUrl>, Error> chunkUploadUrlsResult = await _s3Provider.GenerateAllChunkUploadUrlsAsync(
-            mediaAssetResult.Value.RawKey,
+            mediaAssetResult.Value.UploadedKey,
             startUploadResult.Value,
             chunkCalculationResult.Value.TotalChunks,
             cancellationToken);
