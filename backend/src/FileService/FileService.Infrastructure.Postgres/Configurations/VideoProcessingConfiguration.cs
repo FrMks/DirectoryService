@@ -8,7 +8,7 @@ public class VideoProcessingConfiguration : IEntityTypeConfiguration<VideoProces
 {
     public void Configure(EntityTypeBuilder<VideoProcess> builder)
     {
-        builder.ToTable("video_processing");
+        builder.ToTable("video_processing", "files");
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id).HasColumnName("id");
@@ -30,7 +30,7 @@ public class VideoProcessingConfiguration : IEntityTypeConfiguration<VideoProces
         // У него отдельная таблицы
         builder.OwnsMany(vp => vp.Steps, sb =>
         { // У видео процесса есть связь с шагами этого процесса
-            sb.ToTable("processing_steps");
+            sb.ToTable("processing_steps", "files");
             sb.HasKey(s => s.Id);
 
             sb.Property(x => x.Id).HasColumnName("id");

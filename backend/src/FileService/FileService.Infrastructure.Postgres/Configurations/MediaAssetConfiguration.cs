@@ -11,7 +11,7 @@ namespace FileService.Infrastructure.Postgres.Configurations
     {
         public void Configure(EntityTypeBuilder<MediaAsset> builder)
         {
-            builder.ToTable("media_assets");
+            builder.ToTable("media_assets", "files");
             builder.HasKey(x => x.Id);
 
             builder.HasDiscriminator(x => x.AssetType)
