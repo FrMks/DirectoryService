@@ -44,7 +44,9 @@ public class VideoAsset : MediaAsset
 
     public static readonly string[] AllowedExtensions = ["mp4", "mkv", "avi", "mov"];
 
-    public StorageKey HlsRootKey { get; init; }
+    public StorageKey HlsRootKey { get; init; } // videos/hls/{video-id}
+
+    public HlsResult? HlsResult { get; private set; }
 
     public VideoMetadata? Metadata { get; private set; }
 
@@ -119,6 +121,9 @@ public class VideoAsset : MediaAsset
         if (finalKey.IsFailure)
             return finalKey.Error;
 
+        HlsResult = new HlsResult(finalKey.Value);
+
+        // videos/hls/{video.id}/master.m3u8
         return MarkReady(finalKey.Value, timestamp);
     }
 
