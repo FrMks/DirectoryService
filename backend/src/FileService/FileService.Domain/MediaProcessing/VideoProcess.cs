@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using Shared;
 
 namespace FileService.Domain.MediaProcessing;
@@ -150,6 +149,13 @@ public class VideoProcess
 
         if (string.IsNullOrWhiteSpace(errorMessage))
             return Error.Validation("processing.error.required", "Error message is required");
+
+        if (CurrentStep is not null)
+        {
+            UnitResult<Error> failStepResult = CurrentStep.Fail(errorMessage);
+            if (failStepResult.IsFailure)
+                return failStepResult.Error;
+        }
 
         Status = ProcessingStatus.FAILED;
         ErrorMessage = errorMessage;
