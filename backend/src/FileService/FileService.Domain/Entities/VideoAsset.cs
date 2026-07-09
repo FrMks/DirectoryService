@@ -46,7 +46,7 @@ public class VideoAsset : MediaAsset
 
     public StorageKey HlsRootKey { get; init; } // videos/hls/{video-id}
 
-    public HlsResult? HlsResult { get; private set; }
+    public HlsResult HlsResult { get; private set; } = null!;
 
     public VideoMetadata? Metadata { get; private set; }
 
