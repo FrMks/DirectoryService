@@ -124,6 +124,21 @@ public abstract class MediaAsset
         return ChangeStatus(MediaStatus.DELETED, timestamp);
     }
 
+    public UnitResult<Error> MarkPendingProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PENDING_PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> StartProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> FailProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.FAILED, timestamp);
+    }
+
     private UnitResult<Error> ChangeStatus(MediaStatus target, DateTime timestamp)
     {
         if (Status == target)
