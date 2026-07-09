@@ -22,7 +22,8 @@ public class VideoAsset : MediaAsset
         MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey,
-        StorageKey hlsRootKey)
+        StorageKey hlsRootKey,
+        HlsResult hlsResult)
             : base(
                 id,
                 mediaData,
@@ -33,6 +34,7 @@ public class VideoAsset : MediaAsset
                 finalKey)
     {
         HlsRootKey = hlsRootKey;
+        HlsResult = hlsResult;
     }
 
     public const long MAX_SIZE = 5_368_709_120;
@@ -90,6 +92,10 @@ public class VideoAsset : MediaAsset
         if (hlsRootKey.IsFailure)
             return hlsRootKey.Error;
 
+        Result<StorageKey, Error> manifestKey = hlsRootKey.Value.AppendSegment(MASTER_PLAYLIST_NAME);
+        if (manifestKey.IsFailure)
+            return manifestKey.Error;
+
         return new VideoAsset(
             id,
             mediaData,
@@ -97,7 +103,8 @@ public class VideoAsset : MediaAsset
             owner,
             rawKey.Value,
             StorageKey.None,
-            hlsRootKey.Value);
+            hlsRootKey.Value,
+            new HlsResult(manifestKey.Value));
     }
 
     public override bool RequiresProcessing() => true;
@@ -117,14 +124,8 @@ public class VideoAsset : MediaAsset
 
     public UnitResult<Error> CompleteProcessing(DateTime timestamp)
     {
-        Result<StorageKey, Error> finalKey = HlsRootKey.AppendSegment(MASTER_PLAYLIST_NAME);
-        if (finalKey.IsFailure)
-            return finalKey.Error;
-
-        HlsResult = new HlsResult(finalKey.Value);
-
         // videos/hls/{video.id}/master.m3u8
-        return MarkReady(finalKey.Value, timestamp);
+        return MarkReady(HlsResult.ManifestKey, timestamp);
     }
 
     public UnitResult<Error> MarkPendingProcessing(DateTime timestamp)
