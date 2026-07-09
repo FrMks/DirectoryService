@@ -8,15 +8,15 @@ public class VideoProcess
 {
     private readonly List<ProcessingStep> _steps = [];
 
-    private static readonly Dictionary<StepType, int> _stepWeights = new()
-    {
-        { StepType.INITIALIZE, 0 },
-        { StepType.EXTRACT_METADATA, 10 },
-        { StepType.GENERATE_HLS, 60 },
-        { StepType.UPLOAD_HLS, 15 },
-        { StepType.GENERATE_PREVIEW, 10 },
-        { StepType.CLEANUP, 5 },
-    };
+    private static readonly List<(StepType, int)> _stepDefinitions =
+    [
+        (StepType.INITIALIZE, 0),
+        (StepType.EXTRACT_METADATA, 10),
+        (StepType.GENERATE_HLS, 60),
+        (StepType.UPLOAD_HLS, 15),
+        (StepType.GENERATE_PREVIEW, 10),
+        (StepType.CLEANUP, 5),
+    ];
 
     public VideoProcess(Guid videoAssetId)
     {
@@ -241,7 +241,7 @@ public class VideoProcess
     private void InitializeSteps()
     {
         int order = 1;
-        foreach ((StepType stepType, int weight) in _stepWeights)
+        foreach ((StepType stepType, int weight) in _stepDefinitions)
         {
             _steps.Add(new ProcessingStep(stepType, order++, weight));
         }
