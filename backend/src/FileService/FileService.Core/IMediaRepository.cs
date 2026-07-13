@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
+using FileService.Domain.Entities;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Shared;
 
@@ -15,6 +16,10 @@ public interface IMediaRepository
 
     Task<Result<MediaAsset, Error>> GetBy(
         Expression<Func<MediaAsset, bool>> predicate,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<VideoAsset, Error>> GetVideoAssetBy(
+        Expression<Func<VideoAsset, bool>> predicate,
         CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<MediaAsset>, Error>> GetManyBy(

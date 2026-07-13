@@ -120,6 +120,21 @@ public class VideoAsset : MediaAsset
         return UnitResult.Success<Error>();
     }
 
+    public UnitResult<Error> StartProcessing()
+    {
+        // файл успешно загружен в storage
+        if (Status != MediaStatus.UPLOADED)
+            return Error.Validation("asset.invalid.status.transition", "Can only start processing from UPLOADED status");
+
+        // для VideoAsset - true, для PreviewAsset - false
+        if (!RequiresProcessing())
+            return Error.Validation("asset.processing.not.required", "This asset type does not require processing");
+
+        Status = MediaStatus.PROCESSING;
+        UpdatedAt = DateTime.UtcNow;
+        return UnitResult.Success<Error>();
+    }
+
     #region Status
 
     public UnitResult<Error> CompleteProcessing(DateTime timestamp)

@@ -16,9 +16,9 @@ public class VideoPorcessingRepository : IVideoProcessingRepository
         _dbContext = dbContext;
     }
 
-    public async Task Add(VideoProcess videoProcess, CancellationToken cancellationToken = default)
+    public void Add(VideoProcess videoProcess)
     {
-        await _dbContext.VideoProcess.AddAsync(videoProcess, cancellationToken);
+        _dbContext.VideoProcess.Add(videoProcess);
     }
 
     public async Task<Result<VideoProcess, Error>> GetBy(

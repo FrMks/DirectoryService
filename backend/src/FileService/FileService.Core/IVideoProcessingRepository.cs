@@ -11,5 +11,5 @@ public interface IVideoProcessingRepository
         Expression<Func<VideoProcess, bool>> predicate,
         CancellationToken cancellationToken = default);
 
-    Task Add(VideoProcess videoProcess, CancellationToken cancellationToken = default);
+    void Add(VideoProcess videoProcess);
 }
