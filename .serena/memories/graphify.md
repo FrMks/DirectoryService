@@ -1,0 +1,1 @@
+Graphify code graph output is generated in `backend/graphify-out/`. For broad dependency/codebase analysis, inspect `backend/graphify-out/graph.json` and `backend/graphify-out/.graphify_analysis.json` before wide source scans. Regenerate from `backend/` after large structural changes with `graphify . --code-only`. The output directory is generated and ignored by git.
