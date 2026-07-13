@@ -21,6 +21,8 @@ public abstract class MediaAsset
 
     public DateTime UpdatedAt { get; protected set; } = DateTime.UtcNow;
 
+    #region Keys
+
     /// <summary>
     /// Путь к исходной версии videos/raw/{video-id} или preview/raw/{preview-id}
     /// </summary>
@@ -33,6 +35,13 @@ public abstract class MediaAsset
     /// Для превью финальная версия такая же, как raw, потому что превью не требует обработки
     /// </summary>
     public StorageKey FinalKey { get; protected set; } = null!;
+
+    /// <summary>
+    /// Если обработка не требуется, то UploadedKey = FinalKey, иначе UploadedKey = RawKey.
+    /// </summary>
+    public StorageKey? UploadedKey => RequiresProcessing() ? RawKey : FinalKey;
+
+    #endregion
 
     public StorageReference? UploadedObject { get; protected set; }
 
@@ -115,22 +124,12 @@ public abstract class MediaAsset
         return ChangeStatus(MediaStatus.DELETED, timestamp);
     }
 
-    private UnitResult<Error> ChangeStatus(MediaStatus target, DateTime timestamp)
+    protected UnitResult<Error> ChangeStatus(MediaStatus target, DateTime timestamp)
     {
         if (Status == target)
             return UnitResult.Success<Error>();
 
-        bool allowed = Status switch
-        {
-            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
-            MediaStatus.UPLOADED => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
-            MediaStatus.READY => target == MediaStatus.DELETED,
-            MediaStatus.FAILED => target == MediaStatus.DELETED,
-            MediaStatus.DELETED => false,
-            _ => false,
-        };
-
-        if (!allowed)
+        if (!CanChangeStatusTo(target))
         {
             return Error.Validation(
                 "media.invalid.status-transition",
@@ -157,5 +156,24 @@ public abstract class MediaAsset
         UpdatedAt = DateTime.UtcNow;
 
         return UnitResult.Success<Error>();
+    }
+
+    /// <summary>
+    /// Требует ли обработку.
+    /// </summary>
+    public virtual bool RequiresProcessing() => false;
+
+    protected virtual bool CanChangeStatusTo(MediaStatus target)
+    {
+        return Status switch
+        {
+            // Если текущий, то можно перейти в => ....
+            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.UPLOADED => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.READY => target == MediaStatus.DELETED,
+            MediaStatus.FAILED => target == MediaStatus.DELETED,
+            MediaStatus.DELETED => false,
+            _ => false,
+        };
     }
 }

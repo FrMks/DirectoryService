@@ -3,6 +3,7 @@ using System;
 using FileService.Infrastructure.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileService.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(FileServiceDbContext))]
-    partial class FileServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260708112557_AddVideoMatadataAndProcessing")]
+    partial class AddVideoMatadataAndProcessing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,7 +54,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                     b.HasIndex("Status", "CreatedAt");
 
-                    b.ToTable("media_assets", "files");
+                    b.ToTable("media_assets", (string)null);
 
                     b.HasDiscriminator<string>("AssetType");
 
@@ -112,13 +115,12 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasDatabaseName("ix_video_processing_status");
 
                     b.HasIndex("VideoAssetId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_video_processing_video_asset_id");
+                        .HasDatabaseName("ix_video_processing_video_asset_id");
 
                     b.HasIndex("Status", "StartedAt")
                         .HasDatabaseName("ix_video_processing_status_started_at");
 
-                    b.ToTable("video_processing", "files");
+                    b.ToTable("video_processing", (string)null);
                 });
 
             modelBuilder.Entity("FileService.Domain.Entities.PreviewAsset", b =>
@@ -169,7 +171,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("MediaAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("MediaAssetId");
@@ -207,7 +209,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("MediaAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("MediaAssetId");
@@ -223,7 +225,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("MediaAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.ToJson("media_data");
 
@@ -242,7 +244,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                                     b2.HasKey("MediaDataMediaAssetId");
 
-                                    b2.ToTable("media_assets", "files");
+                                    b2.ToTable("media_assets");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MediaDataMediaAssetId");
@@ -260,7 +262,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                                     b2.HasKey("MediaDataMediaAssetId");
 
-                                    b2.ToTable("media_assets", "files");
+                                    b2.ToTable("media_assets");
 
                                     b2.WithOwner()
                                         .HasForeignKey("MediaDataMediaAssetId");
@@ -290,7 +292,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("MediaAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("MediaAssetId");
@@ -316,7 +318,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("MediaAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("MediaAssetId");
@@ -353,7 +355,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                                     b2.HasKey("StorageReferenceMediaAssetId");
 
-                                    b2.ToTable("media_assets", "files");
+                                    b2.ToTable("media_assets");
 
                                     b2.WithOwner()
                                         .HasForeignKey("StorageReferenceMediaAssetId");
@@ -433,10 +435,9 @@ namespace FileService.Infrastructure.Postgres.Migrations
                             b1.HasIndex("StepType")
                                 .HasDatabaseName("ix_processing_steps_step_type");
 
-                            b1.HasIndex("VideoProcessingId")
-                                .HasDatabaseName("ix_processing_steps_video_processing_id");
+                            b1.HasIndex("VideoProcessingId");
 
-                            b1.ToTable("processing_steps", "files");
+                            b1.ToTable("processing_steps", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("VideoProcessingId");
@@ -479,64 +480,10 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("VideoAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("VideoAssetId");
-                        });
-
-                    b.OwnsOne("FileService.Domain.ValueObjects.HlsResult", "HlsResult", b1 =>
-                        {
-                            b1.Property<Guid>("VideoAssetId")
-                                .HasColumnType("uuid");
-
-                            b1.HasKey("VideoAssetId");
-
-                            b1.ToTable("media_assets", "files");
-
-                            b1.WithOwner()
-                                .HasForeignKey("VideoAssetId");
-
-                            b1.OwnsOne("FileService.Domain.ValueObjects.StorageKey", "ManifestKey", b2 =>
-                                {
-                                    b2.Property<Guid>("HlsResultVideoAssetId")
-                                        .HasColumnType("uuid");
-
-                                    b2.Property<string>("Bucket")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("hls_result_manifest_key_bucket");
-
-                                    b2.Property<string>("FullPath")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("hls_result_manifest_key_full_path");
-
-                                    b2.Property<string>("Key")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("hls_result_manifest_key_key");
-
-                                    b2.Property<string>("Prefix")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("hls_result_manifest_key_prefix");
-
-                                    b2.Property<string>("Value")
-                                        .IsRequired()
-                                        .HasColumnType("text")
-                                        .HasColumnName("hls_result_manifest_key_value");
-
-                                    b2.HasKey("HlsResultVideoAssetId");
-
-                                    b2.ToTable("media_assets", "files");
-
-                                    b2.WithOwner()
-                                        .HasForeignKey("HlsResultVideoAssetId");
-                                });
-
-                            b1.Navigation("ManifestKey")
-                                .IsRequired();
                         });
 
                     b.OwnsOne("FileService.Domain.ValueObjects.VideoMetadata", "Metadata", b1 =>
@@ -566,14 +513,11 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.HasKey("VideoAssetId");
 
-                            b1.ToTable("media_assets", "files");
+                            b1.ToTable("media_assets");
 
                             b1.WithOwner()
                                 .HasForeignKey("VideoAssetId");
                         });
-
-                    b.Navigation("HlsResult")
-                        .IsRequired();
 
                     b.Navigation("HlsRootKey")
                         .IsRequired();

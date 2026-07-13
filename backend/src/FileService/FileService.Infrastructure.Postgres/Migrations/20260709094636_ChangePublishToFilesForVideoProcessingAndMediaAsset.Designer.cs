@@ -3,6 +3,7 @@ using System;
 using FileService.Infrastructure.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileService.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(FileServiceDbContext))]
-    partial class FileServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260709094636_ChangePublishToFilesForVideoProcessingAndMediaAsset")]
+    partial class ChangePublishToFilesForVideoProcessingAndMediaAsset
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,8 +115,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasDatabaseName("ix_video_processing_status");
 
                     b.HasIndex("VideoAssetId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_video_processing_video_asset_id");
+                        .HasDatabaseName("ix_video_processing_video_asset_id");
 
                     b.HasIndex("Status", "StartedAt")
                         .HasDatabaseName("ix_video_processing_status_started_at");
@@ -433,8 +435,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
                             b1.HasIndex("StepType")
                                 .HasDatabaseName("ix_processing_steps_step_type");
 
-                            b1.HasIndex("VideoProcessingId")
-                                .HasDatabaseName("ix_processing_steps_video_processing_id");
+                            b1.HasIndex("VideoProcessingId");
 
                             b1.ToTable("processing_steps", "files");
 

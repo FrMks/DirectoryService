@@ -91,7 +91,7 @@ public sealed class CompleteMultipartUploadHandler
         }
 
         Result<string, Error> completeResult = await _s3Provider.CompleteMultipartUploadAsync(
-            mediaAsset.RawKey,
+            mediaAsset.UploadedKey,
             request.UploadId,
             request.PartETags,
             cancellationToken);

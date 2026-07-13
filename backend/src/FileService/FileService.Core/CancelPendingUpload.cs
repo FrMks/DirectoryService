@@ -71,7 +71,7 @@ public sealed class CancelPendingUploadHandler
         }
 
         Result<string, Error> rawKeyResult = await _s3Provider
-            .DeleteFileAsync(mediaAsset.RawKey, cancellationToken);
+            .DeleteFileAsync(mediaAsset.UploadedKey, cancellationToken);
         if (rawKeyResult.IsFailure)
             return rawKeyResult.Error;
 

@@ -22,7 +22,8 @@ public class VideoAsset : MediaAsset
         MediaOwner owner,
         StorageKey rawKey,
         StorageKey finalKey,
-        StorageKey hlsRootKey)
+        StorageKey hlsRootKey,
+        HlsResult hlsResult)
             : base(
                 id,
                 mediaData,
@@ -33,6 +34,7 @@ public class VideoAsset : MediaAsset
                 finalKey)
     {
         HlsRootKey = hlsRootKey;
+        HlsResult = hlsResult;
     }
 
     public const long MAX_SIZE = 5_368_709_120;
@@ -44,7 +46,11 @@ public class VideoAsset : MediaAsset
 
     public static readonly string[] AllowedExtensions = ["mp4", "mkv", "avi", "mov"];
 
-    public StorageKey HlsRootKey { get; init; }
+    public StorageKey HlsRootKey { get; init; } // videos/hls/{video-id}
+
+    public HlsResult HlsResult { get; private set; } = null!;
+
+    public VideoMetadata? Metadata { get; private set; }
 
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
@@ -86,6 +92,10 @@ public class VideoAsset : MediaAsset
         if (hlsRootKey.IsFailure)
             return hlsRootKey.Error;
 
+        Result<StorageKey, Error> manifestKey = hlsRootKey.Value.AppendSegment(MASTER_PLAYLIST_NAME);
+        if (manifestKey.IsFailure)
+            return manifestKey.Error;
+
         return new VideoAsset(
             id,
             mediaData,
@@ -93,15 +103,61 @@ public class VideoAsset : MediaAsset
             owner,
             rawKey.Value,
             StorageKey.None,
-            hlsRootKey.Value);
+            hlsRootKey.Value,
+            new HlsResult(manifestKey.Value));
     }
+
+    public override bool RequiresProcessing() => true;
+
+    public UnitResult<Error> SetMetadata(VideoMetadata metadata)
+    {
+        if (metadata is null)
+            return Error.Validation("video.metadata.required", "Video metadata is required");
+
+        Metadata = metadata;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
+
+    #region Status
 
     public UnitResult<Error> CompleteProcessing(DateTime timestamp)
     {
-        Result<StorageKey, Error> finalKey = HlsRootKey.AppendSegment(MASTER_PLAYLIST_NAME);
-        if (finalKey.IsFailure)
-            return finalKey.Error;
+        // videos/hls/{video.id}/master.m3u8
+        return MarkReady(HlsResult.ManifestKey, timestamp);
+    }
 
-        return MarkReady(finalKey.Value, timestamp);
+    public UnitResult<Error> MarkPendingProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PENDING_PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> StartProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.PROCESSING, timestamp);
+    }
+
+    public UnitResult<Error> FailProcessing(DateTime timestamp)
+    {
+        return ChangeStatus(MediaStatus.FAILED, timestamp);
+    }
+
+    #endregion
+
+    protected override bool CanChangeStatusTo(MediaStatus target)
+    {
+        return Status switch
+        {
+            // Если текущий, то можно перейти в => ....
+            MediaStatus.UPLOADING => target is MediaStatus.UPLOADED or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.UPLOADED => target is MediaStatus.PENDING_PROCESSING or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.PENDING_PROCESSING => target is MediaStatus.PROCESSING or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.PROCESSING => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
+            MediaStatus.READY => target == MediaStatus.DELETED,
+            MediaStatus.FAILED => target == MediaStatus.DELETED,
+            MediaStatus.DELETED => false,
+            _ => false,
+        };
     }
 }
