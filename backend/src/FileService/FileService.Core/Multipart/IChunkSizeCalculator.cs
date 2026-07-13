@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.Core.Files;
+namespace FileService.Core.Multipart;
 
 public interface IChunkSizeCalculator
 {

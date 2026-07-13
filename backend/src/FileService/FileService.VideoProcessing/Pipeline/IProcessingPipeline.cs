@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Shared;
 
-namespace FileService.VideoProcessing;
+namespace FileService.VideoProcessing.Pipeline;
 
 public interface IProcessingPipeline
 {

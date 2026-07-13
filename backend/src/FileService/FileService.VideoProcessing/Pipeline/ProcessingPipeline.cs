@@ -1,10 +1,9 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Domain.Entities;
 using FileService.Domain.MediaProcessing;
-using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.VideoProcessing;
+namespace FileService.VideoProcessing.Pipeline;
 
 public class ProcessingPipeline : IProcessingPipeline
 {
@@ -25,14 +24,16 @@ public interface IProcessingStepHandler
         CancellationToken cancellationToken = default);
 }
 
-public sealed class ProcessingContext
+public sealed record ProcessingContext
 {
-    public VideoProcess VideoPorcess { get; init; }
+    public required VideoProcess VideoPorcess { get; init; }
 
-    public VideoAsset VideoAsset { get; init; }
+    public required VideoAsset VideoAsset { get; init; }
 
     public string? WorkingDirectory { get; private set; }
 
     // где будут генерироваться в нашей файловой системе hls файлы
     public string? HlsOutputDirectory { get; private set; }
+
+    public string? MediaAssetUrl { get; set; }
 }

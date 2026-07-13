@@ -3,7 +3,7 @@ using FileService.Infrastructure.S3;
 using Microsoft.Extensions.Options;
 using Shared;
 
-namespace FileService.Core.Files;
+namespace FileService.Infrastructure.S3;
 
 public class ChunkSizeCalculator : IChunkSizeCalculator
 {
