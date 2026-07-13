@@ -125,6 +125,10 @@ public sealed class CompleteMultipartUploadHandler
             request.UploadId,
             mediaAsset.Id);
 
+        // создать задачу на обработку файла (генерация превьюшек...)
+        // создать запись в базе данных о том что нужно  начать выполнять задачу
+
+
         return Result.Success<Error>();
     }
 }

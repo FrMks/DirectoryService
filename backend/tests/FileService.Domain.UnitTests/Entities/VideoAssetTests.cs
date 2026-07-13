@@ -107,12 +107,12 @@ public sealed class VideoAssetTests
     public void SetMetadata_ShouldStoreVideoMetadata()
     {
         VideoAsset video = CreateVideoAsset();
-        var metadata = new VideoMetadata(
+        var metadata = VideoMetadata.Create(
             TimeSpan.FromSeconds(120),
             1920,
             1080,
             "h264",
-            "mp4");
+            "mp4").Value;
 
         var result = video.SetMetadata(metadata);
 

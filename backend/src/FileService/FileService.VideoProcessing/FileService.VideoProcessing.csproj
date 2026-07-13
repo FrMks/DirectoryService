@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\FileService.Core\FileService.Core.csproj" />
+  </ItemGroup>
+
 </Project>
