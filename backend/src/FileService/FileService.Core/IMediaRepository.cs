@@ -9,6 +9,8 @@ public interface IMediaRepository
 {
     Task<Result<Guid, Error>> AddAsync(MediaAsset mediaAsset, CancellationToken cancellationToken);
 
+    void Add(MediaAsset mediaAsset);
+
     Task<MediaAsset?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<Result<MediaAsset, Error>> GetBy(

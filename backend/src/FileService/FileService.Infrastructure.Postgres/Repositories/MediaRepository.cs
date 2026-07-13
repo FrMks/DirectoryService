@@ -27,6 +27,11 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
         }
     }
 
+    public void Add(MediaAsset mediaAsset)
+    {
+        dbContext.MediaAssets.Add(mediaAsset);
+    }
+
     public async Task<MediaAsset?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         try
