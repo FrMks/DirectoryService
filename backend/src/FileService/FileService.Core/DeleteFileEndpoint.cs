@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Core.Files;
+using FileService.Core.Multipart;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Enums;
 using FileService.Domain.ValueObjects;

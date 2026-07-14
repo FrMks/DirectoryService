@@ -27,7 +27,7 @@ public class ProcessingPipeline : IProcessingPipeline
         IEnumerable<IProcessingStepHandler> stepHandlers,
         ILogger<ProcessingPipeline> logger,
         IMediaRepository mediaAssetRepository,
-        IVideoProcessingRepository videoProcessingRepository
+        IVideoProcessingRepository videoProcessingRepository,
         ITransactionManager transactionManager)
     {
         _stepHandlers = stepHandlers;
@@ -197,6 +197,8 @@ public class ProcessingPipeline : IProcessingPipeline
         {
             VideoAsset = assetResult.Value,
             VideoProcess = videoProcess,
+            WorkingDirectory = $"temp/video-processing/{videoAssetId}",
+            HlsOutputDirectory = $"temp/video-processing/{videoAssetId}/hls",
         };
 
         return processingContext;

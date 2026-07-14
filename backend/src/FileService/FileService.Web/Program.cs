@@ -27,6 +27,7 @@ builder.Services.AddScoped<FileServiceDbContext>(_ =>
     new FileServiceDbContext(builder.Configuration.GetConnectionString("FileServiceDb")!));
 
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
+builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
 {

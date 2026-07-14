@@ -12,10 +12,10 @@ public sealed record ProcessingContext
 
     public required VideoAsset VideoAsset { get; init; }
 
-    public string? WorkingDirectory { get; private set; }
+    public string? WorkingDirectory { get; init; }
 
     // где будут генерироваться в нашей файловой системе hls файлы
-    public string? HlsOutputDirectory { get; private set; }
+    public string? HlsOutputDirectory { get; init; }
 
     public string? MediaAssetUrl { get; set; }
 }

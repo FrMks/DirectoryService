@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Infrastructure.S3;
+using FileService.Core.Multipart;
 using Microsoft.Extensions.Options;
 using Shared;
 

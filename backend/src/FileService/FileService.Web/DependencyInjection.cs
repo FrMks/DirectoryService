@@ -1,5 +1,6 @@
 ﻿using FileService.Core;
 using FileService.Infrastructure.S3;
+using FileService.VideoProcessing;
 using Microsoft.OpenApi;
 using Serilog;
 
@@ -12,6 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         return services
+            .AddVideoProcessing()
             .AddWebDependencies(configuration)
             .AddCore(configuration)
             .AddSerilog()

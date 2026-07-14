@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
-using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
