@@ -29,9 +29,18 @@ public class TransactionManager : ITransactionManager
     {
         try
         {
-            var transaction = await _dbContext.Database.BeginTransactionAsync(
+            // IsolationLevel определяет на сколько транзакция изолирована от других параллельных транзакций
+            // Пример: два пользователя одновременно меняют данные. Isolation level отвечает на вопросы:
+            // вижу ли я чужие незакоммиченные изменения?
+            // могут ли данные измениться, пока я читаю?
+            // могу ли я получить разные результаты одного и того же запроса внутри одной транзакции?
+            // ReadCommitted - транзакция видит только те данные, которые уже были commit-нуты другими транзакциями
+            IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(
                 level ?? System.Data.IsolationLevel.ReadCommitted,
                 cancellationToken);
+            // Создаем логгер ИМЕННО ДЛЯ КЛАССА TransactionScope
+            // берем EF Transaction и достаем из нее обычную DbTransaction
+            // оборачиваем эту DbTransaction в наш TransactionScope
             ILogger<TransactionScope> transactionScopeLogger = _loggerFactory.CreateLogger<TransactionScope>();
             var transactionScope = new TransactionScope(transaction.GetDbTransaction(), transactionScopeLogger);
 
