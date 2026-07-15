@@ -4,10 +4,7 @@ using FileService.Domain.MediaProcessing;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Core.Database;
-using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Entities;
-using Microsoft.VisualBasic;
-using Microsoft.AspNetCore.Mvc.RazorPages.Infrastructure;
 
 namespace FileService.VideoProcessing.Pipeline;
 
