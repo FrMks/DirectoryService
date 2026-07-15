@@ -1,10 +1,10 @@
-﻿using FileService.Core;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
+using FileService.Core;
+using FileService.Domain.Entities;
 using FileService.Domain.MediaProcessing;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Core.Database;
-using FileService.Domain.Entities;
 
 namespace FileService.VideoProcessing.Pipeline;
 
@@ -60,6 +60,14 @@ public class ProcessingPipeline : IProcessingPipeline
 
             if (stepResult.Value is null)
             {
+                UnitResult<Error> completeVideoResult = context.VideoAsset.CompleteProcessing(DateTime.UtcNow);
+                if (completeVideoResult.IsFailure)
+                    return completeVideoResult.Error;
+
+                UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+                if (saveResult.IsFailure)
+                    return saveResult.Error;
+
                 _logger.LogInformation(
                     "All processing steps completed for VideoAssetId: {VideoAssetId}",
                     videoAssetId);
@@ -82,6 +90,8 @@ public class ProcessingPipeline : IProcessingPipeline
 
                 context.VideoProcess.FailCurrentStep(error);
                 context.VideoProcess.Fail(error, isCritical: true);
+                context.VideoAsset.FailProcessing(DateTime.UtcNow);
+
                 UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
                 if (saveResult.IsFailure)
                 {
@@ -109,6 +119,7 @@ public class ProcessingPipeline : IProcessingPipeline
 
                 context.VideoProcess.FailCurrentStep(executionResult.Error.Message);
                 context.VideoProcess.Fail(executionResult.Error.Message, isCritical: true);
+                context.VideoAsset.FailProcessing(DateTime.UtcNow);
 
                 UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
                 if (saveResult.IsFailure)
