@@ -62,6 +62,12 @@ public class VideoProcess
 
     public ProcessingStep? CurrentStep => _steps.FirstOrDefault(s => s.Status == StepStatus.IN_PROGRESS);
 
+    /// <summary>
+    /// Шаг - этап обработки видео.
+    /// Управляет переходом между шагами обработки видео: если шаг уже выполняется
+    /// возвращает его; иначе находит первый ожидающий шаг по порядку, переводит его
+    /// в состояние выполнения и возвращает. Если все шаги заверешны, завершает весь процесс.
+    /// </summary>
     public Result<ProcessingStep?, Error> ProcessNextStep()
     {
         if (Status != ProcessingStatus.IN_PROGRESS)

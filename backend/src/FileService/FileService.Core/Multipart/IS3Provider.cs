@@ -3,7 +3,7 @@ using FileService.Contracts;
 using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.Core.Files;
+namespace FileService.Core.Multipart;
 
 public interface IS3Provider
 {

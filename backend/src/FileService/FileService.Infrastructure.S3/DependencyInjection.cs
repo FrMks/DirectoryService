@@ -1,6 +1,6 @@
 ﻿using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
-using FileService.Core.Files;
+using FileService.Core.Multipart;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;

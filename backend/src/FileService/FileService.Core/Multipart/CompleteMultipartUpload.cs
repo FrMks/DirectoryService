@@ -1,6 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
-using FileService.Core.Files;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -124,6 +123,10 @@ public sealed class CompleteMultipartUploadHandler
             "Completed multipart upload {UploadId} for media asset {MediaAssetId}",
             request.UploadId,
             mediaAsset.Id);
+
+        // создать задачу на обработку файла (генерация превьюшек...)
+        // создать запись в базе данных о том что нужно  начать выполнять задачу
+
 
         return Result.Success<Error>();
     }

@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Framework.EndpointResults;
 
-namespace FileService.Core.Files;
+namespace FileService.Core.Multipart;
 
 public static class StartMultipartUpload
 {

@@ -1,6 +1,6 @@
 ﻿using FileService.Domain.Enums.AssetTypeEnum;
 
-namespace FileService.Domain;
+namespace FileService.Domain.Enums.AssetTypeEnum;
 
 public static class AssetTypeExtensions
 {

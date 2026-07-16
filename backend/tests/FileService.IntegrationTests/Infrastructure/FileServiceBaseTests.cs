@@ -1,4 +1,4 @@
-﻿using FileService.Core.Files;
+﻿using FileService.Core.Multipart;
 using FileService.Infrastructure.Postgres;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -16,7 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\FileService\FileService.Core\FileService.Core.csproj" />
     <ProjectReference Include="..\..\src\FileService\FileService.Domain\FileService.Domain.csproj" />
+    <ProjectReference Include="..\..\src\FileService\FileService.VideoProcessing\FileService.VideoProcessing.csproj" />
   </ItemGroup>
 
   <ItemGroup>

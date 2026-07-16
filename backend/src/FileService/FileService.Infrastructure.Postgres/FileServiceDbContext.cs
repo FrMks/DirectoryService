@@ -1,5 +1,6 @@
 ﻿using FileService.Domain.Entities;
 using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.MediaProcessing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -30,4 +31,5 @@ public class FileServiceDbContext : DbContext
     public DbSet<MediaAsset> MediaAssets => Set<MediaAsset>();
     public DbSet<VideoAsset> VideoAssets => Set<VideoAsset>();
     public DbSet<PreviewAsset> PreviewAssets => Set<PreviewAsset>();
+    public DbSet<VideoProcess> VideoProcess => Set<VideoProcess>();
 }

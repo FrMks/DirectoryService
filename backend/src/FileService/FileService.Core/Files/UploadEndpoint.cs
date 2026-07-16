@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Routing;
 using FileService.Domain.ValueObjects;
 using Shared;
 using Shared.Framework.EndpointResults;
+using FileService.Core.Multipart;
 
 namespace FileService.Core.Files;
 

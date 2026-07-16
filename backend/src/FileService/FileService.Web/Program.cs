@@ -3,12 +3,14 @@ using FileService.Core.Files;
 using FileService.Core.Multipart;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using FileService.Infrastructure.Postgres;
+using FileService.Infrastructure.Postgres.Database;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Infrastructure.S3;
 using FileService.Web;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
+using Shared.Core.Database;
 using Shared.Framework.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +29,8 @@ builder.Services.AddScoped<FileServiceDbContext>(_ =>
     new FileServiceDbContext(builder.Configuration.GetConnectionString("FileServiceDb")!));
 
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
+builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
+builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
 {

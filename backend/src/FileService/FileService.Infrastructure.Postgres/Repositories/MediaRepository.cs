@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using FileService.Core;
+using FileService.Domain.Entities;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -27,6 +28,11 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
         }
     }
 
+    public void Add(MediaAsset mediaAsset)
+    {
+        dbContext.MediaAssets.Add(mediaAsset);
+    }
+
     public async Task<MediaAsset?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         try
@@ -50,6 +56,19 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
             return Error.NotFound(null, "media file");
 
         return mediaAsset;
+    }
+
+    public async Task<Result<VideoAsset, Error>> GetVideoAssetBy(
+        Expression<Func<VideoAsset, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        VideoAsset? videoAsset = await dbContext.VideoAssets
+            .OfType<VideoAsset>()
+            .FirstOrDefaultAsync(predicate, cancellationToken);
+        if (videoAsset is null)
+            return Error.NotFound(null, "media file");
+
+        return videoAsset;
     }
 
     public async Task<Result<IReadOnlyList<MediaAsset>, Error>> GetManyBy(
