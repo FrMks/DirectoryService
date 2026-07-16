@@ -14,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<IProcessingStepHandler, MockUploadResultsStep>();
         services.AddScoped<IProcessingStepHandler, MockGeneratePreviewStep>();
         services.AddScoped<IProcessingStepHandler, MockCleanupStep>();
+        services.AddScoped<VideoProcessingService>();
 
         return services;
     }

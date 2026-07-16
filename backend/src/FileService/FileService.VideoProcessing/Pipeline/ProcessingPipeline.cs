@@ -162,6 +162,12 @@ public class ProcessingPipeline : IProcessingPipeline
         Guid videoAssetId,
         CancellationToken cancellationToken)
     {
+        if (cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogInformation("Processing pipeline was cancelled");
+            return Error.Failure("processing.pipeline.cancelled", "Processing.pipeline was cancelled in start method");
+        }
+
         Result<VideoProcess, Error> processingResult = await _videoProcessingRepository
             .GetBy(vp => vp.VideoAssetId == videoAssetId, cancellationToken);
 
