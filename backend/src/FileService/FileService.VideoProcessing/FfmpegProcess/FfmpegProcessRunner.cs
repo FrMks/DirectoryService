@@ -6,6 +6,7 @@ using Shared;
 
 namespace FileService.VideoProcessing.FfmpegProcess;
 
+// Я умею вызывать ffmpeg/ffprobe правильными командами
 public class FfmpegProcessRunner : IFfmpegProcessRunner
 {
     private readonly VideoProcessingOptions _options;
