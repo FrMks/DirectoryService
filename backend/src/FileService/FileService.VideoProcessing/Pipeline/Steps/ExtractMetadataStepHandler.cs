@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Domain.MediaProcessing;
 using FileService.Domain.ValueObjects;
+using Microsoft.AspNetCore.Routing.Internal;
 using Shared;
 
 namespace FileService.VideoProcessing.Pipeline.Steps;
@@ -13,6 +14,8 @@ public class ExtractMetadataStepHandler : IProcessingStepHandler
         ProcessingContext context,
         CancellationToken cancellationToken = default)
     {
+
+
         if (cancellationToken.IsCancellationRequested)
         {
             var error = Error.Failure("processing.cancelled", "Video processing was cancelled");
