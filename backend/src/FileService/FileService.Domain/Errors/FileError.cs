@@ -47,6 +47,26 @@ public static class FileError
         return Error.Failure("network.issue", "A network error occurred while processing the request");
     }
 
+    public static Error HlsProcessingFailed()
+    {
+        return Error.Failure("hls.processing.failed", "Видеообработка завершилась с ошибкой");
+    }
+
+    public static Error HlsProcessingFailed(string details)
+    {
+        return Error.Failure("hls.processing.failed", $"Видеообработка завершилась с ошибкой: {details}");
+    }
+
+    public static Error ProcessFailed()
+    {
+        return Error.Failure("process.failed", "Процесс завершился с ошибкой");
+    }
+
+    public static Error InvalidFfprobeOutput(string details)
+    {
+        return Error.Failure("ffprobe.invalid.output", $"Невалидный вывод ffprobe: {details}");
+    }
+
     public static Error Unknown()
     {
         return Error.Failure("unknown.error", "An unknown error occurred");

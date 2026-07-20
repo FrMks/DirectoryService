@@ -1,6 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using CSharpFunctionalExtensions;
+using FileService.Domain.Errors;
+using Microsoft.Extensions.Logging;
+using Pipelines.Sockets.Unofficial.Arenas;
 using Shared;
 
 namespace FileService.VideoProcessing.ProcessRunner;
@@ -8,7 +11,14 @@ namespace FileService.VideoProcessing.ProcessRunner;
 // Я умею запускать команду
 public class ProcessRunner : IProcessRunner
 {
-    public Task<Result<ProcessResult, Error>> RunAsync(
+    private readonly ILogger<ProcessRunner> _logger;
+
+    public ProcessRunner(ILogger<ProcessRunner> logger)
+    {
+        _logger = logger;
+    }
+
+    public async Task<Result<ProcessResult, Error>> RunAsync(
         ProcessCommand command,
         Action<string>? onOutput = null,
         CancellationToken cancellationToken = default)
@@ -26,6 +36,7 @@ public class ProcessRunner : IProcessRunner
             },
         };
 
+        // Выполняем синхронно
         StringBuilder outputBuilder = new();
         StringBuilder errorBuilder = new();
 
@@ -50,6 +61,32 @@ public class ProcessRunner : IProcessRunner
             onOutput?.Invoke(args.Data);
         };
 
+        _logger.LogInformation("Starting process: {FileName} {Arguments}", command.ExecutableFile, command.Arguments);
 
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        try
+        {
+            await process.WaitForExitAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Process was cancelled: {FileName} {Arguments}", command.ExecutableFile, command.Arguments);
+            return Error.Failure("operation.cancelled", "Operation was cancelled in ProcessRunner");
+        }
+
+        ProcessResult result = new(process.ExitCode, outputBuilder.ToString(), errorBuilder.ToString());
+
+        if (result.ExitCode != 0)
+        {
+            _logger.LogError(
+                "Process failed: {FileName} {Arguments} ExitCode: {ExitCode} Error: {Error}",
+                command.ExecutableFile, command.Arguments, result.ExitCode, result.StandardError);
+            return FileError.ProcessFailed();
+        }
+
+        return result;
     }
 }
