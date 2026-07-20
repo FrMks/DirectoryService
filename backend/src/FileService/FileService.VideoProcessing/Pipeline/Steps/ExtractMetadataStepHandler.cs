@@ -3,9 +3,9 @@ using FileService.Domain.MediaProcessing;
 using FileService.Domain.ValueObjects;
 using Shared;
 
-namespace FileService.VideoProcessing.Pipeline;
+namespace FileService.VideoProcessing.Pipeline.Steps;
 
-public class MockExtractMetadataStep : IProcessingStepHandler
+public class ExtractMetadataStepHandler : IProcessingStepHandler
 {
     public StepType StepType => StepType.EXTRACT_METADATA;
 
