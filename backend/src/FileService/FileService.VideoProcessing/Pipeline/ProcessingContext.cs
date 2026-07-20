@@ -1,5 +1,8 @@
-﻿using FileService.Domain.Entities;
+﻿using CSharpFunctionalExtensions;
+using FileService.Domain.Entities;
 using FileService.Domain.MediaProcessing;
+using Microsoft.Extensions.DependencyInjection;
+using Shared;
 
 namespace FileService.VideoProcessing.Pipeline;
 
@@ -8,14 +11,38 @@ namespace FileService.VideoProcessing.Pipeline;
 /// </summary>
 public sealed record ProcessingContext
 {
+    private const string HLS_SUBDIRECTORY = "hls";
+
     public required VideoProcess VideoProcess { get; init; }
 
     public required VideoAsset VideoAsset { get; init; }
 
-    public string? WorkingDirectory { get; init; }
+    // Корневая временная папка всей обработки: туда можно класть исходик, превью, логи ffmpeg, промежуточные файлы, metadata и т.п.
+    public string? WorkingDirectory { get; private set; }
 
-    // где будут генерироваться в нашей файловой системе hls файлы
-    public string? HlsOutputDirectory { get; init; }
+    // Специальная подпапка только для HLS-результата: .m3u8. Это удобно, потому что
+    // upload step может взять именно эту папка и не рисковать залить вместе с HLS какие-нибудь временные служебные файлы
+    public string? HlsOutputDirectory { get; private set; }
 
     public string? MediaAssetUrl { get; set; }
+
+    // Windows: C:\Users\<User>\AppData\Local\Temp\video-processing<unique> (Создаем уникальную папку ВНУТРИ Temp)
+    // macOS: /var/folders/.../T/video-processing<unique>
+    // Linux: /tmp/video-processing<unique>
+    public UnitResult<Error> CreateWorkingDirectory()
+    {
+        try
+        {
+            WorkingDirectory = Directory.CreateTempSubdirectory("video-processing").FullName;
+
+            HlsOutputDirectory = Path.Combine(WorkingDirectory, HLS_SUBDIRECTORY);
+            Directory.CreateDirectory(HlsOutputDirectory);
+        }
+        catch (Exception ex)
+        {
+            return Error.Failure("working.directory.creation", $"Failed to cretae working directory: {ex.Message}");
+        }
+
+        return UnitResult.Success<Error>();
+    }
 }
