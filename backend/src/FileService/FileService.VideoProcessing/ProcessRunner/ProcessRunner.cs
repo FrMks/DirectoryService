@@ -63,13 +63,13 @@ public class ProcessRunner : IProcessRunner
 
         _logger.LogInformation("Starting process: {FileName} {Arguments}", command.ExecutableFile, command.Arguments);
 
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
+        process.Start(); // запускаем внешний exe
+        process.BeginOutputReadLine(); // начинаем асинхронно читат stdout (запускаем асинхронное чтение потоков уже запущенного процесса ОС приложения, который мы запустили)
+        process.BeginErrorReadLine(); // начинаем асинхронно читат stderr (запускаем асинхронное чтение потоков уже запущенного процесса ОС приложения, который мы запустили)
 
         try
         {
-            await process.WaitForExitAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken); // Ждем пока внешний процесс завершится
         }
         catch (OperationCanceledException)
         {
