@@ -24,7 +24,7 @@ public sealed record ProcessingContext
     // upload step может взять именно эту папка и не рисковать залить вместе с HLS какие-нибудь временные служебные файлы
     public string? HlsOutputDirectory { get; private set; }
 
-    public string? MediaAssetUrl { get; set; }
+    public string? MediaAssetUrl { get; private set; }
 
     // Windows: C:\Users\<User>\AppData\Local\Temp\video-processing<unique> (Создаем уникальную папку ВНУТРИ Temp)
     // macOS: /var/folders/.../T/video-processing<unique>
@@ -44,5 +44,10 @@ public sealed record ProcessingContext
         }
 
         return UnitResult.Success<Error>();
+    }
+
+    public void SetMediaAssetUrl(string url)
+    {
+        MediaAssetUrl = url;
     }
 }

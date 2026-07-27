@@ -44,6 +44,8 @@ public class ExtractMetadataStepHandler : IProcessingStepHandler
         if (downloadUrlResult.IsFailure)
             return downloadUrlResult.Error;
 
+        context.SetMediaAssetUrl(downloadUrlResult.Value);
+
         Result<VideoMetadata, Error> metadataResult = await _ffmpegProcessRunner.ExtractMetadataAsync(
             downloadUrlResult.Value,
             cancellationToken);
