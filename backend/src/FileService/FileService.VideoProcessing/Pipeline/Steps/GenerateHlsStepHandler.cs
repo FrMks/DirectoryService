@@ -34,6 +34,7 @@ public class GenerateHlsStepHandler : IProcessingStepHandler
             "Generating HLS for VideoAssetId: {VideoAssetId}",
             context.VideoAsset.Id);
 
+        // Url по которому ffmpeg может прочитать исходное загруженное видео
         string downloadFileUrl;
         if (!string.IsNullOrWhiteSpace(context.MediaAssetUrl))
         {
@@ -44,11 +45,12 @@ public class GenerateHlsStepHandler : IProcessingStepHandler
             _logger.LogDebug("Download file url not cached, generating new presigned URL");
 
             Result<string, Error> urlResult = await _s3Provider
-                .GenerateDownloadUrlAsync(context.VideoAsset.RawKey!);
+                .GenerateDownloadUrlAsync(context.VideoAsset.UploadedKey!);
             if (urlResult.IsFailure)
                 return urlResult.Error;
 
             downloadFileUrl = urlResult.Value;
+            context.SetMediaAssetUrl(urlResult.Value);
         }
 
         if (string.IsNullOrEmpty(context.HlsOutputDirectory))

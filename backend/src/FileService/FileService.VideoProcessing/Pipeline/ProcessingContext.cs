@@ -24,6 +24,9 @@ public sealed record ProcessingContext
     // upload step может взять именно эту папка и не рисковать залить вместе с HLS какие-нибудь временные служебные файлы
     public string? HlsOutputDirectory { get; private set; }
 
+    /// <summary>
+    /// Временный Url для скачивания, который указывает на объект в S3/MinIO, но это не идентификатор стабильного хранилища.
+    /// </summary>
     public string? MediaAssetUrl { get; private set; }
 
     // Windows: C:\Users\<User>\AppData\Local\Temp\video-processing<unique> (Создаем уникальную папку ВНУТРИ Temp)
