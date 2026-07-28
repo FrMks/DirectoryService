@@ -211,12 +211,9 @@ public class ProcessingPipeline : IProcessingPipeline
         {
             VideoAsset = assetResult.Value,
             VideoProcess = videoProcess,
-            WorkingDirectory = $"temp/video-processing/{videoAssetId}",
-            HlsOutputDirectory = $"temp/video-processing/{videoAssetId}/hls",
         };
 
         return processingContext;
-
     }
 
     private async Task<Result<ProcessingContext, Error>> ExecuteStepSafelyAsync(

@@ -36,8 +36,11 @@ public sealed record ProcessingContext
     {
         try
         {
+            // temp root for example: C:\Users\coder8\AppData\Local\Temp
+            // C:\Users\coder8\AppData\Local\Temp\video-processingabc123
             WorkingDirectory = Directory.CreateTempSubdirectory("video-processing").FullName;
 
+            // C:\Users\coder8\AppData\Local\Temp\video-processingabc123\hls
             HlsOutputDirectory = Path.Combine(WorkingDirectory, HLS_SUBDIRECTORY);
             Directory.CreateDirectory(HlsOutputDirectory);
         }

@@ -55,7 +55,7 @@ public static class UploadEndpoint
             var uploadResult = await storage.UploadFileAsync(
                 storageKeyResult.Value,
                 stream,
-                mediaDataResult.Value,
+                mediaDataResult.Value.ContentType.Value,
                 cancellationToken);
 
             if (uploadResult.IsFailure)
