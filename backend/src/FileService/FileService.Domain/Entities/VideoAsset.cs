@@ -162,6 +162,22 @@ public class VideoAsset : MediaAsset
 
     #endregion
 
+    public Result<StorageKey, Error> GetHlsRootKey()
+    {
+        // videos/hls/videoid/master.m3u8
+        // videos/hls/videoid/file1.ts...
+        return StorageKey.Create(BUCKET, HLS_PREFIX, Id.ToString());
+    }
+
+    public Result<StorageKey, Error> GetHlsMasterPlaylistKey()
+    {
+        Result<StorageKey, Error> hlsRoot = GetHlsRootKey();
+        if (hlsRoot.IsFailure)
+            return hlsRoot.Error;
+
+        return hlsRoot.Value.AppendKey(MASTER_PLAYLIST_NAME);
+    }
+
     protected override bool CanChangeStatusTo(MediaStatus target)
     {
         return Status switch

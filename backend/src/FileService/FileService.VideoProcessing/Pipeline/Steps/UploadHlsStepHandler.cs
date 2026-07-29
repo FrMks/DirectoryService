@@ -6,6 +6,7 @@ using FileService.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.VideoProcessing.Pipeline.Steps;
 
@@ -46,17 +47,46 @@ public class UploadHlsStepHandler : IProcessingStepHandler
         if (hlsFiles.Length == 0)
             return FileError.HlsProcessingFailed("No Hls files found in output directory");
 
+        // Корневой ключ для всех HLS файлов для этого видео в S3/MinIO
+        // videos/hls/111-111-111
+        // Это как папка, в котором будут лежать HLS файлы
+        Result<StorageKey, Error> hlsRootKey = context.VideoAsset.GetHlsRootKey();
+        if (hlsRootKey.IsFailure)
+            return hlsRootKey.Error;
+
+        // Ограничиваем максимальным числом файлов, которые мы можем отправить
+        using var throttler = new SemaphoreSlim(_options.Value.UploadDegreeOfParallelism);
+
         Task<UnitResult<Error>>[] uploadTasks = hlsFiles.Select(async file =>
         {
+            await throttler.WaitAsync(cancellationToken);
             try
             {
-                return await UploadHlsFileAsync();
+                return await UploadHlsFileAsync(hlsRootKey.Value, file, cancellationToken);
             }
-            catch (Exception ex)
+            finally
             {
-
+                throttler.Release();
             }
-        });
+        }).ToArray();
+
+        UnitResult<Error>[] results = await Task.WhenAll(uploadTasks);
+
+        UnitResult<Error> firstError = results.FirstOrDefault(r => r.IsFailure);
+        if (firstError.IsFailure)
+            return firstError.Error;
+
+        _logger.LogInformation(
+            "Successfully uploaded {FileCount} HLS files for VideoAssetId: {VideoAssetId}",
+            hlsFiles.Length,
+            context.VideoAsset.Id);
+
+        // Конечный S3 ключ для master.m3u8
+        Result<StorageKey, Error> masterPlaylistKey = context.VideoAsset.GetHlsMasterPlaylistKey();
+        if (masterPlaylistKey.IsFailure)
+            return masterPlaylistKey.Error;
+
+        return context;
     }
 
     /// <param name="hlsRootKey">Где живет объект в s3/minio.</param>
@@ -69,6 +99,7 @@ public class UploadHlsStepHandler : IProcessingStepHandler
         string fileName = Path.GetFileName(localFilePath);
 
         // Создаем конечный s3 ключ для этого файла.
+        // Конечный S3 ключ внутри hlsRootKey
         Result<StorageKey, Error> storageKey = hlsRootKey.AppendKey(fileName);
         if (storageKey.IsFailure)
             return storageKey.Error;
