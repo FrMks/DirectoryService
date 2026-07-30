@@ -5,6 +5,7 @@ using FileService.Domain.MediaProcessing;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Core.Database;
+using Shared.Framework.EndpointResults;
 
 namespace FileService.VideoProcessing.Pipeline;
 
@@ -44,6 +45,77 @@ public class ProcessingPipeline : IProcessingPipeline
 
         ProcessingContext context = contextResult.Value;
 
+        UnitResult<Error> executionResult = await ExecuteAllStepsAsync(context, cancellationToken);
+        if (executionResult.IsFailure)
+        {
+            return await FinalizeWithFailureAsync(context, executionResult.Error, cancellationToken);
+        }
+
+        return await FinalizeAsync(context, cancellationToken);
+    }
+
+    private async Task<UnitResult<Error>> FinalizeWithFailureAsync(
+        ProcessingContext context,
+        Error error,
+        CancellationToken cancellationToken)
+    {
+        Guid videoAssetId = context.VideoAsset.Id;
+
+        context.VideoProcess.Fail(error.Message);
+
+        _logger.LogError(
+            "Video processing failed for VideoAssetId: {VideoAssetId}. Error: {Error}",
+            videoAssetId,
+            error.Message);
+
+        UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            _logger.LogError(
+                "Failed to save failure state for VideoAssetId: {VideoAssetId}",
+                videoAssetId);
+            return saveResult.Error;
+        }
+
+        return UnitResult.Failure(error);
+    }
+
+    private async Task<UnitResult<Error>> FinalizeAsync(
+        ProcessingContext context,
+        CancellationToken cancellationToken)
+    {
+        Guid videoAssetId = context.VideoAsset.Id;
+
+        UnitResult<Error> completeVideoResult = context.VideoAsset.CompleteProcessing(DateTime.UtcNow);
+        if (completeVideoResult.IsFailure)
+            return completeVideoResult.Error;
+
+        UnitResult<Error> completeProcessResult = context.VideoProcess.Complete();
+        if (completeProcessResult.IsFailure)
+            return completeProcessResult.Error;
+
+        _logger.LogInformation(
+            "Video processing completed successfully for VideoAssetId: {VideoAssetId}",
+            videoAssetId);
+
+        UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+        if (saveResult.IsFailure)
+        {
+            _logger.LogError(
+                "Failed to save final state for VideoAssetId: {VideoAssetId}",
+                videoAssetId);
+            return saveResult.Error;
+        }
+
+        return UnitResult.Success<Error>();
+    }
+
+    private async Task<UnitResult<Error>> ExecuteAllStepsAsync(
+        ProcessingContext context,
+        CancellationToken cancellationToken)
+    {
+        Guid videoAssetId = context.VideoAsset.Id;
+
         while (true)
         {
             // Получаем активный шаг или запускаем следующий ожидающий этап обрабокти или null.
@@ -60,16 +132,8 @@ public class ProcessingPipeline : IProcessingPipeline
 
             if (stepResult.Value is null)
             {
-                UnitResult<Error> completeVideoResult = context.VideoAsset.CompleteProcessing(DateTime.UtcNow);
-                if (completeVideoResult.IsFailure)
-                    return completeVideoResult.Error;
-
-                UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
-                if (saveResult.IsFailure)
-                    return saveResult.Error;
-
                 _logger.LogInformation(
-                    "All processing steps completed for VideoAssetId: {VideoAssetId}",
+                    "All processing steps executed for VideoAssetId: {VideoAssetId}",
                     videoAssetId);
                 return UnitResult.Success<Error>();
             }

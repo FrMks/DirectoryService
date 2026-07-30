@@ -23,7 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IProcessingStepHandler, MockPrepareOutputsStep>();
         services.AddScoped<IProcessingStepHandler, UploadHlsStepHandler>();
         services.AddScoped<IProcessingStepHandler, GeneratePreviewStepHandler>();
-        services.AddScoped<IProcessingStepHandler, MockCleanupStep>();
+        services.AddScoped<IProcessingStepHandler, CleanupStepHandler>();
         services.AddScoped<VideoProcessingService>();
 
         return services;

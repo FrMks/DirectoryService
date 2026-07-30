@@ -195,6 +195,20 @@ public class VideoAsset : MediaAsset
         return hlsRoot.Value.AppendKey(MASTER_PLAYLIST_NAME);
     }
 
+    public UnitResult<Error> CompleteProcessing()
+    {
+        if (Status != MediaStatus.PROCESSING)
+        {
+            return Error.Validation(
+                "asset.invalid.status.transaction",
+                "Can only complete processing from PROCESSING status");
+        }
+
+        Status = MediaStatus.READY;
+        UpdatedAt = DateTime.UtcNow;
+        return UnitResult.Success<Error>();
+    }
+
     protected override bool CanChangeStatusTo(MediaStatus target)
     {
         return Status switch

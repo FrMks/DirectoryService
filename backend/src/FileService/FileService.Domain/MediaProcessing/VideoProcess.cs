@@ -86,8 +86,7 @@ public class VideoProcess
             .FirstOrDefault(s => s.Status == StepStatus.PENDING);
 
         if (nextStep is null)
-        { // Если следующего шага нет, значит это был последний шаг и надо сделать завершение
-            Complete();
+        {
             return Result.Success<ProcessingStep?, Error>(null);
         }
 
@@ -226,7 +225,7 @@ public class VideoProcess
         ProgressPercentage = totalProgress;
     }
 
-    private UnitResult<Error> Complete()
+    public UnitResult<Error> Complete()
     {
         if (Status != ProcessingStatus.IN_PROGRESS)
         {
