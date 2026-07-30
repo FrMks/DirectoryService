@@ -56,4 +56,11 @@ public sealed record ProcessingContext
     {
         MediaAssetUrl = url;
     }
+
+    internal void Cleanup()
+    {
+        WorkingDirectory = null;
+        HlsOutputDirectory = null;
+        MediaAssetUrl = null;
+    }
 }
