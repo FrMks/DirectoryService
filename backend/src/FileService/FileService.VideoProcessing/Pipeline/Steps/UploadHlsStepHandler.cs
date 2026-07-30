@@ -6,7 +6,6 @@ using FileService.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared;
-using Shared.Framework.EndpointResults;
 
 namespace FileService.VideoProcessing.Pipeline.Steps;
 

@@ -54,6 +54,23 @@ public class VideoAsset : MediaAsset
 
     public VideoMetadata? Metadata { get; private set; }
 
+    public StorageKey? PreviewKey { get; private set; }
+
+    public UnitResult<Error> SetPreviewKey(StorageKey previewKey)
+    {
+        if (Status != MediaStatus.PROCESSING)
+        {
+            return Error.Validation(
+                "asset.invalid.status",
+                $"Can only set preview key when status is Processing, status now in {Status}");
+        }
+
+        PreviewKey = previewKey;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
+
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
         if (!AllowedExtensions.Contains(mediaData.FileName.Extension))

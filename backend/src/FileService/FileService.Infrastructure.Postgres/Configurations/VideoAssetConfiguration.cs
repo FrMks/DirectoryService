@@ -37,5 +37,14 @@ public class VideoAssetConfiguration : IEntityTypeConfiguration<VideoAsset>
             mb.Property(m => m.Height).HasColumnName("metadata_height");
             mb.Property(m => m.Width).HasColumnName("metadata_width");
         });
+
+        builder.OwnsOne(va => va.PreviewKey, pb =>
+        {
+            pb.Property(k => k.Bucket).HasColumnName("preview_key_bucket");
+            pb.Property(k => k.Prefix).HasColumnName("preview_key_prefix");
+            pb.Property(k => k.Key).HasColumnName("preview_key_key");
+            pb.Property(k => k.Value).HasColumnName("preview_key_value");
+            pb.Property(k => k.FullPath).HasColumnName("preview_key_full_path");
+        });
     }
 }

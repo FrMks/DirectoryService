@@ -3,7 +3,6 @@ using System.Text;
 using CSharpFunctionalExtensions;
 using FileService.Domain.Errors;
 using Microsoft.Extensions.Logging;
-using Pipelines.Sockets.Unofficial.Arenas;
 using Shared;
 
 namespace FileService.VideoProcessing.ProcessRunner;

@@ -1,12 +1,9 @@
-﻿using System.Diagnostics;
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using FileService.Domain.Entities;
 using FileService.Domain.ValueObjects;
 using FileService.VideoProcessing.ProcessRunner;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Shared;
-using Shared.Framework.EndpointResults;
 
 namespace FileService.VideoProcessing.FfmpegProcess;
 
@@ -22,6 +19,31 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
     {
         _options = options.Value;
         _processRunner = processRunner;
+    }
+
+    public async Task<UnitResult<Error>> GeneratePreviewAsync(
+        string sourceVideoUrl,
+        string previewPath,
+        CancellationToken cancellationToken = default)
+    {
+        string arguments = BuildPreviewArguments(sourceVideoUrl, previewPath);
+
+        var command = new ProcessCommand(_options.FfmpegPath, arguments);
+
+        Result<ProcessResult, Error> processResult = await _processRunner.RunAsync(
+            command,
+            cancellationToken: cancellationToken);
+        if (processResult.IsFailure)
+            return processResult.Error;
+
+        if (!File.Exists(previewPath))
+        {
+            return Error.Failure(
+                "preview.generation.failed",
+                "Preview file was not created");
+        }
+
+        return UnitResult.Success<Error>();
     }
 
     public async Task<Result<VideoMetadata, Error>> ExtractMetadataAsync(
@@ -117,4 +139,17 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
         "-map \"[a0]\" -c:a:0 -b:a:0 96k -ac 2 " +
         "-map \"[a1]\" -c:a:1 -b:a:1 96k -ac 2 " +
         "-map \"[a2]\" -c:a:2 -b:a:2 96k -ac 2 ";
+
+    private static string BuildPreviewArguments(string inputFileUrl, string outputFilePath)
+    {
+        return
+            $"""
+            -y
+            -ss 00:00:01
+            -i "{inputFileUrl}"
+            -frames:v 1
+            -q:v 2
+            "{outputFilePath}"
+            """;
+    }
 }

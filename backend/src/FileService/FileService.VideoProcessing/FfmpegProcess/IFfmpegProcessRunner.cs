@@ -14,4 +14,9 @@ public interface IFfmpegProcessRunner
         string inputFileUrl,
         string outputDirectory,
         CancellationToken cancellationToken = default);
+
+    Task<UnitResult<Error>> GeneratePreviewAsync(
+        string sourceVideoUrl,
+        string previewPath,
+        CancellationToken cancellationToken = default);
 }
