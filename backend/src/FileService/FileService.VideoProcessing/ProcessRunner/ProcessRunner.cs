@@ -83,7 +83,12 @@ public class ProcessRunner : IProcessRunner
             _logger.LogError(
                 "Process failed: {FileName} {Arguments} ExitCode: {ExitCode} Error: {Error}",
                 command.ExecutableFile, command.Arguments, result.ExitCode, result.StandardError);
-            return FileError.ProcessFailed();
+
+            string details = string.IsNullOrWhiteSpace(result.StandardError)
+                ? result.StandardOutput
+                : result.StandardError;
+
+            return FileError.ProcessFailed(details);
         }
 
         return result;

@@ -5,7 +5,7 @@ using Shared;
 
 namespace FileService.VideoProcessing;
 
-public class VideoProcessingService
+public class VideoProcessingService : IVideoProcessingService
 {
     private readonly ILogger<VideoProcessingService> _logger;
     private readonly IProcessingPipeline _processingPipeline;

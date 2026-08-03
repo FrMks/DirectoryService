@@ -1,6 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Core;
 using FileService.Domain.Entities;
+using FileService.Domain.Enums;
 using FileService.Domain.MediaProcessing;
 using Microsoft.Extensions.Logging;
 using Shared;
@@ -11,6 +12,8 @@ namespace FileService.VideoProcessing.Pipeline;
 
 public class ProcessingPipeline : IProcessingPipeline
 {
+    private const string PipelineCancelledCode = "processing.pipeline.cancelled";
+
     private readonly IEnumerable<IProcessingStepHandler> _stepHandlers;
 
     private readonly ILogger<ProcessingPipeline> _logger;
@@ -39,7 +42,11 @@ public class ProcessingPipeline : IProcessingPipeline
         Guid videoAssetId,
         CancellationToken cancellationToken = default)
     {
-        Result<ProcessingContext, Error> contextResult = await LoadContextAsync(videoAssetId, cancellationToken);
+        CancellationToken contextCancellationToken = cancellationToken.IsCancellationRequested
+            ? CancellationToken.None
+            : cancellationToken;
+
+        Result<ProcessingContext, Error> contextResult = await LoadContextAsync(videoAssetId, contextCancellationToken);
         if (contextResult.IsFailure)
             return contextResult.Error;
 
@@ -48,7 +55,11 @@ public class ProcessingPipeline : IProcessingPipeline
         UnitResult<Error> executionResult = await ExecuteAllStepsAsync(context, cancellationToken);
         if (executionResult.IsFailure)
         {
-            return await FinalizeWithFailureAsync(context, executionResult.Error, cancellationToken);
+            CancellationToken failureCancellationToken = executionResult.Error.Code == PipelineCancelledCode
+                ? CancellationToken.None
+                : cancellationToken;
+
+            return await FinalizeWithFailureAsync(context, executionResult.Error, failureCancellationToken);
         }
 
         return await FinalizeAsync(context, cancellationToken);
@@ -62,6 +73,8 @@ public class ProcessingPipeline : IProcessingPipeline
         Guid videoAssetId = context.VideoAsset.Id;
 
         context.VideoProcess.Fail(error.Message);
+        if (context.VideoAsset.Status != MediaStatus.FAILED)
+            context.VideoAsset.FailProcessing(DateTime.UtcNow);
 
         _logger.LogError(
             "Video processing failed for VideoAssetId: {VideoAssetId}. Error: {Error}",
@@ -90,9 +103,12 @@ public class ProcessingPipeline : IProcessingPipeline
         if (completeVideoResult.IsFailure)
             return completeVideoResult.Error;
 
-        UnitResult<Error> completeProcessResult = context.VideoProcess.Complete();
-        if (completeProcessResult.IsFailure)
-            return completeProcessResult.Error;
+        if (context.VideoProcess.Status != ProcessingStatus.COMPLETED)
+        {
+            UnitResult<Error> completeProcessResult = context.VideoProcess.Complete();
+            if (completeProcessResult.IsFailure)
+                return completeProcessResult.Error;
+        }
 
         _logger.LogInformation(
             "Video processing completed successfully for VideoAssetId: {VideoAssetId}",
@@ -118,6 +134,15 @@ public class ProcessingPipeline : IProcessingPipeline
 
         while (true)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogInformation(
+                    "Processing pipeline was cancelled for VideoAssetId: {VideoAssetId}",
+                    videoAssetId);
+
+                return Error.Failure(PipelineCancelledCode, "Video processing was cancelled");
+            }
+
             // Получаем активный шаг или запускаем следующий ожидающий этап обрабокти или null.
             Result<ProcessingStep?, Error> stepResult = context.VideoProcess.ProcessNextStep();
 
@@ -226,12 +251,6 @@ public class ProcessingPipeline : IProcessingPipeline
         Guid videoAssetId,
         CancellationToken cancellationToken)
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Processing pipeline was cancelled");
-            return Error.Failure("processing.pipeline.cancelled", "Processing.pipeline was cancelled in start method");
-        }
-
         Result<VideoProcess, Error> processingResult = await _videoProcessingRepository
             .GetBy(vp => vp.VideoAssetId == videoAssetId, cancellationToken);
 

@@ -15,6 +15,8 @@ using FileService.Infrastructure.Postgres;
 using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace FileService.IntegrationTests.Infrastructure;
 
@@ -71,7 +73,7 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
 
             // И подменяем
             services.AddScoped<FileServiceDbContext>(_ =>
-                new FileServiceDbContext(_dbContainer.GetConnectionString()));
+                new TestFileServiceDbContext(_dbContainer.GetConnectionString()));
         });
 
         builder.ConfigureAppConfiguration((_, config) =>
@@ -90,6 +92,8 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
                 ["S3Options:DownloadUrlExpirationHours"] = "24",
                 ["S3Options:MaxConcurrentRequests"] = "20",
                 ["S3Options:RecommendedChunkSizeBytes"] = "5242880",
+                ["VideoProcessing:VideoEncoder"] = "libopenh264",
+                ["VideoProcessing:VideoPreset"] = "",
             });
         });
     }
@@ -104,7 +108,7 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
 
         // Создаем миграции, чтобы тесты могли работать с тестовой БД развернутой в контейнере
         await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.MigrateAsync();
+        await dbContext.Database.EnsureCreatedAsync();
 
         IS3BucketInitializer bucketInitializer = scope.ServiceProvider.GetRequiredService<IS3BucketInitializer>();
         await bucketInitializer.InitializeAsync();
@@ -182,7 +186,29 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
             new RespawnerOptions
             {
                 DbAdapter = DbAdapter.Postgres,
-                SchemasToInclude = ["public"],
+                SchemasToInclude = ["files"],
             });
+    }
+
+    private sealed class TestFileServiceDbContext : FileServiceDbContext
+    {
+        private readonly string _connectionString;
+
+        public TestFileServiceDbContext(string connectionString)
+            : base(connectionString)
+        {
+            _connectionString = connectionString;
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder
+                .UseNpgsql(
+                    _connectionString,
+                    options => options.MigrationsAssembly(typeof(FileServiceDbContext).Assembly.FullName))
+                .EnableDetailedErrors()
+                .ConfigureWarnings(warnings => warnings.Ignore(RelationalEventId.PendingModelChangesWarning))
+                .LogTo(Console.WriteLine, LogLevel.Information);
+        }
     }
 }

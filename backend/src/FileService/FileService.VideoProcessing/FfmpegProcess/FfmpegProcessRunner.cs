@@ -80,14 +80,11 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
 
     private static string BuildFfprobeArguments(string inputFileUrl)
     {
-        return
-            $"""
-            -v error
-            -select_streams v:0
-            -show_entries stream=width,height,codex_name:format=duration,format_name
-            -of json
-            "{inputFileUrl}"
-            """;
+        return "-v error " +
+            "-select_streams v:0 " +
+            "-show_entries stream=width,height,codec_name:format=duration,format_name " +
+            "-of json " +
+            $"\"{inputFileUrl}\"";
     }
 
     private string BuildFfmpegHlsArguments(string inputFileUrl, string outputDirectory)
@@ -104,12 +101,10 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
             "[0:v]split=3[v0][v1][v2]; " + // Берем видео поток как первый вход [0:v] и разделяем на 3 видео ветки
             "[v0]scale=w=-2:h=360[v0out]; " +
             "[v1]scale=w=-2:h=720[v1out]; " +
-            "[v2]scale=w=-2:h=1080[v2out]; " +
-            "[0:a]asplit=3[a0][a1][a2]\" " + // Берем аудио поток и разделяем на три ветки.
+            "[v2]scale=w=-2:h=1080[v2out]\" " +
             BuildVideoMappings() +
-            BuildAudioMappings() +
             "-f hls " + // вывод в hls
-            "-var_stream_map \"v:0,a:0,name:360p v:1,a:1,name:720p v:2,a:2,name:1080p\" " + // как группируем видео
+            "-var_stream_map \"v:0,name:360p v:1,name:720p v:2,name:1080p\" " + // как группируем видео
             "-hls_time 4 " + // разбивает видео по 4 секунды
             "-hls_list_size 0 " + // все видео по 4 секунды в один плейлист
             "-hls_segment_type mpegts " +
@@ -122,7 +117,9 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
     private string BuildVideoMappings()
     {
         string encoder = _options.VideoEncoder;
-        string preset = _options.VideoPreset;
+        string preset = string.IsNullOrWhiteSpace(_options.VideoPreset)
+            ? string.Empty
+            : $"-preset {_options.VideoPreset} ";
 
         // -map \"[v0out]\" означает использовать фильтрованный вывод на выходе первого потока 
         // -c:v:number кодек для первого видео 
@@ -130,26 +127,18 @@ public class FfmpegProcessRunner : IFfmpegProcessRunner
         // -maxrate:v:0 2M - максимальный битрейте. 
         // -bufsize:v:0 2M Размер буфера регулирует скорость.
         // -g 20 расстояние между ключевыми кадрами. Для fps 30, -g 20 означает ключевые кадры примеру каждые 0.66 секунд.
-        return $"-map \"[v0out]\" -c:v:0 {encoder} -preset {preset} -b:v:0 2M -maxrate:v:0 2M -bufsize:v:0 2M -g 20 " +
-               $"-map \"[v1out]\" -c:v:1 {encoder} -preset {preset} -b:v:1 3M -maxrate:v:1 3M -bufsize:v:1 3M -g 20 " +
-               $"-map \"[v2out]\" -c:v:2 {encoder} -preset {preset} -b:v:2 5M -maxrate:v:2 5M -bufsize:v:2 2M -g 20 ";
+        return $"-map \"[v0out]\" -c:v:0 {encoder} {preset}-b:v:0 2M -maxrate:v:0 2M -bufsize:v:0 2M -g 20 " +
+               $"-map \"[v1out]\" -c:v:1 {encoder} {preset}-b:v:1 3M -maxrate:v:1 3M -bufsize:v:1 3M -g 20 " +
+               $"-map \"[v2out]\" -c:v:2 {encoder} {preset}-b:v:2 5M -maxrate:v:2 5M -bufsize:v:2 2M -g 20 ";
     }
-
-    private string BuildAudioMappings() =>
-        "-map \"[a0]\" -c:a:0 -b:a:0 96k -ac 2 " +
-        "-map \"[a1]\" -c:a:1 -b:a:1 96k -ac 2 " +
-        "-map \"[a2]\" -c:a:2 -b:a:2 96k -ac 2 ";
 
     private static string BuildPreviewArguments(string inputFileUrl, string outputFilePath)
     {
-        return
-            $"""
-            -y
-            -ss 00:00:01
-            -i "{inputFileUrl}"
-            -frames:v 1
-            -q:v 2
-            "{outputFilePath}"
-            """;
+        return "-y " +
+            "-ss 00:00:01 " +
+            $"-i \"{inputFileUrl}\" " +
+            "-frames:v 1 " +
+            "-q:v 2 " +
+            $"\"{outputFilePath}\"";
     }
 }

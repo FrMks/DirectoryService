@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Globalization;
 using CSharpFunctionalExtensions;
 using FileService.Domain.Errors;
 using FileService.Domain.ValueObjects;
@@ -91,8 +92,9 @@ public static class FfprobeOutputParser
             if (reader.TokenType == JsonTokenType.String)
             {
                 string? str = reader.GetString();
-                if (double.TryParse(str, out double value))
+                if (double.TryParse(str, CultureInfo.InvariantCulture, out double value))
                     return value;
+
                 return null;
             }
 

@@ -17,10 +17,12 @@ public static class DependencyInjection
         services.AddScoped<IFfmpegProcessRunner, FfmpegProcessRunner>();
         services.AddScoped<IProcessRunner, global::FileService.VideoProcessing.ProcessRunner.ProcessRunner>();
 
+        services.AddScoped<IVideoProcessingService, VideoProcessingService>();
+
         services.AddScoped<IProcessingPipeline, ProcessingPipeline>();
         services.AddScoped<IProcessingStepHandler, InitializeStepHandler>();
         services.AddScoped<IProcessingStepHandler, ExtractMetadataStepHandler>();
-        services.AddScoped<IProcessingStepHandler, MockPrepareOutputsStep>();
+        services.AddScoped<IProcessingStepHandler, GenerateHlsStepHandler>();
         services.AddScoped<IProcessingStepHandler, UploadHlsStepHandler>();
         services.AddScoped<IProcessingStepHandler, GeneratePreviewStepHandler>();
         services.AddScoped<IProcessingStepHandler, CleanupStepHandler>();

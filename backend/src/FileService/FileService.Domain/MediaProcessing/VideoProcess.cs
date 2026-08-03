@@ -87,6 +87,10 @@ public class VideoProcess
 
         if (nextStep is null)
         {
+            UnitResult<Error> completeResult = Complete();
+            if (completeResult.IsFailure)
+                return completeResult.Error;
+
             return Result.Success<ProcessingStep?, Error>(null);
         }
 

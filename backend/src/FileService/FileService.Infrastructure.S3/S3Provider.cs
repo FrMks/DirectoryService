@@ -215,6 +215,7 @@ public class S3Provider : IS3Provider
                 Verb = HttpVerb.PUT,
                 Expires = DateTime.UtcNow.AddMinutes(_s3Options.UploadUrlExpirationMinutes),
                 Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
+                ContentType = mediaData.ContentType.Value,
             };
 
             string response = await _s3Client.GetPreSignedURLAsync(request);

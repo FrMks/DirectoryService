@@ -62,6 +62,11 @@ public static class FileError
         return Error.Failure("process.failed", "Процесс завершился с ошибкой");
     }
 
+    public static Error ProcessFailed(string details)
+    {
+        return Error.Failure("process.failed", $"Процесс завершился с ошибкой: {details}");
+    }
+
     public static Error InvalidFfprobeOutput(string details)
     {
         return Error.Failure("ffprobe.invalid.output", $"Невалидный вывод ffprobe: {details}");
