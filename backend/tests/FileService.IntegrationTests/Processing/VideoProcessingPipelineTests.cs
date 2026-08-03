@@ -19,6 +19,7 @@ namespace FileService.IntegrationTests.Processing;
 public class VideoProcessingPipelineTests : FileServiceBaseTests
 {
     private const string VideoContentType = "video/mp4";
+    private const string HlsSegmentContentType = "video/mp2t";
 
     public VideoProcessingPipelineTests(FileServiceTestWebFactory factory)
         : base(factory)
@@ -97,6 +98,21 @@ public class VideoProcessingPipelineTests : FileServiceBaseTests
                 videoAsset.FinalKey,
                 cancellationToken);
             hlsMetadataResult.IsSuccess.Should().BeTrue();
+
+            Result<StorageKey, Error> hlsRootKeyResult = StorageKey.Create(
+                VideoAsset.BUCKET,
+                VideoAsset.HLS_PREFIX,
+                videoAssetId.ToString());
+            hlsRootKeyResult.IsSuccess.Should().BeTrue();
+
+            Result<StorageKey, Error> segmentKeyResult = hlsRootKeyResult.Value.AppendKey("360p_000000.ts");
+            segmentKeyResult.IsSuccess.Should().BeTrue();
+
+            Result<StorageObjectMetadata, Error> segmentMetadataResult = await storage.GetMetadataAsync(
+                segmentKeyResult.Value,
+                cancellationToken);
+            segmentMetadataResult.IsSuccess.Should().BeTrue();
+            segmentMetadataResult.Value.ContentType.Should().Be(HlsSegmentContentType);
 
             Result<StorageObjectMetadata, Error> previewMetadataResult = await storage.GetMetadataAsync(
                 videoAsset.PreviewKey!,
