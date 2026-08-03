@@ -102,6 +102,8 @@
       S3Options__WithSsl: "false"
       S3Options__RequiredBuckets__0: videos
       S3Options__RequiredBuckets__1: preview
+      VideoProcessing__FfmpegPath: ffmpeg
+      VideoProcessing__FfprobePath: ffprobe
       Swagger__ServerUrl: http://localhost:8081
     ports:
       - "8081:8080"
