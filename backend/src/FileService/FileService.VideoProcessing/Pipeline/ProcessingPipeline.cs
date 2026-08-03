@@ -81,6 +81,8 @@ public class ProcessingPipeline : IProcessingPipeline
             videoAssetId,
             error.Message);
 
+        CleanupWorkingDirectory(context);
+
         UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)
         {
@@ -91,6 +93,33 @@ public class ProcessingPipeline : IProcessingPipeline
         }
 
         return UnitResult.Failure(error);
+    }
+
+    private void CleanupWorkingDirectory(ProcessingContext context)
+    {
+        if (string.IsNullOrWhiteSpace(context.WorkingDirectory))
+            return;
+
+        try
+        {
+            if (Directory.Exists(context.WorkingDirectory))
+            {
+                Directory.Delete(context.WorkingDirectory, recursive: true);
+                _logger.LogDebug(
+                    "Working directory deleted: {WorkingDirectory}",
+                    context.WorkingDirectory);
+            }
+
+            context.Cleanup();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to delete working directory: {WorkingDirectory} for VideoAssetId: {VideoAssetId}",
+                context.WorkingDirectory,
+                context.VideoAsset.Id);
+        }
     }
 
     private async Task<UnitResult<Error>> FinalizeAsync(
