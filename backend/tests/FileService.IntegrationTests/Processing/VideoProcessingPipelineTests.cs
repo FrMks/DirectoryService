@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
 using FileService.Core.Multipart;
 using FileService.Domain.Entities;
@@ -26,6 +26,37 @@ public class VideoProcessingPipelineTests : FileServiceBaseTests
     }
 
     [Fact]
+    public async Task ProcessVideoAsync_WhenInvalidVideoUploaded_ShouldCompleteProcessingWithFailure()
+    {
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        CancellationToken cancellationToken = cancellationTokenSource.Token;
+
+        await using AsyncServiceScope scope = Services.CreateAsyncScope();
+        IVideoProcessingService videoProcessingService = scope.ServiceProvider
+            .GetRequiredService<IVideoProcessingService>();
+
+        Guid videoAssetId = await UploadTestVideoAsync(GetInvalidVideoPath(), cancellationToken);
+
+        UnitResult<Error> result = await videoProcessingService.ProcessVideoAsync(
+            videoAssetId,
+            cancellationToken);
+
+        result.IsFailure.Should().BeTrue();
+
+        VideoAsset videoAsset = await ExecuteInDb(db => db.VideoAssets
+            .FirstAsync(x => x.Id == videoAssetId, cancellationToken));
+        videoAsset.Status.Should().Be(MediaStatus.FAILED);
+
+        VideoProcess videoProcess = await ExecuteInDb(db => db.VideoProcess
+            .Include(x => x.Steps)
+            .FirstAsync(x => x.VideoAssetId == videoAssetId, cancellationToken));
+        videoProcess.Status.Should().Be(ProcessingStatus.FAILED);
+        videoProcess.Steps
+            .Single(x => x.StepType == StepType.EXTRACT_METADATA)
+            .Status.Should().Be(StepStatus.FAILED);
+    }
+
+    [Fact]
     public async Task ProcessVideoAsync_WhenValidVideoUploaded_ShouldCompleteProcessingSuccessfully()
     {
         using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -35,7 +66,7 @@ public class VideoProcessingPipelineTests : FileServiceBaseTests
         IVideoProcessingService videoProcessingService = scope.ServiceProvider
             .GetRequiredService<IVideoProcessingService>();
 
-        Guid videoAssetId = await UploadTestVideoAsync(cancellationToken);
+        Guid videoAssetId = await UploadTestVideoAsync(GetTestVideoPath(), cancellationToken);
 
         UnitResult<Error> result = await videoProcessingService.ProcessVideoAsync(
             videoAssetId,
@@ -80,9 +111,11 @@ public class VideoProcessingPipelineTests : FileServiceBaseTests
         });
     }
 
-    private async Task<Guid> UploadTestVideoAsync(CancellationToken cancellationToken)
+    private async Task<Guid> UploadTestVideoAsync(
+        string filePath,
+        CancellationToken cancellationToken)
     {
-        FileInfo videoFile = new(GetTestVideoPath());
+        FileInfo videoFile = new(filePath);
 
         Result<FileName, Error> fileNameResult = FileName.Create(videoFile.Name);
         fileNameResult.IsSuccess.Should().BeTrue();
@@ -147,5 +180,10 @@ public class VideoProcessingPipelineTests : FileServiceBaseTests
     private static string GetTestVideoPath()
     {
         return Path.Combine(AppContext.BaseDirectory, "Resources", "summary.mp4");
+    }
+
+    private static string GetInvalidVideoPath()
+    {
+        return Path.Combine(AppContext.BaseDirectory, "Resources", "txtFirst.mp4");
     }
 }

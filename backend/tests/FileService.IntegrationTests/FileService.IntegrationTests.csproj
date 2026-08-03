@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <None Include="Resources\summary.mp4" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\txtFirst.mp4" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
