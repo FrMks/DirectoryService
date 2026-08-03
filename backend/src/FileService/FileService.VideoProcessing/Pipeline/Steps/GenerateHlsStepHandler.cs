@@ -1,5 +1,4 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Core.Multipart;
 using FileService.Domain.Errors;
 using FileService.Domain.MediaProcessing;
 using FileService.VideoProcessing.FfmpegProcess;
@@ -11,16 +10,13 @@ namespace FileService.VideoProcessing.Pipeline.Steps;
 public class GenerateHlsStepHandler : IProcessingStepHandler
 {
     private readonly IFfmpegProcessRunner _ffmpegProcessRunner;
-    private readonly IS3Provider _s3Provider;
     private readonly ILogger<GenerateHlsStepHandler> _logger;
 
     public GenerateHlsStepHandler(
         IFfmpegProcessRunner ffmpegProcessRunner,
-        IS3Provider s3Provider,
         ILogger<GenerateHlsStepHandler> logger)
     {
         _ffmpegProcessRunner = ffmpegProcessRunner;
-        _s3Provider = s3Provider;
         _logger = logger;
     }
 
@@ -34,24 +30,8 @@ public class GenerateHlsStepHandler : IProcessingStepHandler
             "Generating HLS for VideoAssetId: {VideoAssetId}",
             context.VideoAsset.Id);
 
-        // Url по которому ffmpeg может прочитать исходное загруженное видео
-        string downloadFileUrl;
-        if (!string.IsNullOrWhiteSpace(context.MediaAssetUrl))
-        {
-            downloadFileUrl = context.MediaAssetUrl;
-        }
-        else
-        {
-            _logger.LogDebug("Download file url not cached, generating new presigned URL");
-
-            Result<string, Error> urlResult = await _s3Provider
-                .GenerateDownloadUrlAsync(context.VideoAsset.UploadedKey!);
-            if (urlResult.IsFailure)
-                return urlResult.Error;
-
-            downloadFileUrl = urlResult.Value;
-            context.SetMediaAssetUrl(urlResult.Value);
-        }
+        if (string.IsNullOrWhiteSpace(context.SourceFilePath))
+            return FileError.ObjectNotFound("source file path");
 
         if (string.IsNullOrEmpty(context.HlsOutputDirectory))
         {
@@ -64,7 +44,7 @@ public class GenerateHlsStepHandler : IProcessingStepHandler
         }
 
         UnitResult<Error> result = await _ffmpegProcessRunner.GenerateHlsAsync(
-            downloadFileUrl,
+            context.SourceFilePath,
             context.HlsOutputDirectory,
             cancellationToken);
         if (result.IsFailure)

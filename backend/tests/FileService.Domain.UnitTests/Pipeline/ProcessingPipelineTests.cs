@@ -65,7 +65,11 @@ public sealed class ProcessingPipelineTests
         process.Status.Should().Be(ProcessingStatus.FAILED);
         process.ErrorMessage.Should().Be("Step GENERATE_HLS failed");
         process.Steps.Single(step => step.StepType == StepType.GENERATE_HLS).Status.Should().Be(StepStatus.FAILED);
-        executedSteps.Should().Equal(StepType.INITIALIZE, StepType.EXTRACT_METADATA, StepType.GENERATE_HLS);
+        executedSteps.Should().Equal(
+            StepType.INITIALIZE,
+            StepType.DOWNLOAD_SOURCE,
+            StepType.EXTRACT_METADATA,
+            StepType.GENERATE_HLS);
     }
 
     [Fact]
@@ -121,6 +125,7 @@ public sealed class ProcessingPipelineTests
         result.IsSuccess.Should().BeTrue();
         executedSteps.Should().Equal(
             StepType.INITIALIZE,
+            StepType.DOWNLOAD_SOURCE,
             StepType.EXTRACT_METADATA,
             StepType.GENERATE_HLS,
             StepType.UPLOAD_HLS,
@@ -166,6 +171,7 @@ public sealed class ProcessingPipelineTests
         return
         [
             new RecordingStepHandler(StepType.INITIALIZE, executedSteps),
+            new RecordingStepHandler(StepType.DOWNLOAD_SOURCE, executedSteps),
             new RecordingStepHandler(StepType.EXTRACT_METADATA, executedSteps, context =>
             {
                 VideoMetadata metadata = VideoMetadata.Create(TimeSpan.FromSeconds(120), 1920, 1080, "h264", "mp4").Value;

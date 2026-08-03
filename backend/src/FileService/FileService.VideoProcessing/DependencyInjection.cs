@@ -21,6 +21,7 @@ public static class DependencyInjection
 
         services.AddScoped<IProcessingPipeline, ProcessingPipeline>();
         services.AddScoped<IProcessingStepHandler, InitializeStepHandler>();
+        services.AddScoped<IProcessingStepHandler, DownloadSourceStepHandler>();
         services.AddScoped<IProcessingStepHandler, ExtractMetadataStepHandler>();
         services.AddScoped<IProcessingStepHandler, GenerateHlsStepHandler>();
         services.AddScoped<IProcessingStepHandler, UploadHlsStepHandler>();

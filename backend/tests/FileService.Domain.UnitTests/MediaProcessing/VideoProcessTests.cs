@@ -21,17 +21,18 @@ public sealed class VideoProcessTests
         process.CompletedAt.Should().BeNull();
         process.CurrentStep.Should().BeNull();
 
-        process.Steps.Should().HaveCount(6);
+        process.Steps.Should().HaveCount(7);
         process.Steps.Should().OnlyContain(step => step.Status == StepStatus.PENDING);
-        process.Steps.Select(step => step.Order).Should().Equal(1, 2, 3, 4, 5, 6);
+        process.Steps.Select(step => step.Order).Should().Equal(1, 2, 3, 4, 5, 6, 7);
         process.Steps.Select(step => step.StepType).Should().Equal(
             StepType.INITIALIZE,
+            StepType.DOWNLOAD_SOURCE,
             StepType.EXTRACT_METADATA,
             StepType.GENERATE_HLS,
             StepType.UPLOAD_HLS,
             StepType.GENERATE_PREVIEW,
             StepType.CLEANUP);
-        process.Steps.Select(step => step.Weight).Should().Equal(0, 10, 60, 15, 10, 5);
+        process.Steps.Select(step => step.Weight).Should().Equal(0, 0, 10, 60, 15, 10, 5);
     }
 
     [Fact]
@@ -77,10 +78,17 @@ public sealed class VideoProcessTests
         process.ProgressPercentage.Should().Be(0);
 
         process.ProcessNextStep();
+        var completeDownloadResult = process.CompleteCurrentStep("downloaded");
+
+        completeDownloadResult.IsSuccess.Should().BeTrue();
+        process.Steps[1].Status.Should().Be(StepStatus.COMPLETED);
+        process.ProgressPercentage.Should().Be(0);
+
+        process.ProcessNextStep();
         var completeMetadataResult = process.CompleteCurrentStep("metadata");
 
         completeMetadataResult.IsSuccess.Should().BeTrue();
-        process.Steps[1].Status.Should().Be(StepStatus.COMPLETED);
+        process.Steps[2].Status.Should().Be(StepStatus.COMPLETED);
         process.ProgressPercentage.Should().Be(10);
     }
 

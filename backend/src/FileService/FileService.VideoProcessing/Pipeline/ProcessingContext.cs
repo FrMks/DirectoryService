@@ -29,6 +29,16 @@ public sealed record ProcessingContext
     /// </summary>
     public string? MediaAssetUrl { get; private set; }
 
+    /// <summary>
+    /// Путь в explorer на скаченный файл, с которым будет работать ffmpeg.
+    /// </summary>
+    public string? SourceFilePath { get; private set; }
+
+    public void SetSourceFilePath(string path)
+    {
+        SourceFilePath = path;
+    }
+
     // Windows: C:\Users\<User>\AppData\Local\Temp\video-processing<unique> (Создаем уникальную папку ВНУТРИ Temp)
     // macOS: /var/folders/.../T/video-processing<unique>
     // Linux: /tmp/video-processing<unique>
@@ -62,5 +72,6 @@ public sealed record ProcessingContext
         WorkingDirectory = null;
         HlsOutputDirectory = null;
         MediaAssetUrl = null;
+        SourceFilePath = null;
     }
 }

@@ -1,5 +1,4 @@
-﻿using CSharpFunctionalExtensions;
-using FileService.Core.Multipart;
+using CSharpFunctionalExtensions;
 using FileService.Domain.Errors;
 using FileService.Domain.MediaProcessing;
 using FileService.Domain.ValueObjects;
@@ -13,16 +12,13 @@ public class ExtractMetadataStepHandler : IProcessingStepHandler
 {
     private readonly ILogger<ExtractMetadataStepHandler> _logger;
     private readonly IFfmpegProcessRunner _ffmpegProcessRunner;
-    private readonly IS3Provider _s3Provider;
 
     public ExtractMetadataStepHandler(
         ILogger<ExtractMetadataStepHandler> logger,
-        IFfmpegProcessRunner ffmpegProcessRunner,
-        IS3Provider s3Provider)
+        IFfmpegProcessRunner ffmpegProcessRunner)
     {
         _logger = logger;
         _ffmpegProcessRunner = ffmpegProcessRunner;
-        _s3Provider = s3Provider;
     }
 
     public StepType StepType => StepType.EXTRACT_METADATA;
@@ -35,19 +31,11 @@ public class ExtractMetadataStepHandler : IProcessingStepHandler
             "Extract metadata for VideoAssetId: {VideoAssetId} start",
             context.VideoAsset.Id);
 
-        StorageKey? uploadKey = context.VideoAsset.UploadedKey;
-        if (uploadKey is null)
-            return FileError.ObjectNotFound();
-
-        Result<string, Error> downloadUrlResult = await _s3Provider
-            .GenerateDownloadUrlAsync(uploadKey);
-        if (downloadUrlResult.IsFailure)
-            return downloadUrlResult.Error;
-
-        context.SetMediaAssetUrl(downloadUrlResult.Value);
+        if (string.IsNullOrWhiteSpace(context.SourceFilePath))
+            return FileError.ObjectNotFound("source file path");
 
         Result<VideoMetadata, Error> metadataResult = await _ffmpegProcessRunner.ExtractMetadataAsync(
-            downloadUrlResult.Value,
+            context.SourceFilePath,
             cancellationToken);
         if (metadataResult.IsFailure)
             return metadataResult.Error;

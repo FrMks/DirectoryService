@@ -10,6 +10,7 @@ public class VideoProcess
     private static readonly List<(StepType, int)> _stepDefinitions =
     [
         (StepType.INITIALIZE, 0),
+        (StepType.DOWNLOAD_SOURCE, 0),
         (StepType.EXTRACT_METADATA, 10),
         (StepType.GENERATE_HLS, 60),
         (StepType.UPLOAD_HLS, 15),

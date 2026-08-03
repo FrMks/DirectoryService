@@ -111,6 +111,7 @@ public sealed class ProcessingStep
 public enum StepType
 {
     INITIALIZE,
+    DOWNLOAD_SOURCE,
     EXTRACT_METADATA,
     GENERATE_HLS,
     UPLOAD_HLS,
