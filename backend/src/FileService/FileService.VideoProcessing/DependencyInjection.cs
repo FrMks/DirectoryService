@@ -1,5 +1,6 @@
 ﻿using FileService.VideoProcessing.FfmpegProcess;
 using FileService.VideoProcessing.Pipeline;
+using FileService.VideoProcessing.Pipeline.CleanupService;
 using FileService.VideoProcessing.Pipeline.Steps;
 using FileService.VideoProcessing.ProcessRunner;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IProcessingStepHandler, UploadHlsStepHandler>();
         services.AddScoped<IProcessingStepHandler, GeneratePreviewStepHandler>();
         services.AddScoped<IProcessingStepHandler, CleanupStepHandler>();
+        services.AddScoped<IProcessingCleanupService, ProcessingCleanupService>();
         services.AddScoped<VideoProcessingService>();
 
         return services;

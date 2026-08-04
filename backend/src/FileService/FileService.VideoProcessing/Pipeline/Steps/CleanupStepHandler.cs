@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Core.Multipart;
 using FileService.Domain.MediaProcessing;
+using FileService.VideoProcessing.Pipeline.CleanupService;
 using Microsoft.Extensions.Logging;
 using Shared;
 
@@ -9,12 +9,14 @@ namespace FileService.VideoProcessing.Pipeline.Steps;
 public class CleanupStepHandler : IProcessingStepHandler
 {
     private readonly ILogger<CleanupStepHandler> _logger;
-    private readonly IS3Provider _s3Provider;
+    private readonly IProcessingCleanupService _processingCleanupService;
 
-    public CleanupStepHandler(ILogger<CleanupStepHandler> logger, IS3Provider s3Provider)
+    public CleanupStepHandler(
+        ILogger<CleanupStepHandler> logger,
+        IProcessingCleanupService processingCleanupService)
     {
         _logger = logger;
-        _s3Provider = s3Provider;
+        _processingCleanupService = processingCleanupService;
     }
 
     public StepType StepType => StepType.CLEANUP;
@@ -27,14 +29,8 @@ public class CleanupStepHandler : IProcessingStepHandler
             "Cleaning up temporary files for VideoAssetId: {VideoAssetId}",
             context.VideoAsset.Id);
 
-        if (string.IsNullOrWhiteSpace(context.WorkingDirectory))
-        {
-            _logger.LogWarning("Working directory is not set, skipping cleanup");
-            return await Task.FromResult(context);
-        }
-
-        UnitResult<Error> deleteResult = await _s3Provider
-            .DeleteFileAsync(context.VideoAsset.UploadedKey!, cancellationToken);
+        UnitResult<Error> deleteResult = await _processingCleanupService
+            .CleanupUploadedSourceAsync(context, cancellationToken);
         if (deleteResult.IsFailure)
         {
             _logger.LogWarning(
@@ -49,24 +45,13 @@ public class CleanupStepHandler : IProcessingStepHandler
                 context.VideoAsset.Id);
         }
 
-        try
-        {
-            if (Directory.Exists(context.WorkingDirectory))
-            {
-                Directory.Delete(context.WorkingDirectory, recursive: true);
-                _logger.LogDebug(
-                    "Working directory deleted: {WorkingDirectory}",
-                    context.WorkingDirectory);
-
-                context.Cleanup();
-            }
-        }
-        catch (Exception ex)
+        UnitResult<Error> workingDirectoryResult = _processingCleanupService.CleanupWorkingDirectory(context);
+        if (workingDirectoryResult.IsFailure)
         {
             _logger.LogWarning(
-                ex,
-                "Failed to delete working directory: {WorkingDirectory}. Will be cleaned up later.",
-                context.WorkingDirectory);
+                "Failed to cleanup working directory for VideoAssetId: {VideoAssetId}. Error: {Error}",
+                context.VideoAsset.Id,
+                workingDirectoryResult.Error);
         }
 
         return await Task.FromResult(context);

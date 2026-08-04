@@ -1,4 +1,4 @@
-using CSharpFunctionalExtensions;
+﻿using CSharpFunctionalExtensions;
 using FileService.Domain.Errors;
 using FileService.Domain.MediaProcessing;
 using FileService.Domain.ValueObjects;
@@ -32,7 +32,7 @@ public class ExtractMetadataStepHandler : IProcessingStepHandler
             context.VideoAsset.Id);
 
         if (string.IsNullOrWhiteSpace(context.SourceFilePath))
-            return FileError.ObjectNotFound("source file path");
+            return Error.Failure("source.file.missing", "Source file path is not set in context");
 
         Result<VideoMetadata, Error> metadataResult = await _ffmpegProcessRunner.ExtractMetadataAsync(
             context.SourceFilePath,

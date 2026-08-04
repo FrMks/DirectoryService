@@ -39,7 +39,9 @@ public class DownloadSourceStepHandler : IProcessingStepHandler
                     "Uploaded key is not set in the video asset."));
         }
 
-        string sourceFilePath = Path.Combine(context.WorkingDirectory, "source.mp4");
+        string extension = context.VideoAsset.MediaData.FileName.Extension;
+        string sorceFileName = $"source.{extension}";
+        string sourceFilePath = Path.Combine(context.WorkingDirectory, sorceFileName);
 
         Result<string, Error> downloadResult = await _s3Provider.DownloadFileAsync(
             uploadedKey,

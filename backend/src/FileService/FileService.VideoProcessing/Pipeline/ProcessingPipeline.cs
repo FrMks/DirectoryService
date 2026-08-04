@@ -3,10 +3,10 @@ using FileService.Core;
 using FileService.Domain.Entities;
 using FileService.Domain.Enums;
 using FileService.Domain.MediaProcessing;
+using FileService.VideoProcessing.Pipeline.CleanupService;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Core.Database;
-using Shared.Framework.EndpointResults;
 
 namespace FileService.VideoProcessing.Pipeline;
 
@@ -19,7 +19,7 @@ public class ProcessingPipeline : IProcessingPipeline
     private readonly ILogger<ProcessingPipeline> _logger;
 
     private readonly IVideoProcessingRepository _videoProcessingRepository;
-
+    private readonly IProcessingCleanupService _processingCleanupService;
     private readonly IMediaRepository _mediaAssetRepository;
 
     private readonly ITransactionManager _transactionManager;
@@ -29,12 +29,14 @@ public class ProcessingPipeline : IProcessingPipeline
         ILogger<ProcessingPipeline> logger,
         IMediaRepository mediaAssetRepository,
         IVideoProcessingRepository videoProcessingRepository,
+        IProcessingCleanupService processingCleanupService,
         ITransactionManager transactionManager)
     {
         _stepHandlers = stepHandlers;
         _logger = logger;
         _mediaAssetRepository = mediaAssetRepository;
         _videoProcessingRepository = videoProcessingRepository;
+        _processingCleanupService = processingCleanupService;
         _transactionManager = transactionManager;
     }
 
@@ -81,7 +83,23 @@ public class ProcessingPipeline : IProcessingPipeline
             videoAssetId,
             error.Message);
 
-        CleanupWorkingDirectory(context);
+        UnitResult<Error> cleanupResult = await _processingCleanupService.CleanupUploadedSourceAsync(context, cancellationToken);
+        if (cleanupResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Failed to cleanup uploaded source for VideoAssetId: {VideoAssetId}. Error: {Error}",
+                videoAssetId,
+                cleanupResult.Error);
+        }
+
+        UnitResult<Error> workingDirectoryResult = _processingCleanupService.CleanupWorkingDirectory(context);
+        if (workingDirectoryResult.IsFailure)
+        {
+            _logger.LogWarning(
+                "Failed to cleanup working directory for VideoAssetId: {VideoAssetId}. Error: {Error}",
+                videoAssetId,
+                workingDirectoryResult.Error);
+        }
 
         UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)
@@ -93,33 +111,6 @@ public class ProcessingPipeline : IProcessingPipeline
         }
 
         return UnitResult.Failure(error);
-    }
-
-    private void CleanupWorkingDirectory(ProcessingContext context)
-    {
-        if (string.IsNullOrWhiteSpace(context.WorkingDirectory))
-            return;
-
-        try
-        {
-            if (Directory.Exists(context.WorkingDirectory))
-            {
-                Directory.Delete(context.WorkingDirectory, recursive: true);
-                _logger.LogDebug(
-                    "Working directory deleted: {WorkingDirectory}",
-                    context.WorkingDirectory);
-            }
-
-            context.Cleanup();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(
-                ex,
-                "Failed to delete working directory: {WorkingDirectory} for VideoAssetId: {VideoAssetId}",
-                context.WorkingDirectory,
-                context.VideoAsset.Id);
-        }
     }
 
     private async Task<UnitResult<Error>> FinalizeAsync(

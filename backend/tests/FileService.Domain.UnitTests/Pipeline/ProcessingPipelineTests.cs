@@ -7,6 +7,7 @@ using FileService.Domain.Enums;
 using FileService.Domain.MediaProcessing;
 using FileService.Domain.ValueObjects;
 using FileService.VideoProcessing.Pipeline;
+using FileService.VideoProcessing.Pipeline.CleanupService;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Shared;
@@ -163,6 +164,7 @@ public sealed class ProcessingPipelineTests
             NullLogger<ProcessingPipeline>.Instance,
             mediaRepository,
             processingRepository,
+            new TestProcessingCleanupService(),
             transactionManager);
     }
 
@@ -244,6 +246,21 @@ public sealed class ProcessingPipelineTests
             return Task.FromResult(result.IsFailure
                 ? Result.Failure<ProcessingContext, Error>(result.Error)
                 : Result.Success<ProcessingContext, Error>(context));
+        }
+    }
+
+    private sealed class TestProcessingCleanupService : IProcessingCleanupService
+    {
+        public Task<UnitResult<Error>> CleanupUploadedSourceAsync(
+            ProcessingContext context,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(UnitResult.Success<Error>());
+        }
+
+        public UnitResult<Error> CleanupWorkingDirectory(ProcessingContext context)
+        {
+            return UnitResult.Success<Error>();
         }
     }
 

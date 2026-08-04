@@ -42,7 +42,7 @@ public class UploadHlsStepHandler : IProcessingStepHandler
             return FileError.HlsProcessingFailed("HLS output directory does not exist");
 
         // "*.*" - все файлы, которые содержат точку
-        string[] hlsFiles = Directory.GetFiles(context.HlsOutputDirectory, "*.*", SearchOption.AllDirectories);
+        string[] hlsFiles = Directory.GetFiles(context.HlsOutputDirectory, "*.*", SearchOption.TopDirectoryOnly);
         if (hlsFiles.Length == 0)
             return FileError.HlsProcessingFailed("No Hls files found in output directory");
 
