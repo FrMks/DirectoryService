@@ -104,7 +104,7 @@ public class S3Provider : IS3Provider
     public async Task<UnitResult<Error>> UploadFileAsync(
         StorageKey storageKey,
         Stream stream,
-        MediaData mediaData,
+        string contentType,
         CancellationToken cancellationToken)
     {
         try
@@ -114,7 +114,7 @@ public class S3Provider : IS3Provider
                 BucketName = storageKey.Bucket,
                 Key = storageKey.Value,
                 InputStream = stream,
-                ContentType = mediaData.ContentType.Value,
+                ContentType = contentType,
             };
 
             await _s3Client.PutObjectAsync(request, cancellationToken);
@@ -215,6 +215,7 @@ public class S3Provider : IS3Provider
                 Verb = HttpVerb.PUT,
                 Expires = DateTime.UtcNow.AddMinutes(_s3Options.UploadUrlExpirationMinutes),
                 Protocol = _s3Options.WithSsl ? Protocol.HTTPS : Protocol.HTTP,
+                ContentType = mediaData.ContentType.Value,
             };
 
             string response = await _s3Client.GetPreSignedURLAsync(request);

@@ -22,7 +22,7 @@ public interface IS3Provider
     Task<UnitResult<Error>> UploadFileAsync(
         StorageKey storageKey,
         Stream stream,
-        MediaData mediaData,
+        string contentType,
         CancellationToken cancellationToken);
 
     Task<Result<string, Error>> DownloadFileAsync(

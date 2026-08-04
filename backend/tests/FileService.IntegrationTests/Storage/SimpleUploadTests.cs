@@ -477,6 +477,7 @@ public class SimpleUploadTests : FileServiceBaseTests
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType);
 
         HttpResponseMessage putResponse = await uploadHttpClient.PutAsync(uploadUrl, content);
-        putResponse.IsSuccessStatusCode.Should().BeTrue();
+        string responseBody = await putResponse.Content.ReadAsStringAsync();
+        putResponse.IsSuccessStatusCode.Should().BeTrue($"{uploadUrl}{Environment.NewLine}{responseBody}");
     }
 }

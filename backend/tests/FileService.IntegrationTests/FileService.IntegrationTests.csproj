@@ -28,7 +28,13 @@
     <ProjectReference Include="..\..\src\FileService\FileService.Contracts\FileService.Contracts.csproj" />
     <ProjectReference Include="..\..\src\FileService\FileService.Domain\FileService.Domain.csproj" />
     <ProjectReference Include="..\..\src\FileService\FileService.Infrastructure.S3\FileService.Infrastructure.S3.csproj" />
+    <ProjectReference Include="..\..\src\FileService\FileService.VideoProcessing\FileService.VideoProcessing.csproj" />
     <ProjectReference Include="..\..\src\FileService\FileService.Web\FileService.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Resources\summary.mp4" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\txtFirst.mp4" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

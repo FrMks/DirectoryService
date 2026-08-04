@@ -43,6 +43,8 @@ public class VideoAsset : MediaAsset
     public const string RAW_PREFIX = "raw";
     public const string HLS_PREFIX = "hls";
     public const string MASTER_PLAYLIST_NAME = "master.m3u8";
+    public const string STREAM_PLAYLIST_PATTERN = "%v_stream.m3u8";
+    public const string SEGMENT_FILE_PATTERN = "%v_%06d.ts";
 
     public static readonly string[] AllowedExtensions = ["mp4", "mkv", "avi", "mov"];
 
@@ -51,6 +53,23 @@ public class VideoAsset : MediaAsset
     public HlsResult HlsResult { get; private set; } = null!;
 
     public VideoMetadata? Metadata { get; private set; }
+
+    public StorageKey? PreviewKey { get; private set; }
+
+    public UnitResult<Error> SetPreviewKey(StorageKey previewKey)
+    {
+        if (Status != MediaStatus.PROCESSING)
+        {
+            return Error.Validation(
+                "asset.invalid.status",
+                $"Can only set preview key when status is Processing, status now in {Status}");
+        }
+
+        PreviewKey = previewKey;
+        UpdatedAt = DateTime.UtcNow;
+
+        return UnitResult.Success<Error>();
+    }
 
     public static UnitResult<Error> ValidateForUpload(MediaData mediaData)
     {
@@ -159,6 +178,22 @@ public class VideoAsset : MediaAsset
     }
 
     #endregion
+
+    public Result<StorageKey, Error> GetHlsRootKey()
+    {
+        // videos/hls/videoid/master.m3u8
+        // videos/hls/videoid/file1.ts...
+        return StorageKey.Create(BUCKET, HLS_PREFIX, Id.ToString());
+    }
+
+    public Result<StorageKey, Error> GetHlsMasterPlaylistKey()
+    {
+        Result<StorageKey, Error> hlsRoot = GetHlsRootKey();
+        if (hlsRoot.IsFailure)
+            return hlsRoot.Error;
+
+        return hlsRoot.Value.AppendKey(MASTER_PLAYLIST_NAME);
+    }
 
     protected override bool CanChangeStatusTo(MediaStatus target)
     {

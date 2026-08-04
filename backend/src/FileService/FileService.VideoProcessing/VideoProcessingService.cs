@@ -1,16 +1,21 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.VideoProcessing.Pipeline;
 using Microsoft.Extensions.Logging;
 using Shared;
 
 namespace FileService.VideoProcessing;
 
-public class VideoProcessingService
+public class VideoProcessingService : IVideoProcessingService
 {
     private readonly ILogger<VideoProcessingService> _logger;
+    private readonly IProcessingPipeline _processingPipeline;
 
-    public VideoProcessingService(ILogger<VideoProcessingService> logger)
+    public VideoProcessingService(
+        ILogger<VideoProcessingService> logger,
+        IProcessingPipeline processingPipeline)
     {
         _logger = logger;
+        _processingPipeline = processingPipeline;
     }
 
     public async Task<UnitResult<Error>> ProcessVideoAsync(
@@ -19,8 +24,9 @@ public class VideoProcessingService
     {
         _logger.LogInformation("Starting video processing for VideoAssetId: {VideoAssetId}", videoAssetId);
 
-        // вызов пайплайна обработки видео
+        UnitResult<Error> pipelineResult = await _processingPipeline
+            .ProcessAllStepsAsync(videoAssetId, cancellationToken);
 
-        return UnitResult.Success<Error>();
+        return pipelineResult;
     }
 }

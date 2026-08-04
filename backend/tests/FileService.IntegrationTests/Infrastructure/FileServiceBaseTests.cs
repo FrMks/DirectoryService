@@ -10,7 +10,8 @@ namespace FileService.IntegrationTests.Infrastructure;
 // иметь один общий WebApplicationFacoty
 // иметь доступ к factory.Services
 // переиспользовать контейнеры внутри одного test class
-public class FileServiceBaseTests : IClassFixture<FileServiceTestWebFactory>, IAsyncLifetime
+[Collection(FileServiceIntegrationTestCollection.Name)]
+public class FileServiceBaseTests : IAsyncLifetime
 {
     private readonly Func<Task> _resetDatabase;
     private readonly Func<Task> _resetStorage;

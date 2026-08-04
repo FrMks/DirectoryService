@@ -88,6 +88,19 @@ public sealed record StorageKey
         return new StorageKey(Bucket, prefix, normalizedSegment.Value);
     }
 
+    // hlsRootKey.Value: hls/111-111-111
+    // fileName: master.m3u8
+    // storageKey.Value: hls/111-111-111/master.m3u8
+    public Result<StorageKey, Error> AppendKey(string childKey)
+    {
+        if (string.IsNullOrWhiteSpace(childKey))
+            return Error.Validation("invalid.value", "Child key is invalid");
+
+        // Старывй ключ полного объекта становится новым префиксом.
+        string newPrefix = Value;
+        return Create(Bucket, newPrefix, childKey);
+    }
+
     private static Result<string, Error> NormalizePrefix(string? prefix)
     {
         if (string.IsNullOrWhiteSpace(prefix))

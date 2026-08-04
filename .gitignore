@@ -340,6 +340,9 @@ __pycache__/
 # tools/**
 # !tools/packages.config
 
+# Local developer tools
+tools/
+
 # Tabs Studio
 *.tss
 

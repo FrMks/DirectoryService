@@ -13,7 +13,7 @@ public static class DependencyInjection
     public static IServiceCollection AddProgramDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddVideoProcessing()
+            .AddVideoProcessing(configuration)
             .AddWebDependencies(configuration)
             .AddCore(configuration)
             .AddSerilog()

@@ -38,8 +38,10 @@ public abstract class MediaAsset
 
     /// <summary>
     /// Если обработка не требуется, то UploadedKey = FinalKey, иначе UploadedKey = RawKey.
+    /// Для видео до READY нужен RawKey, после READY нужен FinalKey.
+    /// Для asset без processing на этапе загрузки RequiresProcessing() = false, и без проверки статуса UploadedKey начнет возвращать FinalKey.
     /// </summary>
-    public StorageKey? UploadedKey => RequiresProcessing() ? RawKey : FinalKey;
+    public StorageKey? UploadedKey => RequiresProcessing() || Status == MediaStatus.UPLOADING ? RawKey : FinalKey;
 
     #endregion
 

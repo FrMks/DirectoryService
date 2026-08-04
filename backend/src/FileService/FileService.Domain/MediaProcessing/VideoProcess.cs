@@ -10,6 +10,7 @@ public class VideoProcess
     private static readonly List<(StepType, int)> _stepDefinitions =
     [
         (StepType.INITIALIZE, 0),
+        (StepType.DOWNLOAD_SOURCE, 0),
         (StepType.EXTRACT_METADATA, 10),
         (StepType.GENERATE_HLS, 60),
         (StepType.UPLOAD_HLS, 15),
@@ -86,8 +87,11 @@ public class VideoProcess
             .FirstOrDefault(s => s.Status == StepStatus.PENDING);
 
         if (nextStep is null)
-        { // Если следующего шага нет, значит это был последний шаг и надо сделать завершение
-            Complete();
+        {
+            UnitResult<Error> completeResult = Complete();
+            if (completeResult.IsFailure)
+                return completeResult.Error;
+
             return Result.Success<ProcessingStep?, Error>(null);
         }
 
@@ -226,7 +230,7 @@ public class VideoProcess
         ProgressPercentage = totalProgress;
     }
 
-    private UnitResult<Error> Complete()
+    public UnitResult<Error> Complete()
     {
         if (Status != ProcessingStatus.IN_PROGRESS)
         {

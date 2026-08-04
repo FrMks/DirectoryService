@@ -1,0 +1,82 @@
+﻿using CSharpFunctionalExtensions;
+using FileService.Core.Multipart;
+using FileService.Domain.Entities;
+using FileService.Domain.MediaProcessing;
+using FileService.Domain.ValueObjects;
+using FileService.VideoProcessing.FfmpegProcess;
+using Microsoft.Extensions.Logging;
+using Shared;
+
+namespace FileService.VideoProcessing.Pipeline.Steps;
+
+public class GeneratePreviewStepHandler : IProcessingStepHandler
+{
+    private readonly IS3Provider _s3Provider;
+    private readonly IFfmpegProcessRunner _ffmpegProcessRunner;
+    private readonly ILogger<GeneratePreviewStepHandler> _logger;
+
+    public GeneratePreviewStepHandler(
+        IS3Provider s3Provider,
+        IFfmpegProcessRunner ffmpegProcessRunner,
+        ILogger<GeneratePreviewStepHandler> logger)
+    {
+        _s3Provider = s3Provider;
+        _ffmpegProcessRunner = ffmpegProcessRunner;
+        _logger = logger;
+    }
+
+    public StepType StepType => StepType.GENERATE_PREVIEW;
+
+    public async Task<Result<ProcessingContext, Error>> ExecuteAsync(
+        ProcessingContext context,
+        CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Start generate preview step handler");
+
+        if (string.IsNullOrWhiteSpace(context.WorkingDirectory))
+            return Error.Failure("preview.working-directory.missing", "Working directory is not set");
+
+        if (string.IsNullOrWhiteSpace(context.SourceFilePath))
+            return Error.Failure("preview.source-file.missing", "Source file path is not set");
+
+        string previewPath = Path.Combine(context.WorkingDirectory, "preview.jpg");
+
+        UnitResult<Error> previewResult = await _ffmpegProcessRunner.GeneratePreviewAsync(
+            context.SourceFilePath,
+            previewPath,
+            cancellationToken);
+        if (previewResult.IsFailure)
+            return previewResult.Error;
+
+        _logger.LogInformation("Preview file have localy in computer");
+
+        Result<StorageKey, Error> previewKeyResult = StorageKey.Create(
+            VideoAsset.BUCKET,
+            "previews",
+            $"{context.VideoAsset.Id}.jpg");
+        if (previewKeyResult.IsFailure)
+            return previewKeyResult.Error;
+
+        await using FileStream fileStream = File.OpenRead(previewPath);
+
+        UnitResult<Error> uploadFileResult = await _s3Provider.UploadFileAsync(
+            previewKeyResult.Value,
+            fileStream,
+            "image/jpeg",
+            cancellationToken);
+        if (uploadFileResult.IsFailure)
+            return uploadFileResult.Error;
+
+        _logger.LogInformation("Preview file upload to S3");
+
+        UnitResult<Error> setPreviewKeyResult = context.VideoAsset.SetPreviewKey(previewKeyResult.Value);
+        if (setPreviewKeyResult.IsFailure)
+            return setPreviewKeyResult.Error;
+
+        _logger.LogInformation("Preivew key was set value to property");
+
+        _logger.LogInformation("Finish generate preview step handler");
+
+        return context;
+    }
+}
