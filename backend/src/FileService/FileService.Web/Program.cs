@@ -4,6 +4,7 @@ using FileService.Core.Multipart;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.Postgres.Database;
+using FileService.Infrastructure.Postgres.Initializers;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Infrastructure.S3;
 using FileService.Web;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<FileServiceDbContext>(_ =>
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
+builder.Services.AddHostedService<QuartzDbInitializer>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
 {
@@ -68,6 +70,10 @@ app.UseSerilogRequestLogging();
 app.UseCors(FileService.Web.DependencyInjection.GetClientCorsPolicyName());
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseAuthorization();
+app.UseSilkierQuartz();
 
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);
