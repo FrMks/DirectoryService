@@ -79,20 +79,6 @@ public static class DependencyInjection
             options.WaitForJobsToComplete = true;
         });
 
-        services.AddSilkierQuartz(
-            options =>
-            {
-                options.VirtualPathRoot = "/quartz";
-                options.UseLocalTime = true;
-                options.DefaultDateFormat = "yyyy-MM-dd";
-                options.DefaultTimeFormat = "HH:mm:ss";
-            },
-            authenticationOptions =>
-            {
-                authenticationOptions.AccessRequirement =
-                    SilkierQuartz.SilkierQuartzAuthenticationOptions.SimpleAccessRequirement.AllowAnonymous;
-            });
-
         return services;
     }
 }

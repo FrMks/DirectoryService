@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace FileService.Infrastructure.Postgres.Initializers;
 
-public class QuartzDbInitializer : BackgroundService
+public class QuartzDbInitializer
 {
     private readonly string _connectionString;
     private readonly ILogger<QuartzDbInitializer> _logger;
@@ -17,20 +17,20 @@ public class QuartzDbInitializer : BackgroundService
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         try
         {
             string sqlScript = await LoadSqlScriptAsync();
 
             await using var connection = new NpgsqlConnection(_connectionString);
-            await connection.OpenAsync(stoppingToken);
+            await connection.OpenAsync(cancellationToken);
 
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
             await using var command = new NpgsqlCommand(sqlScript, connection);
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
 
-            await command.ExecuteNonQueryAsync(stoppingToken);
+            await command.ExecuteNonQueryAsync(cancellationToken);
 
             _logger.LogInformation("Quartz tables initialized successfully");
         }

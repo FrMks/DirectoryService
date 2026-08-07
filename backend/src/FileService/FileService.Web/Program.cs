@@ -8,7 +8,9 @@ using FileService.Infrastructure.Postgres.Initializers;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Infrastructure.S3;
 using FileService.Web;
+using CrystalQuartz.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 using Serilog;
 using Serilog.Events;
 using Shared.Core.Database;
@@ -16,6 +18,7 @@ using Shared.Framework.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<QuartzDbInitializer>();
 builder.Services.AddProgramDependencies(builder.Configuration);
 
 var seqConnectionString = builder.Configuration.GetConnectionString("Seq");
@@ -32,7 +35,6 @@ builder.Services.AddScoped<FileServiceDbContext>(_ =>
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
-builder.Services.AddHostedService<QuartzDbInitializer>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
 {
@@ -44,6 +46,9 @@ Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+var quartzDbInitializer = app.Services.GetRequiredService<QuartzDbInitializer>();
+await quartzDbInitializer.InitializeAsync(app.Lifetime.ApplicationStopping);
 
 using (var scope = app.Services.CreateAsyncScope())
 {
@@ -73,7 +78,12 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseAuthorization();
-app.UseSilkierQuartz();
+app.UseCrystalQuartz(
+    () => app.Services
+        .GetRequiredService<ISchedulerFactory>()
+        .GetScheduler()
+        .GetAwaiter()
+        .GetResult());
 
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);

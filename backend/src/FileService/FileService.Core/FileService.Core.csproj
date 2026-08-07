@@ -19,7 +19,6 @@
     <PackageReference Include="Shared.Core" Version="1.0.1" />
     <PackageReference Include="Shared.Framework" Version="1.0.1" />
     <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
-    <PackageReference Include="SilkierQuartz" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
