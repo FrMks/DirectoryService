@@ -78,12 +78,7 @@ app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseAuthorization();
-app.UseCrystalQuartz(
-    () => app.Services
-        .GetRequiredService<ISchedulerFactory>()
-        .GetScheduler()
-        .GetAwaiter()
-        .GetResult());
+app.UseCrystalQuartz(() => app.Services.GetRequiredService<ISchedulerFactory>().GetScheduler());
 
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);
