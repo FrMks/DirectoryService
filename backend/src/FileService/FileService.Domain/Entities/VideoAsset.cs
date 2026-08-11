@@ -177,6 +177,18 @@ public class VideoAsset : MediaAsset
         return ChangeStatus(MediaStatus.FAILED, timestamp);
     }
 
+    public UnitResult<Error> ResetForRetry(DateTime timestamp)
+    {
+        if (Status != MediaStatus.FAILED)
+        {
+            return Error.Validation(
+                "asset.invalid.status",
+                $"Can only reset failed asset for retry, current status is {Status}");
+        }
+
+        return ChangeStatus(MediaStatus.UPLOADED, timestamp);
+    }
+
     #endregion
 
     public Result<StorageKey, Error> GetHlsRootKey()
@@ -205,7 +217,7 @@ public class VideoAsset : MediaAsset
             MediaStatus.PENDING_PROCESSING => target is MediaStatus.PROCESSING or MediaStatus.FAILED or MediaStatus.DELETED,
             MediaStatus.PROCESSING => target is MediaStatus.READY or MediaStatus.FAILED or MediaStatus.DELETED,
             MediaStatus.READY => target == MediaStatus.DELETED,
-            MediaStatus.FAILED => target == MediaStatus.DELETED,
+            MediaStatus.FAILED => target is MediaStatus.UPLOADED or MediaStatus.DELETED,
             MediaStatus.DELETED => false,
             _ => false,
         };

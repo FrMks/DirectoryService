@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Core;
+using FileService.Core.Processing;
 using FileService.Domain.Entities;
 using FileService.Domain.Enums;
 using FileService.Domain.MediaProcessing;
@@ -21,6 +22,7 @@ public class ProcessingPipeline : IProcessingPipeline
     private readonly IVideoProcessingRepository _videoProcessingRepository;
     private readonly IProcessingCleanupService _processingCleanupService;
     private readonly IMediaRepository _mediaAssetRepository;
+    private readonly IProcessingErrorClassifier _processingErrorClassifier;
 
     private readonly ITransactionManager _transactionManager;
 
@@ -30,7 +32,8 @@ public class ProcessingPipeline : IProcessingPipeline
         IMediaRepository mediaAssetRepository,
         IVideoProcessingRepository videoProcessingRepository,
         IProcessingCleanupService processingCleanupService,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        IProcessingErrorClassifier processingErrorClassifier)
     {
         _stepHandlers = stepHandlers;
         _logger = logger;
@@ -38,6 +41,7 @@ public class ProcessingPipeline : IProcessingPipeline
         _videoProcessingRepository = videoProcessingRepository;
         _processingCleanupService = processingCleanupService;
         _transactionManager = transactionManager;
+        _processingErrorClassifier = processingErrorClassifier;
     }
 
     public async Task<UnitResult<Error>> ProcessAllStepsAsync(
@@ -83,13 +87,19 @@ public class ProcessingPipeline : IProcessingPipeline
             videoAssetId,
             error.Message);
 
-        UnitResult<Error> cleanupResult = await _processingCleanupService.CleanupUploadedSourceAsync(context, cancellationToken);
-        if (cleanupResult.IsFailure)
+        ProcessingErrorKind errorKind = _processingErrorClassifier.Classify(error);
+        if (errorKind == ProcessingErrorKind.Permanent)
         {
-            _logger.LogWarning(
-                "Failed to cleanup uploaded source for VideoAssetId: {VideoAssetId}. Error: {Error}",
-                videoAssetId,
-                cleanupResult.Error);
+            UnitResult<Error> cleanupResult = await _processingCleanupService
+                .CleanupUploadedSourceAsync(context, cancellationToken);
+
+            if (cleanupResult.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Failed to cleanup uploaded source for VideoAssetId: {VideoAssetId}. Error: {Error}",
+                    videoAssetId,
+                    cleanupResult.Error);
+            }
         }
 
         UnitResult<Error> workingDirectoryResult = _processingCleanupService.CleanupWorkingDirectory(context);
@@ -227,7 +237,10 @@ public class ProcessingPipeline : IProcessingPipeline
                     executionResult.Error);
 
                 context.VideoProcess.FailCurrentStep(executionResult.Error.Message);
-                context.VideoProcess.Fail(executionResult.Error.Message, isCritical: true);
+                bool isCritical = _processingErrorClassifier
+                    .Classify(executionResult.Error) == ProcessingErrorKind.Permanent;
+
+                context.VideoProcess.Fail(executionResult.Error.Message, isCritical);
                 context.VideoAsset.FailProcessing(DateTime.UtcNow);
 
                 UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);

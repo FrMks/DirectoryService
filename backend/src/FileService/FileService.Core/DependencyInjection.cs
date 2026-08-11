@@ -2,6 +2,7 @@
 using FileService.Core.Cache;
 using FileService.Core.Files.FileKey;
 using FileService.Core.Multipart;
+using FileService.Core.Processing;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
         services.AddScoped<DownloadUrlCacheService>();
+        services.AddSingleton<IProcessingErrorClassifier, ProcessingErrorClassifier>();
 
         services.Configure<DownloadUrlCacheOptions>(
             configuration.GetSection(DownloadUrlCacheOptions.SectionName));

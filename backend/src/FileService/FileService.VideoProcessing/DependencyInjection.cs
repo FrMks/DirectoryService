@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IProcessRunner, global::FileService.VideoProcessing.ProcessRunner.ProcessRunner>();
 
         services.AddScoped<IVideoProcessingService, VideoProcessingService>();
+        services.AddScoped<IProcessingRetryScheduler, ProcessingRetryScheduler>();
 
         services.AddScoped<IProcessingPipeline, ProcessingPipeline>();
         services.AddScoped<IProcessingStepHandler, InitializeStepHandler>();
