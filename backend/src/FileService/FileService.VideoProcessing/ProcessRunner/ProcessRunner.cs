@@ -73,6 +73,19 @@ public class ProcessRunner : IProcessRunner
         catch (OperationCanceledException)
         {
             _logger.LogWarning("Process was cancelled: {FileName} {Arguments}", command.ExecutableFile, command.Arguments);
+
+            try
+            {
+                if (!process.HasExited)
+                    process.Kill(entireProcessTree: true);
+
+                await process.WaitForExitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to terminate child process");
+            }
+
             return Error.Failure("operation.cancelled", "Operation was cancelled in ProcessRunner");
         }
 
