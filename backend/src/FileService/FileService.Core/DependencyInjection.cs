@@ -64,16 +64,6 @@ public static class DependencyInjection
                 persistenceOptions.UseProperties = true;
             });
 
-            var testJobKey = new JobKey("TestJob");
-            options.AddJob<TestJob>(opts => opts.WithIdentity(testJobKey));
-
-            options.AddTrigger(opts => opts
-                .ForJob(testJobKey)
-                .WithIdentity("TestJob-trigger")
-                .StartNow()
-                .WithSimpleSchedule(x => x
-                    .WithIntervalInSeconds(1)
-                    .RepeatForever()));
         });
 
         services.AddQuartzHostedService(options =>
