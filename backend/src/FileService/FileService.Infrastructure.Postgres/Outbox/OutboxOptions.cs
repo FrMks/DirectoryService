@@ -5,9 +5,9 @@ public sealed class OutboxOptions
     public const string SectionName = "Outbox";
 
     // Сколько количество записей будет браться постепенно для обработки.
-    public int BatchSize { get; private set; } = 100;
+    public int BatchSize { get; set; } = 100;
 
-    public int MaxRetries { get; private set; } = 5;
+    public int MaxRetries { get; set; } = 5;
 
-    public int InitializeRetryDelaySeconds { get; private set; } = 1;
+    public int InitialRetryDelaySeconds { get; set; } = 1;
 }
