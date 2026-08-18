@@ -15,6 +15,7 @@ using Serilog;
 using Serilog.Events;
 using Shared.Core.Database;
 using Shared.Framework.Middlewares;
+using FileService.Infrastructure.Postgres.Outbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,7 @@ var loggerConfiguration = new LoggerConfiguration()
 builder.Services.AddScoped<FileServiceDbContext>(_ =>
     new FileServiceDbContext(builder.Configuration.GetConnectionString("FileServiceDb")!));
 
+builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection(OutboxOptions.SectionName));
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
