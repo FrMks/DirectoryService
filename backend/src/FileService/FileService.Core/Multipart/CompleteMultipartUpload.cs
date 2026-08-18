@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Core.Outbox;
 using FileService.Core.Processing;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
@@ -42,6 +43,7 @@ public sealed class CompleteMultipartUploadHandler
     private readonly ISchedulerFactory _schedulerFactory;
     private readonly IEnumerable<IProcessingJobFactory> _processingJobFactories;
     private readonly ITransactionManager _transactionManager;
+    private readonly IOutboxMessageRepository _outboxMessageRepository;
 
     public CompleteMultipartUploadHandler(
         ILogger<CompleteMultipartUploadHandler> logger,
@@ -49,7 +51,8 @@ public sealed class CompleteMultipartUploadHandler
         IMediaRepository mediaRepository,
         ISchedulerFactory schedulerFactory,
         IEnumerable<IProcessingJobFactory> processingJobFactories,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        IOutboxMessageRepository outboxMessageRepository)
     {
         _logger = logger;
         _s3Provider = s3Provider;
@@ -57,6 +60,7 @@ public sealed class CompleteMultipartUploadHandler
         _schedulerFactory = schedulerFactory;
         _processingJobFactories = processingJobFactories;
         _transactionManager = transactionManager;
+        _outboxMessageRepository = outboxMessageRepository;
     }
 
     public async Task<UnitResult<Error>> Handle(CompleteMultipartUploadRequest request, CancellationToken cancellationToken)
@@ -158,6 +162,16 @@ public sealed class CompleteMultipartUploadHandler
                 {
                     transactionScope.Rollback();
                     return markReadyResult.Error;
+                }
+            }
+            else
+            {
+                UnitResult<Error> createResult = await _outboxMessageRepository
+                    .CreateAsync(mediaAsset.Id, cancellationToken);
+                if (createResult.IsFailure)
+                {
+                    transactionScope.Rollback();
+                    return createResult.Error;
                 }
             }
 
