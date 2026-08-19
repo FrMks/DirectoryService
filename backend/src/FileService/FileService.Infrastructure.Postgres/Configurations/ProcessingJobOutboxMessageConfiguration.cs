@@ -41,6 +41,14 @@ public class ProcessingJobOutboxMessageConfiguration : IEntityTypeConfiguration<
             .IsRequired();
 
         builder
+            .Property(message => message.StartedProcessingAt)
+            .HasColumnName("started_processing_at");
+
+        builder
+            .Property(message => message.LastAttemptedAt)
+            .HasColumnName("last_attempted_at");
+
+        builder
             .Property(message => message.LastError)
             .HasColumnName("last_error")
             .HasMaxLength(2000);
@@ -49,6 +57,10 @@ public class ProcessingJobOutboxMessageConfiguration : IEntityTypeConfiguration<
             .Property(message => message.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
+
+        builder
+            .Property(message => message.CompletedAt)
+            .HasColumnName("completed_at");
 
         builder.HasIndex(message => new
         {
