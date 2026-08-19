@@ -34,7 +34,11 @@ public class ProcessingJobOutboxWorker : BackgroundService
             {
                 using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
-                await HandleBatchFromOutbox(scope, stoppingToken);
+                UnitResult<Error> handleBatchResult = await HandleBatchFromOutbox(scope, stoppingToken);
+                if (handleBatchResult.IsFailure)
+                {
+                    _logger.LogError("Has error: {ErrorMessage} when try handle batch.", handleBatchResult.Error.Message);
+                }
 
                 await Task.Delay(
                     TimeSpan.FromSeconds(1),
@@ -99,13 +103,19 @@ public class ProcessingJobOutboxWorker : BackgroundService
         FileServiceDbContext dbContext,
         CancellationToken cancellationToken)
     {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        int batchSize = _options.Value.BatchSize;
+
         return await dbContext.ProcessingJobOutboxMessage
-            .Where(message =>
-                (message.Status == Domain.Outbox.ProcessingJobOutboxStatus.Failed ||
-                message.Status == Domain.Outbox.ProcessingJobOutboxStatus.Pending) &&
-                message.NextAttemptAt <= DateTimeOffset.UtcNow)
-            .OrderBy(message => message.CreatedAt)
-            .Take(_options.Value.BatchSize)
-            .ToListAsync(cancellationToken);
+            .FromSqlInterpolated($"""
+                SELECT *
+                FROM processing_job_outbox_messages
+                WHERE status IN ('Pending', 'Failed')
+                    AND next_attempt_at <= {now}
+                ORDER BY created_at
+                LIMIT {batchSize}
+                FOR UPDATE SKIP LOCKED
+            """)
+            .ToListAsync(cancellationToken: cancellationToken);
     }
 }
