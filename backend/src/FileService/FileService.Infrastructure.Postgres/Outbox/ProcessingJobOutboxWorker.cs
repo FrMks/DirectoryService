@@ -144,7 +144,6 @@ public class ProcessingJobOutboxWorker : BackgroundService
         CancellationToken cancellationToken)
     {
         IMediaRepository mediaRepository = scope.ServiceProvider.GetRequiredService<IMediaRepository>();
-        // Механизм, который принимает задания и запускает их в нужное время.
         IEnumerable<IProcessingJobFactory> processingJobFactories = scope.ServiceProvider.GetRequiredService<IEnumerable<IProcessingJobFactory>>();
         ISchedulerFactory schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
 
@@ -152,28 +151,80 @@ public class ProcessingJobOutboxWorker : BackgroundService
 
         foreach (ProcessingJobOutboxMessage message in messages)
         {
-            Result<MediaAsset, Error> mediaAssetResult = await mediaRepository
-                .GetBy(m => m.Id == message.MediaAssetId, cancellationToken);
-            if (mediaAssetResult.IsFailure)
+            try
             {
-                _logger.LogError("Media asset result is failure when try to get by media asset id {MediaAssetId}", message.MediaAssetId);
-                return mediaAssetResult.Error;
+                Result<MediaAsset, Error> mediaAssetResult = await mediaRepository
+                    .GetBy(m => m.Id == message.MediaAssetId, cancellationToken);
+                if (mediaAssetResult.IsFailure)
+                {
+                    _logger.LogError(
+                        "Failed to get MediaAsset {MediaAssetId}: {ErrorMessage}",
+                        message.MediaAssetId,
+                        mediaAssetResult.Error.Message);
+
+                    message.MarkFailed(mediaAssetResult.Error.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
+                    continue;
+                }
+
+                MediaAsset mediaAsset = mediaAssetResult.Value;
+
+                IProcessingJobFactory? processingJobFactory = processingJobFactories.FirstOrDefault(f => f.CanProcess(mediaAsset));
+                if (processingJobFactory is null)
+                {
+                    _logger.LogError("No processing job factory found for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
+                    Error error = Error.Failure("processing.job.not.found", "No processing job factory found");
+                    message.MarkFailed(error.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
+                    continue;
+                }
+
+                IJobDetail job = processingJobFactory.CreateJob(mediaAsset);
+                ITrigger trigger = processingJobFactory.CreateTrigger(mediaAsset);
+
+                await scheduler.ScheduleJob(job, trigger, cancellationToken);
+                message.MarkCompleted();
             }
-
-            MediaAsset mediaAsset = mediaAssetResult.Value;
-
-            // Адаптер над Quartz. Worker не знает деталей конкретной обработки видео. Он нахоидит factory. Для Video это VideoProcessingJobFactory.
-            IProcessingJobFactory? processingJobFactory = processingJobFactories.FirstOrDefault(f => f.CanProcess(mediaAsset));
-            if (processingJobFactory is null)
+            catch (Exception ex)
             {
-                _logger.LogError("No processing job factory found for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
-                return Error.Failure("processing.job.not.found", "No processing job factory found");
+                _logger.LogError(
+                    ex,
+                    "Failed to schedule processing job for MediaAssetId: {MediaAssetId}",
+                    message.MediaAssetId);
+
+                message.MarkFailed(ex.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
             }
+        }
 
-            IJobDetail job = processingJobFactory.CreateJob(mediaAsset);
-            ITrigger trigger = processingJobFactory.CreateTrigger(mediaAsset);
+        return await SaveMessageStatusesAsync(scope, cancellationToken);
+    }
 
-            await scheduler.ScheduleJob(job, trigger, cancellationToken);
+    private async Task<UnitResult<Error>> SaveMessageStatusesAsync(
+        IServiceScope scope,
+        CancellationToken cancellationToken)
+    {
+        ITransactionManager transactionManager =
+            scope.ServiceProvider.GetRequiredService<ITransactionManager>();
+
+        Result<ITransactionScope, Error> beginTransactionResult =
+            await transactionManager.BeginTransaction(cancellationToken);
+        if (beginTransactionResult.IsFailure)
+        {
+            return beginTransactionResult.Error;
+        }
+
+        using ITransactionScope transaction = beginTransactionResult.Value;
+
+        UnitResult<Error> saveChangesResult =
+            await transactionManager.SaveChangesAsync(cancellationToken);
+        if (saveChangesResult.IsFailure)
+        {
+            transaction.Rollback();
+            return saveChangesResult.Error;
+        }
+
+        UnitResult<Error> commitResult = transaction.Commit();
+        if (commitResult.IsFailure)
+        {
+            return commitResult.Error;
         }
 
         return Result.Success<Error>();
