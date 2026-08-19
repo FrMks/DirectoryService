@@ -79,6 +79,14 @@ public sealed class ProcessingJobOutboxMessage
         LastAttemptedAt = DateTimeOffset.UtcNow;
     }
 
+    public void ResetProcessingToPending()
+    {
+        Status = ProcessingJobOutboxStatus.Pending;
+        StartedProcessingAt = null;
+        NextAttemptAt = DateTimeOffset.UtcNow;
+        LastAttemptedAt = DateTimeOffset.UtcNow;
+    }
+
     private DateTimeOffset CalculateNextAttemptAt(int initialRetryDelaySeconds)
     {
         return DateTimeOffset.UtcNow.AddSeconds(initialRetryDelaySeconds * Math.Pow(2, Attempts - 1));
