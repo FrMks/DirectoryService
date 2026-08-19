@@ -34,4 +34,5 @@ public class FileServiceDbContext : DbContext
     public DbSet<PreviewAsset> PreviewAssets => Set<PreviewAsset>();
     public DbSet<VideoProcess> VideoProcess => Set<VideoProcess>();
     public DbSet<ProcessingJobOutboxMessage> ProcessingJobOutboxMessage => Set<ProcessingJobOutboxMessage>();
+    public DbSet<ProcessingRetryOutboxMessage> ProcessingRetryOutboxMessage => Set<ProcessingRetryOutboxMessage>();
 }
