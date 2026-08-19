@@ -131,6 +131,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
                 FROM processing_job_outbox_messages
                 WHERE status IN ('Pending', 'Failed')
                     AND next_attempt_at <= {now}
+                    AND attempts < max_retries
                 ORDER BY created_at
                 LIMIT {batchSize}
                 FOR UPDATE SKIP LOCKED
