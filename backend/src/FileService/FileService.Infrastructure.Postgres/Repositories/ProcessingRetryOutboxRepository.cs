@@ -16,11 +16,13 @@ public sealed class ProcessingRetryOutboxRepository(
     public async Task<UnitResult<Error>> CreateAsync(
         Guid videoAssetId,
         int retryCount,
+        DateTimeOffset nextAttemptAt,
         CancellationToken cancellationToken)
     {
         ProcessingRetryOutboxMessage message = ProcessingRetryOutboxMessage.Create(
             videoAssetId,
             retryCount,
+            nextAttemptAt,
             options.Value.MaxRetries);
 
         if (message is null)

@@ -1,5 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Core;
+using FileService.Core.Outbox;
 using FileService.Core.Processing;
 using FileService.Domain.Entities;
 using FileService.Domain.Errors;
@@ -22,7 +23,7 @@ public class VideoProcessingJob : IJob
     private readonly IMediaRepository _mediaRepository;
     private readonly ITransactionManager _transactionManager;
     private readonly VideoProcessingOptions _options;
-    private readonly IProcessingRetryScheduler _processingRetryScheduler;
+    private readonly IProcessingRetryOutboxRepository _processingRetryOutboxRepository;
 
     public VideoProcessingJob(
         ILogger<VideoProcessingJob> logger,
@@ -32,7 +33,7 @@ public class VideoProcessingJob : IJob
         IMediaRepository mediaRepository,
         ITransactionManager transactionManager,
         IOptions<VideoProcessingOptions> options,
-        IProcessingRetryScheduler processingRetryScheduler)
+        IProcessingRetryOutboxRepository processingRetryOutboxRepository)
     {
         _logger = logger;
         _videoProcessingService = videoProcessingService;
@@ -41,7 +42,7 @@ public class VideoProcessingJob : IJob
         _mediaRepository = mediaRepository;
         _transactionManager = transactionManager;
         _options = options.Value;
-        _processingRetryScheduler = processingRetryScheduler;
+        _processingRetryOutboxRepository = processingRetryOutboxRepository;
     }
 
     public static readonly JobKey VideoAssetIdKey = new("VideoAssetId");
@@ -76,9 +77,10 @@ public class VideoProcessingJob : IJob
         }
     }
 
-    private DateTime CalculateNextRetryTime(VideoProcess videoProcess)
+    private DateTimeOffset CalculateNextRetryTime(VideoProcess videoProcess)
     {
-        return DateTime.UtcNow.AddSeconds(_options.RetryDelaySeconds * Math.Pow(2, videoProcess.RetryCount));
+        return DateTimeOffset.UtcNow.AddSeconds(
+            _options.RetryDelaySeconds * Math.Pow(2, videoProcess.RetryCount));
     }
 
     private async Task HandleFailureAsync(
@@ -103,68 +105,93 @@ public class VideoProcessingJob : IJob
         VideoProcess process = processResult.Value;
         ProcessingErrorKind errorKind = _processingErrorClassifier.Classify(error);
 
-        if (process.Status != ProcessingStatus.FAILED)
-        {
-            UnitResult<Error> failResult = process.Fail(error.Message);
-            if (failResult.IsFailure)
-            {
-                _logger.LogError(
-                    "Could not mark VideoProcess as failed for {VideoAssetId}: {Error}",
-                    videoAssetId,
-                    failResult.Error);
-                return;
-            }
-        }
-
         if (errorKind == ProcessingErrorKind.Transient &&
             process.CanRetry())
         {
-            DateTime nextRetryAt = CalculateNextRetryTime(process);
-
-            UnitResult<Error> scheduleRetryResult = process.ScheduleRetry(nextRetryAt);
-            if (scheduleRetryResult.IsFailure)
-                return;
-
-            UnitResult<Error> resetResult = process.Reset();
-            if (resetResult.IsFailure)
-                return;
-
             Result<VideoAsset, Error> retryAssetResult = await _mediaRepository
                 .GetVideoAssetBy(asset => asset.Id == videoAssetId, cancellationToken);
             if (retryAssetResult.IsFailure)
                 return;
 
+            Result<ITransactionScope, Error> beginTransactionResult = await _transactionManager
+                .BeginTransaction(cancellationToken);
+            if (beginTransactionResult.IsFailure)
+                return;
+
+            using ITransactionScope transaction = beginTransactionResult.Value;
+
+            if (process.Status != ProcessingStatus.FAILED)
+            {
+                UnitResult<Error> failResult = process.Fail(error.Message);
+                if (failResult.IsFailure)
+                {
+                    transaction.Rollback();
+                    _logger.LogError(
+                        "Could not mark VideoProcess as failed for {VideoAssetId}: {Error}",
+                        videoAssetId,
+                        failResult.Error);
+                    return;
+                }
+            }
+
+            DateTimeOffset nextRetryAt = CalculateNextRetryTime(process);
+
+            UnitResult<Error> scheduleRetryResult = process.ScheduleRetry(nextRetryAt.UtcDateTime);
+            if (scheduleRetryResult.IsFailure)
+            {
+                transaction.Rollback();
+                return;
+            }
+
+            UnitResult<Error> resetResult = process.Reset();
+            if (resetResult.IsFailure)
+            {
+                transaction.Rollback();
+                return;
+            }
+
             UnitResult<Error> resetAssetResult = retryAssetResult.Value
                 .ResetForRetry(DateTime.UtcNow);
             if (resetAssetResult.IsFailure)
+            {
+                transaction.Rollback();
                 return;
+            }
+
+            UnitResult<Error> createRetryOutboxResult = await _processingRetryOutboxRepository
+                .CreateAsync(videoAssetId, process.RetryCount, nextRetryAt, cancellationToken);
+            if (createRetryOutboxResult.IsFailure)
+            {
+                transaction.Rollback();
+                _logger.LogError(createRetryOutboxResult.Error.Message);
+                return;
+            }
 
             UnitResult<Error> saveResult = await _transactionManager
                 .SaveChangesAsync(cancellationToken);
             if (saveResult.IsFailure)
-                return;
-
-            try
             {
-                await _processingRetryScheduler.ScheduleAsync(
-                    videoAssetId,
-                    process.RetryCount,
-                    nextRetryAt,
-                    cancellationToken);
+                transaction.Rollback();
+                return;
             }
-            catch (Exception ex)
+
+            UnitResult<Error> commitResult = transaction.Commit();
+            if (commitResult.IsFailure)
             {
                 _logger.LogError(
-                    ex,
-                    "Could not create retry trigger for {VideoAssetId}",
-                    videoAssetId);
-
-                process.Fail("Could not schedule video processing retry");
-                retryAssetResult.Value.FailProcessing(DateTime.UtcNow);
-                await _transactionManager.SaveChangesAsync(CancellationToken.None);
+                    "Could not commit retry state for {VideoAssetId}: {Error}",
+                    videoAssetId,
+                    commitResult.Error);
             }
 
             return;
+        }
+
+        if (process.Status != ProcessingStatus.FAILED)
+        {
+            UnitResult<Error> failResult = process.Fail(error.Message);
+            if (failResult.IsFailure)
+                return;
         }
 
         Result<VideoAsset, Error> assetResult =

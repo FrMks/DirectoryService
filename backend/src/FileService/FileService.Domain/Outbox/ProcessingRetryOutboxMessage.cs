@@ -35,6 +35,7 @@ public sealed class ProcessingRetryOutboxMessage
     public static ProcessingRetryOutboxMessage Create(
         Guid videoAssetId,
         int retryCount,
+        DateTimeOffset nextAttemptAt,
         int maxRetries)
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -47,7 +48,7 @@ public sealed class ProcessingRetryOutboxMessage
             RetryCount = retryCount,
             Attempts = 0,
             MaxRetries = maxRetries,
-            NextAttemptAt = now,
+            NextAttemptAt = nextAttemptAt,
             CreatedAt = now,
         };
     }
