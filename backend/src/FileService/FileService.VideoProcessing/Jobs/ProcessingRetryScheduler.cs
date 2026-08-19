@@ -2,7 +2,7 @@
 
 namespace FileService.VideoProcessing.Jobs;
 
-public sealed class ProcessingRetryScheduler : IProcessingRetryScheduler
+public sealed class ProcessingRetryScheduler : FileService.Core.Processing.IProcessingRetryScheduler
 {
     private const string JobGroup = "video-processing";
 

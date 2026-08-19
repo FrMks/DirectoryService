@@ -37,6 +37,7 @@ builder.Services.AddScoped<FileServiceDbContext>(_ =>
 builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection(OutboxOptions.SectionName));
 builder.Services.AddHostedService<ProcessingJobOutboxWorker>();
 builder.Services.AddHostedService<ProcessingJobOutboxRecoveryWorker>();
+builder.Services.AddHostedService<ProcessingRetryOutboxWorker>();
 builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IProcessingRetryOutboxRepository, ProcessingRetryOutboxRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
