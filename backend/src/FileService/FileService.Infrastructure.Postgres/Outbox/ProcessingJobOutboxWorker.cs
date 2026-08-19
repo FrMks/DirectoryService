@@ -144,6 +144,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
         CancellationToken cancellationToken)
     {
         IMediaRepository mediaRepository = scope.ServiceProvider.GetRequiredService<IMediaRepository>();
+        // Механизм, который принимает задания и запускает их в нужное время.
         IEnumerable<IProcessingJobFactory> processingJobFactories = scope.ServiceProvider.GetRequiredService<IEnumerable<IProcessingJobFactory>>();
         ISchedulerFactory schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
 
@@ -158,8 +159,10 @@ public class ProcessingJobOutboxWorker : BackgroundService
                 _logger.LogError("Media asset result is failure when try to get by media asset id {MediaAssetId}", message.MediaAssetId);
                 return mediaAssetResult.Error;
             }
+
             MediaAsset mediaAsset = mediaAssetResult.Value;
 
+            // Адаптер над Quartz. Worker не знает деталей конкретной обработки видео. Он нахоидит factory. Для Video это VideoProcessingJobFactory.
             IProcessingJobFactory? processingJobFactory = processingJobFactories.FirstOrDefault(f => f.CanProcess(mediaAsset));
             if (processingJobFactory is null)
             {
