@@ -45,4 +45,20 @@ public sealed class ProcessingJobOutboxMessage
             CreatedAt = now,
         };
     }
+
+    public void SwitchStatusTo(ProcessingJobOutboxStatus newStatus)
+    {
+        Status = newStatus;
+    }
+
+    public void IncrementAttempts()
+    {
+        Attempts += 1;
+    }
+
+    public void SetTimeWhenStartProcessing()
+    {
+        StartedProcessingAt = DateTimeOffset.UtcNow;
+        LastAttemptedAt = DateTimeOffset.UtcNow;
+    }
 }
