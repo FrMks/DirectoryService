@@ -184,6 +184,11 @@ public class ProcessingJobOutboxWorker : BackgroundService
                 await scheduler.ScheduleJob(job, trigger, cancellationToken);
                 message.MarkCompleted();
             }
+            catch (ObjectAlreadyExistsException ex)
+            {
+                _logger.LogInformation(ex, "Job already exist in Quartz");
+                message.MarkCompleted();
+            }
             catch (Exception ex)
             {
                 _logger.LogError(
