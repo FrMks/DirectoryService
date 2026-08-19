@@ -61,4 +61,21 @@ public sealed class ProcessingJobOutboxMessage
         StartedProcessingAt = DateTimeOffset.UtcNow;
         LastAttemptedAt = DateTimeOffset.UtcNow;
     }
+
+    public void MarkCompleted()
+    {
+        Status = ProcessingJobOutboxStatus.Completed;
+        CompletedAt = DateTimeOffset.UtcNow;
+        LastError = null;
+    }
+
+    public void MarkFailed(
+        string error,
+        DateTimeOffset nextAttemptAt)
+    {
+        Status = ProcessingJobOutboxStatus.Failed;
+        LastError = error;
+        NextAttemptAt = nextAttemptAt;
+        LastAttemptedAt = DateTimeOffset.UtcNow;
+    }
 }
