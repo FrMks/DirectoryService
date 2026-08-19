@@ -38,6 +38,7 @@ builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection(Outbo
 builder.Services.AddHostedService<ProcessingJobOutboxWorker>();
 builder.Services.AddHostedService<ProcessingJobOutboxRecoveryWorker>();
 builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
+builder.Services.AddScoped<IProcessingRetryOutboxRepository, ProcessingRetryOutboxRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
