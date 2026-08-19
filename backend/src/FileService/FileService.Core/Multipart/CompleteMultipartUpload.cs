@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using Quartz;
 using Shared;
 using Shared.Core.Database;
 using Shared.Framework.EndpointResults;
@@ -40,7 +39,6 @@ public sealed class CompleteMultipartUploadHandler
     private readonly ILogger<CompleteMultipartUploadHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
-    private readonly ISchedulerFactory _schedulerFactory;
     private readonly IEnumerable<IProcessingJobFactory> _processingJobFactories;
     private readonly ITransactionManager _transactionManager;
     private readonly IOutboxMessageRepository _outboxMessageRepository;
@@ -49,7 +47,6 @@ public sealed class CompleteMultipartUploadHandler
         ILogger<CompleteMultipartUploadHandler> logger,
         IS3Provider s3Provider,
         IMediaRepository mediaRepository,
-        ISchedulerFactory schedulerFactory,
         IEnumerable<IProcessingJobFactory> processingJobFactories,
         ITransactionManager transactionManager,
         IOutboxMessageRepository outboxMessageRepository)
@@ -57,7 +54,6 @@ public sealed class CompleteMultipartUploadHandler
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
-        _schedulerFactory = schedulerFactory;
         _processingJobFactories = processingJobFactories;
         _transactionManager = transactionManager;
         _outboxMessageRepository = outboxMessageRepository;
@@ -210,32 +206,6 @@ public sealed class CompleteMultipartUploadHandler
             "Completed multipart upload {UploadId} for media asset {MediaAssetId}",
             request.UploadId,
             mediaAsset.Id);
-
-        if (processingJobFactory is not null)
-        {
-            try
-            {
-                IScheduler scheduler = await _schedulerFactory.GetScheduler(cancellationToken);
-
-                IJobDetail job = processingJobFactory.CreateJob(mediaAsset);
-                ITrigger trigger = processingJobFactory.CreateTrigger(mediaAsset);
-
-                await scheduler.ScheduleJob(job, trigger, cancellationToken);
-
-                _logger.LogInformation("Scheduled processing job for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "Failed to schedule processing job for MediaAssetId: {MediaAssetId}",
-                    mediaAsset.Id);
-                return Error.Failure(
-                    "processing.job.schedule.failed",
-                    "Media upload completed, but processing could not be scheduled");
-            }
-
-        }
 
         return Result.Success<Error>();
     }

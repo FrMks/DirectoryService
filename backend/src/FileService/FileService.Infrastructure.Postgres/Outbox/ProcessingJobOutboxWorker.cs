@@ -1,10 +1,14 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Core;
+using FileService.Core.Processing;
+using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Quartz;
 using Shared;
 using Shared.Core.Database;
 
@@ -34,10 +38,23 @@ public class ProcessingJobOutboxWorker : BackgroundService
             {
                 using IServiceScope scope = _serviceScopeFactory.CreateScope();
 
-                UnitResult<Error> handleBatchResult = await HandleBatchFromOutbox(scope, stoppingToken);
+                Result<IReadOnlyList<ProcessingJobOutboxMessage>, Error> handleBatchResult = await HandleBatchFromOutbox(
+                    scope,
+                    stoppingToken);
                 if (handleBatchResult.IsFailure)
                 {
                     _logger.LogError("Has error: {ErrorMessage} when try handle batch.", handleBatchResult.Error.Message);
+                }
+                else
+                {
+                    UnitResult<Error> handleMessagesResult = await HandleMessages(
+                        handleBatchResult.Value,
+                        scope,
+                        stoppingToken);
+                    if (handleMessagesResult.IsFailure)
+                    {
+                        _logger.LogError("Has error: {ErrorMessage} when try handle messages", handleMessagesResult.Error);
+                    }
                 }
 
                 await Task.Delay(
@@ -62,7 +79,9 @@ public class ProcessingJobOutboxWorker : BackgroundService
         }
     }
 
-    private async Task<UnitResult<Error>> HandleBatchFromOutbox(IServiceScope scope, CancellationToken cancellationToken)
+    private async Task<Result<IReadOnlyList<ProcessingJobOutboxMessage>, Error>> HandleBatchFromOutbox(
+        IServiceScope scope,
+        CancellationToken cancellationToken)
     {
         FileServiceDbContext dbContext =
             scope.ServiceProvider.GetRequiredService<FileServiceDbContext>();
@@ -96,7 +115,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
             return commitResult.Error;
         }
 
-        return Result.Success<Error>();
+        return Result.Success<IReadOnlyList<ProcessingJobOutboxMessage>, Error>(messages);
     }
 
     private async Task<IReadOnlyList<ProcessingJobOutboxMessage>> FindMessageOnPendingAndFailedStatus(
@@ -117,5 +136,43 @@ public class ProcessingJobOutboxWorker : BackgroundService
                 FOR UPDATE SKIP LOCKED
             """)
             .ToListAsync(cancellationToken: cancellationToken);
+    }
+
+    private async Task<UnitResult<Error>> HandleMessages(
+        IReadOnlyList<ProcessingJobOutboxMessage> messages,
+        IServiceScope scope,
+        CancellationToken cancellationToken)
+    {
+        IMediaRepository mediaRepository = scope.ServiceProvider.GetRequiredService<IMediaRepository>();
+        IEnumerable<IProcessingJobFactory> processingJobFactories = scope.ServiceProvider.GetRequiredService<IEnumerable<IProcessingJobFactory>>();
+        ISchedulerFactory schedulerFactory = scope.ServiceProvider.GetRequiredService<ISchedulerFactory>();
+
+        IScheduler scheduler = await schedulerFactory.GetScheduler(cancellationToken);
+
+        foreach (ProcessingJobOutboxMessage message in messages)
+        {
+            Result<MediaAsset, Error> mediaAssetResult = await mediaRepository
+                .GetBy(m => m.Id == message.MediaAssetId, cancellationToken);
+            if (mediaAssetResult.IsFailure)
+            {
+                _logger.LogError("Media asset result is failure when try to get by media asset id {MediaAssetId}", message.MediaAssetId);
+                return mediaAssetResult.Error;
+            }
+            MediaAsset mediaAsset = mediaAssetResult.Value;
+
+            IProcessingJobFactory? processingJobFactory = processingJobFactories.FirstOrDefault(f => f.CanProcess(mediaAsset));
+            if (processingJobFactory is null)
+            {
+                _logger.LogError("No processing job factory found for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
+                return Error.Failure("processing.job.not.found", "No processing job factory found");
+            }
+
+            IJobDetail job = processingJobFactory.CreateJob(mediaAsset);
+            ITrigger trigger = processingJobFactory.CreateTrigger(mediaAsset);
+
+            await scheduler.ScheduleJob(job, trigger, cancellationToken);
+        }
+
+        return Result.Success<Error>();
     }
 }
