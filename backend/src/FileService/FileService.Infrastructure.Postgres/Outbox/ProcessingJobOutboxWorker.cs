@@ -163,7 +163,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
                         message.MediaAssetId,
                         mediaAssetResult.Error.Message);
 
-                    message.MarkFailed(mediaAssetResult.Error.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
+                    message.MarkFailed(mediaAssetResult.Error.Message, _options.Value.InitialRetryDelaySeconds);
                     continue;
                 }
 
@@ -174,7 +174,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
                 {
                     _logger.LogError("No processing job factory found for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
                     Error error = Error.Failure("processing.job.not.found", "No processing job factory found");
-                    message.MarkFailed(error.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
+                    message.MarkFailed(error.Message, _options.Value.InitialRetryDelaySeconds);
                     continue;
                 }
 
@@ -191,7 +191,7 @@ public class ProcessingJobOutboxWorker : BackgroundService
                     "Failed to schedule processing job for MediaAssetId: {MediaAssetId}",
                     message.MediaAssetId);
 
-                message.MarkFailed(ex.Message, DateTimeOffset.UtcNow.AddSeconds(_options.Value.InitialRetryDelaySeconds));
+                message.MarkFailed(ex.Message, _options.Value.InitialRetryDelaySeconds);
             }
         }
 

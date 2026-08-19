@@ -71,11 +71,16 @@ public sealed class ProcessingJobOutboxMessage
 
     public void MarkFailed(
         string error,
-        DateTimeOffset nextAttemptAt)
+        int initialRetryDelaySeconds)
     {
         Status = ProcessingJobOutboxStatus.Failed;
         LastError = error;
-        NextAttemptAt = nextAttemptAt;
+        NextAttemptAt = CalculateNextAttemptAt(initialRetryDelaySeconds);
         LastAttemptedAt = DateTimeOffset.UtcNow;
+    }
+
+    private DateTimeOffset CalculateNextAttemptAt(int initialRetryDelaySeconds)
+    {
+        return DateTimeOffset.UtcNow.AddSeconds(initialRetryDelaySeconds * Math.Pow(2, Attempts - 1));
     }
 }
