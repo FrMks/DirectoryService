@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Core.Outbox;
+using FileService.Core.Processing;
 using FileService.Domain.Entities.MediaAssetEntity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Core.Database;
 using Shared.Framework.EndpointResults;
 
 namespace FileService.Core.Multipart;
@@ -36,15 +39,24 @@ public sealed class CompleteMultipartUploadHandler
     private readonly ILogger<CompleteMultipartUploadHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly IEnumerable<IProcessingJobFactory> _processingJobFactories;
+    private readonly ITransactionManager _transactionManager;
+    private readonly IOutboxMessageRepository _outboxMessageRepository;
 
     public CompleteMultipartUploadHandler(
         ILogger<CompleteMultipartUploadHandler> logger,
         IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        IEnumerable<IProcessingJobFactory> processingJobFactories,
+        ITransactionManager transactionManager,
+        IOutboxMessageRepository outboxMessageRepository)
     {
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _processingJobFactories = processingJobFactories;
+        _transactionManager = transactionManager;
+        _outboxMessageRepository = outboxMessageRepository;
     }
 
     public async Task<UnitResult<Error>> Handle(CompleteMultipartUploadRequest request, CancellationToken cancellationToken)
@@ -105,28 +117,95 @@ public sealed class CompleteMultipartUploadHandler
             return completeResult.Error;
         }
 
-        UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded(DateTime.UtcNow);
-        if (markUploadedResult.IsFailure)
+        IProcessingJobFactory? processingJobFactory = null;
+        if (mediaAsset.RequiresProcessing())
         {
-            _logger.LogWarning(
-                "Failed to mark media asset {MediaAssetId} as uploaded after multipart upload {UploadId}: {ErrorMessage}",
-                mediaAsset.Id,
-                request.UploadId,
-                markUploadedResult.Error.Message);
-
-            return markUploadedResult.Error;
+            processingJobFactory = _processingJobFactories.FirstOrDefault(f => f.CanProcess(mediaAsset));
+            if (processingJobFactory is null)
+            {
+                _logger.LogError("No processing job factory found for MediaAssetId: {MediaAssetId}", mediaAsset.Id);
+                return Error.Failure("processing.job.not.found", "No processing job factory found");
+            }
         }
 
-        await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
+        Result<ITransactionScope, Error> transactionResult = await _transactionManager
+            .BeginTransaction(cancellationToken);
+        if (transactionResult.IsFailure)
+        {
+            _logger.LogError(
+                "Failed to begin transaction for MediaAssetId: {MediaAssetId}: {ErrorMessage}",
+                mediaAsset.Id,
+                transactionResult.Error.Message);
+            return transactionResult.Error;
+        }
+
+        using ITransactionScope transactionScope = transactionResult.Value;
+
+        try
+        {
+            UnitResult<Error> markUploadedResult = mediaAsset.MarkUploaded(DateTime.UtcNow);
+            if (markUploadedResult.IsFailure)
+            {
+                transactionScope.Rollback();
+                return markUploadedResult.Error;
+            }
+
+            if (processingJobFactory is null)
+            {
+                UnitResult<Error> markReadyResult = mediaAsset
+                    .MarkReady(mediaAsset.UploadedKey, DateTime.UtcNow);
+                if (markReadyResult.IsFailure)
+                {
+                    transactionScope.Rollback();
+                    return markReadyResult.Error;
+                }
+            }
+            else
+            {
+                UnitResult<Error> createResult = await _outboxMessageRepository
+                    .CreateAsync(mediaAsset.Id, cancellationToken);
+                if (createResult.IsFailure)
+                {
+                    transactionScope.Rollback();
+                    return createResult.Error;
+                }
+            }
+
+            UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+            if (saveResult.IsFailure)
+            {
+                transactionScope.Rollback();
+                _logger.LogError(
+                    "Failed to save media asset {MediaAssetId} after completing multipart upload",
+                    mediaAsset.Id);
+                return saveResult.Error;
+            }
+
+            UnitResult<Error> commitResult = transactionScope.Commit();
+            if (commitResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Failed to commit media asset {MediaAssetId} after completing multipart upload",
+                    mediaAsset.Id);
+                return commitResult.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            transactionScope.Rollback();
+            _logger.LogError(
+                ex,
+                "Unexpected error while saving media asset {MediaAssetId} after completing multipart upload",
+                mediaAsset.Id);
+            return Error.Failure(
+                "multipart.completion.failed",
+                "Failed to save completed multipart upload");
+        }
 
         _logger.LogInformation(
             "Completed multipart upload {UploadId} for media asset {MediaAssetId}",
             request.UploadId,
             mediaAsset.Id);
-
-        // создать задачу на обработку файла (генерация превьюшек...)
-        // создать запись в базе данных о том что нужно  начать выполнять задачу
-
 
         return Result.Success<Error>();
     }

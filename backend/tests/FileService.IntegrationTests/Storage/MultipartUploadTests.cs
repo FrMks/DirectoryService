@@ -4,6 +4,7 @@ using CSharpFunctionalExtensions;
 using FileService.Contracts;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Enums;
+using FileService.Domain.Outbox;
 using FileService.IntegrationTests.Infrastructure;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -47,6 +48,11 @@ public class MultipartUploadTests : FileServiceBaseTests
         MediaAsset asset = await ExecuteInDb(db =>
             db.MediaAssets.FirstAsync(x => x.Id == upload.MediaAssetId));
         asset.Status.Should().Be(MediaStatus.UPLOADED);
+
+        ProcessingJobOutboxMessage outboxMessage = await ExecuteInDb(db =>
+            db.ProcessingJobOutboxMessage.SingleAsync(x => x.MediaAssetId == upload.MediaAssetId));
+        outboxMessage.MediaAssetId.Should().Be(upload.MediaAssetId);
+        outboxMessage.MaxRetries.Should().BeGreaterThan(0);
 
         await ExecuteWithStorage(async storage =>
         {

@@ -4,17 +4,23 @@ using FileService.Core.Multipart;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using FileService.Infrastructure.Postgres;
 using FileService.Infrastructure.Postgres.Database;
+using FileService.Infrastructure.Postgres.Initializers;
 using FileService.Infrastructure.Postgres.Repositories;
 using FileService.Infrastructure.S3;
 using FileService.Web;
+using CrystalQuartz.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Quartz;
 using Serilog;
 using Serilog.Events;
 using Shared.Core.Database;
 using Shared.Framework.Middlewares;
+using FileService.Infrastructure.Postgres.Outbox;
+using FileService.Core.Outbox;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddSingleton<QuartzDbInitializer>();
 builder.Services.AddProgramDependencies(builder.Configuration);
 
 var seqConnectionString = builder.Configuration.GetConnectionString("Seq");
@@ -28,6 +34,12 @@ var loggerConfiguration = new LoggerConfiguration()
 builder.Services.AddScoped<FileServiceDbContext>(_ =>
     new FileServiceDbContext(builder.Configuration.GetConnectionString("FileServiceDb")!));
 
+builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection(OutboxOptions.SectionName));
+builder.Services.AddHostedService<ProcessingJobOutboxWorker>();
+builder.Services.AddHostedService<ProcessingJobOutboxRecoveryWorker>();
+builder.Services.AddHostedService<ProcessingRetryOutboxWorker>();
+builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
+builder.Services.AddScoped<IProcessingRetryOutboxRepository, ProcessingRetryOutboxRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
@@ -42,6 +54,9 @@ Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+var quartzDbInitializer = app.Services.GetRequiredService<QuartzDbInitializer>();
+await quartzDbInitializer.InitializeAsync(app.Lifetime.ApplicationStopping);
 
 using (var scope = app.Services.CreateAsyncScope())
 {
@@ -68,6 +83,10 @@ app.UseSerilogRequestLogging();
 app.UseCors(FileService.Web.DependencyInjection.GetClientCorsPolicyName());
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseAuthorization();
+app.UseCrystalQuartz(() => app.Services.GetRequiredService<ISchedulerFactory>().GetScheduler());
 
 UploadEndpoint.MapFileEndpoints(app);
 GetDownloadUrlEndpoint.MapFileEndpoints(app);

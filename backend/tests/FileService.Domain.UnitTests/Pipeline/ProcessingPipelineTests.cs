@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using CSharpFunctionalExtensions;
 using FileService.Core;
+using FileService.Core.Processing;
 using FileService.Domain.Entities;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Enums;
@@ -165,7 +166,8 @@ public sealed class ProcessingPipelineTests
             mediaRepository,
             processingRepository,
             new TestProcessingCleanupService(),
-            transactionManager);
+            transactionManager,
+            new ProcessingErrorClassifier());
     }
 
     private static IReadOnlyList<IProcessingStepHandler> CreateSuccessfulHandlers(List<StepType> executedSteps)

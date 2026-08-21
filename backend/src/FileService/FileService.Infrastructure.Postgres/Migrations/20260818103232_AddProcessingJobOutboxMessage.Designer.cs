@@ -3,6 +3,7 @@ using System;
 using FileService.Infrastructure.Postgres;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FileService.Infrastructure.Postgres.Migrations
 {
     [DbContext(typeof(FileServiceDbContext))]
-    partial class FileServiceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260818103232_AddProcessingJobOutboxMessage")]
+    partial class AddProcessingJobOutboxMessage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -132,16 +135,14 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasColumnName("attempts");
 
                     b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
                     b.Property<DateTimeOffset?>("LastAttemptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_attempted_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastError")
                         .HasMaxLength(2000)
@@ -161,8 +162,7 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasColumnName("next_attempt_at");
 
                     b.Property<DateTimeOffset?>("StartedProcessingAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_processing_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -180,71 +180,6 @@ namespace FileService.Infrastructure.Postgres.Migrations
                         .HasDatabaseName("IX_processing_job_outbox_messages_status_next_attempt_at");
 
                     b.ToTable("processing_job_outbox_messages", (string)null);
-                });
-
-            modelBuilder.Entity("FileService.Domain.Outbox.ProcessingRetryOutboxMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Attempts")
-                        .HasColumnType("integer")
-                        .HasColumnName("attempts");
-
-                    b.Property<DateTimeOffset?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<DateTimeOffset?>("LastAttemptedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_attempted_at");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("last_error");
-
-                    b.Property<int>("MaxRetries")
-                        .HasColumnType("integer")
-                        .HasColumnName("max_retries");
-
-                    b.Property<DateTimeOffset>("NextAttemptAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("next_attempt_at");
-
-                    b.Property<int>("RetryCount")
-                        .HasColumnType("integer")
-                        .HasColumnName("retry_count");
-
-                    b.Property<DateTimeOffset?>("StartedProcessingAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_processing_at");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("VideoAssetId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("video_asset_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status", "NextAttemptAt")
-                        .HasDatabaseName("IX_processing_retry_outbox_messages_status_next_attempt_at");
-
-                    b.HasIndex("VideoAssetId", "RetryCount")
-                        .IsUnique()
-                        .HasDatabaseName("UX_processing_retry_outbox_messages_video_asset_id_retry_count");
-
-                    b.ToTable("processing_retry_outbox_messages", (string)null);
                 });
 
             modelBuilder.Entity("FileService.Domain.Entities.PreviewAsset", b =>

@@ -1,9 +1,12 @@
-﻿using FileService.Core.Cache;
+﻿using System.Linq.Expressions;
+using FileService.Core.Cache;
 using FileService.Core.Files.FileKey;
 using FileService.Core.Multipart;
+using FileService.Core.Processing;
 using FileService.Core.UploadAndCompleteOnlyOneUrl;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Quartz;
 
 namespace FileService.Core;
 
@@ -22,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
         services.AddScoped<DownloadUrlCacheService>();
+        services.AddSingleton<IProcessingErrorClassifier, ProcessingErrorClassifier>();
 
         services.Configure<DownloadUrlCacheOptions>(
             configuration.GetSection(DownloadUrlCacheOptions.SectionName));
@@ -37,6 +41,35 @@ public static class DependencyInjection
         }
 
         services.AddHybridCache();
+
+        services.AddQuartzServices(configuration);
+
+        return services;
+    }
+
+    public static IServiceCollection AddQuartzServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddQuartz(options =>
+        {
+            options.UsePersistentStore(persistenceOptions =>
+            {
+                persistenceOptions.UsePostgres(cfg =>
+                {
+                    cfg.ConnectionString = configuration.GetConnectionString("FileServiceDb")!;
+                });
+
+                persistenceOptions.UseNewtonsoftJsonSerializer();
+                persistenceOptions.UseProperties = true;
+            });
+
+        });
+
+        services.AddQuartzHostedService(options =>
+        {
+            options.WaitForJobsToComplete = true;
+        });
 
         return services;
     }

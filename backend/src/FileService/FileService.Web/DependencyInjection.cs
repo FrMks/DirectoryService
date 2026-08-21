@@ -38,6 +38,7 @@ public static class DependencyInjection
         var swaggerServerUrl = configuration["Swagger:ServerUrl"];
 
         services.AddHttpLogging();
+        services.AddAuthorization();
 
         services.AddOpenApi(options =>
         {
