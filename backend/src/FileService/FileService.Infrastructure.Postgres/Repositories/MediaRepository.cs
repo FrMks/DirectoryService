@@ -87,16 +87,16 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
         return await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync(MediaAsset mediaAsset, CancellationToken cancellationToken)
+    public async Task<Result<VideoAsset, Error>> GetVideoAssetSnapshotById(
+        Guid videoAssetId,
+        CancellationToken cancellationToken)
     {
-        try
-        {
-            dbContext.Update(mediaAsset);
-            await dbContext.SaveChangesAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Database error occurred when updating media asset.");
-        }
+        VideoAsset? videoAssetResult = await dbContext.VideoAssets.AsNoTracking()
+            .FirstOrDefaultAsync(v => v.Id == videoAssetId, cancellationToken);
+
+        if (videoAssetResult is null)
+            return Error.NotFound("video.asset.not.found", "Can not find video asset in database");
+
+        return videoAssetResult;
     }
 }
