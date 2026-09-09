@@ -1,13 +1,11 @@
-﻿using CSharpFunctionalExtensions;
-using FileService.Contracts;
+﻿using FileService.Contracts;
 using FileService.Domain.Entities;
 using FileService.Domain.Enums;
 using FileService.Domain.MediaProcessing;
-using Shared;
 
 namespace FileService.Core.Processing;
 
-public class VideoProcessingStatusMapper
+public static class VideoProcessingStatusMapper
 {
     private const string Queued = "queued";
     private const string Processing = "processing";
@@ -15,21 +13,22 @@ public class VideoProcessingStatusMapper
     private const string Failed = "failed";
     private const string Deleted = "deleted";
 
-    public static Result<VideoProcessingStatusResponse, Error> Mapper(
+    public static VideoProcessingStatusResponse Map(
         VideoAsset videoAsset,
         VideoProcess? videoProcess)
     {
         string status = MapStatus(videoAsset);
         string? currentStep = MapStepType(videoProcess, status);
         int percent = MapPercent(videoProcess, status);
+        string? errorCode = MapErrorCode(status);
 
         VideoProcessingStatusResponse response = new(
             AssetId: videoAsset.Id,
             Status: status,
             CurrentStep: currentStep,
             Percent: percent,
-            ErrorCode: videoProcess?.ErrorMessage);
-        return Result.Success<VideoProcessingStatusResponse, Error>(response);
+            ErrorCode: errorCode);
+        return response;
     }
 
     private static string MapStatus(VideoAsset videoAsset)
@@ -60,7 +59,7 @@ public class VideoProcessingStatusMapper
             return null;
 
         if (status == Processing)
-            return stepType?.ToString().ToLowerInvariant();
+            return stepType.ToString().ToLowerInvariant();
 
         return null;
     }
@@ -77,5 +76,10 @@ public class VideoProcessingStatusMapper
             return 0;
 
         return Math.Clamp(videoProcess.ProgressPercentage, 0, 100);
+    }
+
+    private static string? MapErrorCode(string status)
+    {
+        return status == Failed ? "video.processing.failed" : null;
     }
 }
