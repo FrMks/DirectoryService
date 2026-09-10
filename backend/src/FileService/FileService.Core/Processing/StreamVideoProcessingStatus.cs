@@ -81,6 +81,7 @@ public static class StreamVideoProcessingStatus
                             cancellationToken);
 
                         lastStatus = currentResult.Value;
+                        lastWriteAt = DateTimeOffset.UtcNow;
                     }
 
                     if (IsTerminal(lastStatus))

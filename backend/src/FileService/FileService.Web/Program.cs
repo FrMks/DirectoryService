@@ -102,6 +102,7 @@ GetFilesByTargetEntity.MapFileEndpoints(app);
 CancelPendingUpload.MapFileEndpoints(app);
 AbortMultipartUpload.MapFileEndpoints(app);
 GetVideoProcessingStatus.MapVideoProcessingStatusEndpoint(app);
+StreamVideoProcessingStatus.MapVideoProcessingStatusStreamEndpoint(app);
 
 app.Run();
 
