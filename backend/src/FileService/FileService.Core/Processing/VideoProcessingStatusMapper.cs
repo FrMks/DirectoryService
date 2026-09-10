@@ -17,7 +17,7 @@ public static class VideoProcessingStatusMapper
         VideoAsset videoAsset,
         VideoProcess? videoProcess)
     {
-        string status = MapStatus(videoAsset);
+        string status = MapStatus(videoAsset, videoProcess);
         string? currentStep = MapStepType(videoProcess, status);
         int percent = MapPercent(videoProcess, status);
         string? errorCode = MapErrorCode(status);
@@ -31,8 +31,16 @@ public static class VideoProcessingStatusMapper
         return response;
     }
 
-    private static string MapStatus(VideoAsset videoAsset)
+    private static string MapStatus(VideoAsset videoAsset, VideoProcess? videoProcess)
     {
+        if (
+            videoProcess is not null
+            && videoProcess.CanRetry()
+            && videoAsset.Status == MediaStatus.FAILED)
+        {
+            return Queued;
+        }
+
         switch (videoAsset.Status)
         {
             case MediaStatus.UPLOADING:
