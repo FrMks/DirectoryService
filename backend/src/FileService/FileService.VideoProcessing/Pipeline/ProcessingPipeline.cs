@@ -201,11 +201,21 @@ public class ProcessingPipeline : IProcessingPipeline
                 currentStep.Order,
                 videoAssetId);
 
+            UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+            if (saveResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Failed to save context before executing step {StepType} for VideoAssetId: {VideoAssetId}",
+                    currentStep.StepType,
+                    videoAssetId);
+                return saveResult.Error;
+            }
+
             IProcessingStepHandler? stepHandler = _stepHandlers.FirstOrDefault(s => s.StepType == currentStep.StepType);
             if (stepHandler is null)
             {
                 string error = $"No handler found for step type {currentStep.StepType}";
-                _logger.LogError("No handler fount for step type {StepType}", currentStep.StepType);
+                _logger.LogError("No handler found for step type {StepType}", currentStep.StepType);
 
                 context.VideoProcess.FailCurrentStep(error);
                 context.VideoProcess.Fail(error, isCritical: true);
