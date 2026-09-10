@@ -221,8 +221,8 @@ public class ProcessingPipeline : IProcessingPipeline
                 context.VideoProcess.Fail(error, isCritical: true);
                 context.VideoAsset.FailProcessing(DateTime.UtcNow);
 
-                UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
-                if (saveResult.IsFailure)
+                UnitResult<Error> startStepSaveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+                if (startStepSaveResult.IsFailure)
                 {
                     _logger.LogError(
                         "Failed to save context after missing handler for step {StepType} for VideoAssetId: {VideoAssetId}",
@@ -253,8 +253,8 @@ public class ProcessingPipeline : IProcessingPipeline
                 context.VideoProcess.Fail(executionResult.Error.Message, isCritical);
                 context.VideoAsset.FailProcessing(DateTime.UtcNow);
 
-                UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
-                if (saveResult.IsFailure)
+                UnitResult<Error> saveErrorResult = await _transactionManager.SaveChangesAsync(cancellationToken);
+                if (saveErrorResult.IsFailure)
                 {
                     _logger.LogError(
                         "Failed to save context after step failure {StepType} for VideoAssetId: {VideoAssetId}",
