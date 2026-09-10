@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<CancelPendingUploadHandler>();
         services.AddScoped<AbortMultipartUploadHandler>();
         services.AddScoped<DownloadUrlCacheService>();
+        services.AddScoped<GetVideoProcessingStatusHandler>();
         services.AddSingleton<IProcessingErrorClassifier, ProcessingErrorClassifier>();
 
         services.Configure<DownloadUrlCacheOptions>(

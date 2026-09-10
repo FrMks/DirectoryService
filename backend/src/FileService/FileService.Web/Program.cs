@@ -17,6 +17,7 @@ using Shared.Core.Database;
 using Shared.Framework.Middlewares;
 using FileService.Infrastructure.Postgres.Outbox;
 using FileService.Core.Outbox;
+using FileService.Core.Processing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,6 +101,8 @@ GetFileById.MapFileEndpoints(app);
 GetFilesByTargetEntity.MapFileEndpoints(app);
 CancelPendingUpload.MapFileEndpoints(app);
 AbortMultipartUpload.MapFileEndpoints(app);
+GetVideoProcessingStatus.MapVideoProcessingStatusEndpoint(app);
+StreamVideoProcessingStatus.MapVideoProcessingStatusStreamEndpoint(app);
 
 app.Run();
 
