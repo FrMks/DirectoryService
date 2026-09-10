@@ -99,4 +99,17 @@ public class MediaRepository(FileServiceDbContext dbContext, ILogger<MediaReposi
 
         return videoAssetResult;
     }
+
+    public async Task UpdateAsync(MediaAsset mediaAsset, CancellationToken cancellationToken)
+    {
+        try
+        {
+            dbContext.Update(mediaAsset);
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Database error occurred when updating media asset.");
+        }
+    }
 }
