@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Shared;
 using Shared.Framework.EndpointResults;
 
@@ -72,6 +73,10 @@ public static class StreamVideoProcessingStatus
                         = await handler.Handle(videoAssetId, cancellationToken);
                     if (currentResult.IsFailure)
                     {
+                        await WriteErrorAsync(
+                            httpContext.Response,
+                            currentResult.Error,
+                            cancellationToken);
                         break;
                     }
 
@@ -152,6 +157,21 @@ public static class StreamVideoProcessingStatus
         }
 
         return false;
+    }
+
+    private static async Task WriteErrorAsync(
+        HttpResponse response,
+        Error error,
+        CancellationToken cancellationToken)
+    {
+        string message = error.Message;
+        // Используем сериализацию, потому что строка может содержать либо символы, которые не поддерживаются
+        // например, символы новой строки, которые могут быть частью сообщения
+        string serialized = JsonSerializer.Serialize(message);
+    
+        await response.WriteAsync($"event: error\n", cancellationToken);
+        await response.WriteAsync($"data: {serialized}\n\n", cancellationToken);
+        await response.Body.FlushAsync(cancellationToken);
     }
 
     // Heartbeat нужен, чтобы:
