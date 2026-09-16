@@ -34,4 +34,18 @@ public class VideoPorcessingRepository : IVideoProcessingRepository
 
         return videoProcess;
     }
+
+    public async Task<Result<VideoProcess, Error>> GetSnapshotByVideoAssetId(
+        Guid videoAssetId,
+        CancellationToken cancellationToken = default)
+    {
+        VideoProcess? videoProcessResult = await _dbContext.VideoProcess.AsNoTracking()
+            .Include(v => v.Steps)
+            .FirstOrDefaultAsync(v => v.VideoAssetId == videoAssetId, cancellationToken);
+
+        if (videoProcessResult is null)
+            return Error.NotFound("video.process.not.found", "Can not find video process in database");
+
+        return videoProcessResult;
+    }
 }

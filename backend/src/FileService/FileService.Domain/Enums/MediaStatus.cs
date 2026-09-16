@@ -1,4 +1,6 @@
-﻿namespace FileService.Domain.Enums;
+﻿using System.Runtime.Serialization;
+
+namespace FileService.Domain.Enums;
 
 /// <summary>
 /// Жизненный цикл файла
@@ -9,11 +11,7 @@ public enum MediaStatus
     UPLOADED,
     PENDING_PROCESSING,
     PROCESSING,
-
-    /// <summary>
-    /// Файл полностью загружен, проверен, сохранен, и может использоваться клиентом.
-    /// </summary>
     READY,
     FAILED,
-    DELETED,
+    DELETED
 }

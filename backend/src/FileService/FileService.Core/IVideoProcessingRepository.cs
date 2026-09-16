@@ -12,4 +12,8 @@ public interface IVideoProcessingRepository
         CancellationToken cancellationToken = default);
 
     void Add(VideoProcess videoProcess);
+
+    Task<Result<VideoProcess, Error>> GetSnapshotByVideoAssetId(
+        Guid videoAssetId,
+        CancellationToken cancellationToken = default);
 }

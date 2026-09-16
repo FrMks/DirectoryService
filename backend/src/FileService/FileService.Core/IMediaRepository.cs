@@ -29,4 +29,8 @@ public interface IMediaRepository
     Task<int> SaveAsync(CancellationToken cancellationToken = default);
 
     Task UpdateAsync(MediaAsset mediaAsset, CancellationToken cancellationToken);
+
+    Task<Result<VideoAsset, Error>> GetVideoAssetSnapshotById(
+        Guid videoAssetId,
+        CancellationToken cancellationToken = default);
 }
