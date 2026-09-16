@@ -67,7 +67,7 @@ public static class VideoProcessingStatusMapper
             return null;
 
         if (status == Processing)
-            return stepType.ToString().ToLowerInvariant();
+            return stepType.Value.ToString().ToLowerInvariant();
 
         return null;
     }

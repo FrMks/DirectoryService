@@ -52,6 +52,10 @@ public static class StreamVideoProcessingStatus
 
                 if (IsTerminal(lastStatus))
                 {
+                    // Если пользователь подключился к уже готовому видео, поток работает так:
+                    // - чтение ready / failed / deleted
+                    // - отправка progress с ready / failed / deleted
+                    // - закрытие stream
                     return Results.Empty;
                 }
 
@@ -61,6 +65,7 @@ public static class StreamVideoProcessingStatus
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
+                    // Каждую секунду endpoint
                     await Task.Delay(pollingInterval, cancellationToken);
 
                     Result<VideoProcessingStatusResponse, Error> currentResult
@@ -72,6 +77,8 @@ public static class StreamVideoProcessingStatus
 
                     VideoProcessingStatusResponse currentStatus = currentResult.Value;
 
+                    // Если ничего не изменилось, progress-событие повторно не отправляется
+                    // Если изменилось хотя бы один параметр, endpoint отправляет новый event и сохраняет его как lastStatus
                     if (currentStatus != lastStatus)
                     {
                         await WriteProgressEventAsync(
@@ -89,6 +96,7 @@ public static class StreamVideoProcessingStatus
                         break;
                     }
 
+                    // Если статус не менялся 15 секунд и больше, endpoint вызывает WriteHeartbeatAsync
                     if (DateTimeOffset.UtcNow - lastWriteAt >= heartbeatInterval)
                     {
                         await WriteHeartbeatAsync(
@@ -142,11 +150,19 @@ public static class StreamVideoProcessingStatus
         {
             return true;
         }
+
         return false;
     }
 
+    // Heartbeat нужен, чтобы:
+    // proxy не закрыл тихое соединение
+    // сервер обнаружил разрыв при следующей записи
+    // было видно, что stream продолжает работать, даже если процент не изменяется
     private static async Task WriteHeartbeatAsync(HttpResponse response, CancellationToken cancellationToken)
     {
+        // Строка начинающаяся с `:`, является SSE-комментарием
+        // Браузер не передает ее в обработчик `progress`, но
+        // по соединению проходят данные
         await response.WriteAsync(": heartbeat\n\n", cancellationToken);
         await response.Body.FlushAsync(cancellationToken);
     }
