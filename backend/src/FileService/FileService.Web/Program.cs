@@ -18,6 +18,8 @@ using Shared.Framework.Middlewares;
 using FileService.Infrastructure.Postgres.Outbox;
 using FileService.Core.Outbox;
 using FileService.Core.Processing;
+using Wolverine;
+using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +55,15 @@ if (!string.IsNullOrWhiteSpace(seqConnectionString))
 Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Host.UseSerilog();
+
+// RabbitMQ configuration
+var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
+    ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+
+builder.Host.UseWolverine(options =>
+{
+    options.UseRabbitMq(new Uri(rabbitMqConnectionString));
+});
 
 var app = builder.Build();
 

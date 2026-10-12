@@ -56,6 +56,8 @@ public static class DeleteFileEndpoint
                 return new ErrorsResult(markDeletedResult.Error);
             }
 
+            // TODO: Publish FileDeleted event to outbox
+
             await mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
 
             await hybridCache.RemoveAsync(
