@@ -20,6 +20,7 @@ using FileService.Core.Outbox;
 using FileService.Core.Processing;
 using Wolverine;
 using Wolverine.RabbitMQ;
+using Wolverine.Postgresql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,12 @@ var rabbitMqConnectionString = builder.Configuration.GetConnectionString("Rabbit
 builder.Host.UseWolverine(options =>
 {
     options.UseRabbitMq(new Uri(rabbitMqConnectionString));
+    // RabbitMQ - транспорт (под этим подразумевается, что сообщения будут передаваться через RabbitMQ),
+    // а Postgres - надежное хранилище исходящих и входящих сообщений 
+    // (под этим подразумевается, что сообщения будут сохраняться в базе данных Postgres для обеспечения надежности и возможности повторной обработки).
+    options.PersistMessagesWithPostgresql(
+        builder.Configuration.GetConnectionString("FileServiceDb")!,
+        "wolverine");
 });
 
 var app = builder.Build();
