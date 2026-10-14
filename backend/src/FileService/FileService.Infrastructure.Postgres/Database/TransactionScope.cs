@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using Shared;
 using Shared.Core.Database;
@@ -14,10 +15,10 @@ namespace FileService.Infrastructure.Postgres.Database;
 public class TransactionScope : ITransactionScope, IDisposable
 {
     // Открытая транзакция соединения с БД
-    private readonly IDbTransaction _transaction;
+    private readonly IDbContextTransaction _transaction;
     private readonly ILogger _logger;
 
-    public TransactionScope(IDbTransaction transaction, ILogger<TransactionScope> logger)
+    public TransactionScope(IDbContextTransaction transaction, ILogger<TransactionScope> logger)
     {
         _transaction = transaction;
         _logger = logger;

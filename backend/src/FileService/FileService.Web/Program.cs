@@ -57,7 +57,7 @@ Log.Logger = loggerConfiguration.CreateLogger();
 builder.Host.UseSerilog();
 
 // RabbitMQ configuration
-var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMQ")
+var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMq")
     ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
 
 builder.Host.UseWolverine(options =>

@@ -116,6 +116,7 @@
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__FileServiceDb: Server=postgres;Port=5432;Database=file_service_db;User Id=postgres;Password=postgres;
       ConnectionStrings__Seq: http://seq:5341
+      ConnectionStrings__RabbitMq: amqp://guest:guest@rabbitmq:5672
       S3Options__Endpoint: http://minio:9000
       S3Options__AccessKey: ${MINIO_ROOT_USER}
       S3Options__SecretKey: ${MINIO_ROOT_PASSWORD}
@@ -134,9 +135,15 @@
         condition: service_healthy
       seq:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres-data:
   seq-data:
   minio-data:
   rabbitmq_data:
+
+networks:
+  platform-network:
+    driver: bridge

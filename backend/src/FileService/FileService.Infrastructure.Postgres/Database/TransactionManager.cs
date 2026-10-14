@@ -38,11 +38,10 @@ public class TransactionManager : ITransactionManager
             IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(
                 level ?? System.Data.IsolationLevel.ReadCommitted,
                 cancellationToken);
-            // Создаем логгер ИМЕННО ДЛЯ КЛАССА TransactionScope
-            // берем EF Transaction и достаем из нее обычную DbTransaction
-            // оборачиваем эту DbTransaction в наш TransactionScope
+            // Создаем логгер для TransactionScope и передаем ему EF-транзакцию,
+            // чтобы DbContext корректно отслеживал ее завершение.
             ILogger<TransactionScope> transactionScopeLogger = _loggerFactory.CreateLogger<TransactionScope>();
-            var transactionScope = new TransactionScope(transaction.GetDbTransaction(), transactionScopeLogger);
+            var transactionScope = new TransactionScope(transaction, transactionScopeLogger);
 
             return transactionScope;
         }
