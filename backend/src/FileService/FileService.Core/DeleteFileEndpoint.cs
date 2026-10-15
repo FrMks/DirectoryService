@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Hybrid;
 using Shared;
+using Shared.Core.Database;
 using Shared.Framework.EndpointResults;
 
 namespace FileService.Core;
@@ -25,6 +26,7 @@ public static class DeleteFileEndpoint
             [FromServices] IS3Provider storage,
             [FromServices] HybridCache hybridCache,
             [FromServices] IEventPublisher messageBus,
+            [FromServices] ITransactionManager transactionManager,
             CancellationToken cancellationToken) =>
         {
             MediaAsset? mediaAsset = await mediaRepository.GetByIdAsync(mediaAssetId, cancellationToken);
@@ -67,9 +69,22 @@ public static class DeleteFileEndpoint
                 TargetEntityId: mediaAsset.Owner.EntityId,
                 OccurredAt: DateTimeOffset.UtcNow);
 
+            Result<ITransactionScope, Error> transactionResult = await transactionManager.BeginTransaction(cancellationToken);
+            if (transactionResult.IsFailure)
+            {
+                return new ErrorsResult(transactionResult.Error.ToErrors());
+            }
+            using ITransactionScope transactionScope = transactionResult.Value;
+
             await messageBus.PublishAsync(fileDeletedEvent);
 
             await mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
+
+            UnitResult<Error> commitResult = transactionScope.Commit();
+            if (commitResult.IsFailure)
+            {
+                return new ErrorsResult(commitResult.Error.ToErrors());
+            }
 
             await hybridCache.RemoveAsync(
                 $"file-service:download-url:{mediaAssetId}",
