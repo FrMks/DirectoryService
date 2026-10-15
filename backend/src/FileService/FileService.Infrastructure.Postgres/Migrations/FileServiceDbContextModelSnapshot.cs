@@ -58,6 +58,28 @@ namespace FileService.Infrastructure.Postgres.Migrations
                     b.UseTphMappingStrategy();
                 });
 
+            modelBuilder.Entity("FileService.Domain.IntegrationEvents.ProcessedFileEvent", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("event_id");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("event_type");
+
+                    b.Property<DateTime>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("processed_at");
+
+                    b.HasKey("EventId");
+
+                    b.ToTable("processed_file_events", (string)null);
+                });
+
             modelBuilder.Entity("FileService.Domain.MediaProcessing.VideoProcess", b =>
                 {
                     b.Property<Guid>("Id")
@@ -351,7 +373,9 @@ namespace FileService.Infrastructure.Postgres.Migrations
 
                             b1.ToTable("media_assets", "files");
 
-                            b1.ToJson("media_data");
+                            b1
+                                .ToJson("media_data")
+                                .HasColumnType("jsonb");
 
                             b1.WithOwner()
                                 .HasForeignKey("MediaAssetId");
