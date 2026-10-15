@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Contracts.IntegrationEvents;
+using FileService.Core.Event;
 using FileService.Core.Outbox;
 using FileService.Core.Processing;
 using FileService.Domain.Entities.MediaAssetEntity;
@@ -42,6 +44,7 @@ public sealed class CompleteMultipartUploadHandler
     private readonly IEnumerable<IProcessingJobFactory> _processingJobFactories;
     private readonly ITransactionManager _transactionManager;
     private readonly IOutboxMessageRepository _outboxMessageRepository;
+    private readonly IEventPublisher _messageBus;
 
     public CompleteMultipartUploadHandler(
         ILogger<CompleteMultipartUploadHandler> logger,
@@ -49,7 +52,8 @@ public sealed class CompleteMultipartUploadHandler
         IMediaRepository mediaRepository,
         IEnumerable<IProcessingJobFactory> processingJobFactories,
         ITransactionManager transactionManager,
-        IOutboxMessageRepository outboxMessageRepository)
+        IOutboxMessageRepository outboxMessageRepository,
+        IEventPublisher messageBus)
     {
         _logger = logger;
         _s3Provider = s3Provider;
@@ -57,6 +61,7 @@ public sealed class CompleteMultipartUploadHandler
         _processingJobFactories = processingJobFactories;
         _transactionManager = transactionManager;
         _outboxMessageRepository = outboxMessageRepository;
+        _messageBus = messageBus;
     }
 
     public async Task<UnitResult<Error>> Handle(CompleteMultipartUploadRequest request, CancellationToken cancellationToken)
@@ -159,6 +164,16 @@ public sealed class CompleteMultipartUploadHandler
                     transactionScope.Rollback();
                     return markReadyResult.Error;
                 }
+
+                FileReady fileReadyEvent = new(
+                    EventId: Guid.NewGuid(),
+                    FileId: mediaAsset.Id,
+                    Status: mediaAsset.Status.ToString(),
+                    TargetEntityType: mediaAsset.Owner.Context,
+                    TargetEntityId: mediaAsset.Owner.EntityId,
+                    OccurredAt: DateTimeOffset.UtcNow);
+
+                await _messageBus.PublishAsync(fileReadyEvent);
             }
             else
             {
