@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using FileService.Contracts;
+using FileService.Contracts.IntegrationEvents;
+using FileService.Core.Event;
 using FileService.Core.Multipart;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.ValueObjects;
@@ -9,7 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Shared;
+using Shared.Core.Database;
 using Shared.Framework.EndpointResults;
+using StackExchange.Redis;
 
 namespace FileService.Core.UploadAndCompleteOnlyOneUrl;
 
@@ -38,15 +42,21 @@ public sealed class CompleteUploadHandler
     private readonly ILogger<CompleteUploadHandler> _logger;
     private readonly IS3Provider _s3Provider;
     private readonly IMediaRepository _mediaRepository;
+    private readonly ITransactionManager _transactionManager;
+    private readonly IEventPublisher _messageBus;
 
     public CompleteUploadHandler(
         ILogger<CompleteUploadHandler> logger,
         IS3Provider s3Provider,
-        IMediaRepository mediaRepository)
+        IMediaRepository mediaRepository,
+        ITransactionManager transactionManager,
+        IEventPublisher messageBus)
     {
         _logger = logger;
         _s3Provider = s3Provider;
         _mediaRepository = mediaRepository;
+        _transactionManager = transactionManager;
+        _messageBus = messageBus;
     }
 
     // Find asset => check status => read storage metadata => compare metadata 
@@ -123,14 +133,40 @@ public sealed class CompleteUploadHandler
         if (markUploadedResult.IsFailure)
             return markUploadedResult.Error;
 
+        return await MarkReadyAndPublishAsync(mediaAsset, cancellationToken);
+    }
+
+    private async Task<UnitResult<Error>> MarkReadyAndPublishAsync(
+        MediaAsset mediaAsset,
+        CancellationToken cancellationToken)
+    {
         UnitResult<Error> markReadyResult = mediaAsset.MarkReady(
             mediaAsset.RawKey,
             DateTime.UtcNow);
         if (markReadyResult.IsFailure)
             return markReadyResult.Error;
 
+        FileReady fileReadyEvent = new(
+            EventId: Guid.NewGuid(),
+            FileId: mediaAsset.Id,
+            Status: mediaAsset.Status.ToString(),
+            TargetEntityType: mediaAsset.Owner.Context,
+            TargetEntityId: mediaAsset.Owner.EntityId,
+            OccurredAt: DateTimeOffset.UtcNow);
+
+        Result<ITransactionScope, Error> transactionResult =
+            await _transactionManager.BeginTransaction(cancellationToken);
+        if (transactionResult.IsFailure)
+            return transactionResult.Error;
+
+        using ITransactionScope transactionScope = transactionResult.Value;
+
+        await _messageBus.PublishAsync(fileReadyEvent);
         await _mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
 
-        return UnitResult.Success<Error>();
+        UnitResult<Error> commitResult = transactionScope.Commit();
+        return commitResult.IsSuccess
+            ? UnitResult.Success<Error>()
+            : commitResult.Error;
     }
 }
