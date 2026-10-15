@@ -28,6 +28,7 @@
     <ProjectReference Include="..\FileService.Infrastructure.Postgres\FileService.Infrastructure.Postgres.csproj" />
     <ProjectReference Include="..\FileService.Infrastructure.S3\FileService.Infrastructure.S3.csproj" />
     <ProjectReference Include="..\FileService.VideoProcessing\FileService.VideoProcessing.csproj" />
+    <ProjectReference Include="..\FileService.Infrastructure.RabbitMQ\FileService.Infrastructure.RabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

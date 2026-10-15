@@ -1,4 +1,5 @@
 ﻿using FileService.Core;
+using FileService.Infrastructure.RabbitMQ;
 using FileService.Infrastructure.S3;
 using FileService.VideoProcessing;
 using Microsoft.OpenApi;
@@ -16,6 +17,7 @@ public static class DependencyInjection
             .AddVideoProcessing(configuration)
             .AddWebDependencies(configuration)
             .AddCore(configuration)
+            .AddRabbitMQ(configuration)
             .AddSerilog()
             .AddCors(options =>
             {

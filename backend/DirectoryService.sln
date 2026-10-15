@@ -44,6 +44,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Domain.UnitTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.VideoProcessing", "src\FileService\FileService.VideoProcessing\FileService.VideoProcessing.csproj", "{68B1215E-5D2E-4D5F-9A43-58C9C28D92BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileService.Infrastructure.RabbitMQ", "src\FileService\FileService.Infrastructure.RabbitMQ\FileService.Infrastructure.RabbitMQ.csproj", "{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -246,6 +248,18 @@ Global
 		{68B1215E-5D2E-4D5F-9A43-58C9C28D92BC}.Release|x64.Build.0 = Release|Any CPU
 		{68B1215E-5D2E-4D5F-9A43-58C9C28D92BC}.Release|x86.ActiveCfg = Release|Any CPU
 		{68B1215E-5D2E-4D5F-9A43-58C9C28D92BC}.Release|x86.Build.0 = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|x64.Build.0 = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Debug|x86.Build.0 = Debug|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|x64.ActiveCfg = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|x64.Build.0 = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|x86.ActiveCfg = Release|Any CPU
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -268,5 +282,6 @@ Global
 		{96E549D9-BED5-4FC9-9489-8F1CEC2B5C87} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 		{609012BF-DDD2-4CF8-BE6A-6030CC1D5604} = {5A7A728E-A785-4E5C-AED0-8E3F30CA740E}
 		{68B1215E-5D2E-4D5F-9A43-58C9C28D92BC} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
+		{91BB7F6D-D462-45AE-9FAF-92BED74DB1A0} = {98780FEE-28ED-D528-04E7-2753259F8CDF}
 	EndGlobalSection
 EndGlobal

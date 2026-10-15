@@ -1,4 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.IntegrationEvents;
+using FileService.Core.Event;
 using FileService.Core.Multipart;
 using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Enums;
@@ -22,6 +24,7 @@ public static class DeleteFileEndpoint
             [FromServices] IMediaRepository mediaRepository,
             [FromServices] IS3Provider storage,
             [FromServices] HybridCache hybridCache,
+            [FromServices] IEventPublisher messageBus,
             CancellationToken cancellationToken) =>
         {
             MediaAsset? mediaAsset = await mediaRepository.GetByIdAsync(mediaAssetId, cancellationToken);
@@ -56,7 +59,15 @@ public static class DeleteFileEndpoint
                 return new ErrorsResult(markDeletedResult.Error);
             }
 
-            // TODO: Publish FileDeleted event to outbox
+            FileDeleted fileDeletedEvent = new(
+                EventId: Guid.NewGuid(),
+                FileId: mediaAsset.Id,
+                Status: mediaAsset.Status.ToString(),
+                TargetEntityType: mediaAsset.Owner.Context,
+                TargetEntityId: mediaAsset.Owner.EntityId,
+                OccurredAt: DateTimeOffset.UtcNow);
+
+            await messageBus.PublishAsync(fileDeletedEvent);
 
             await mediaRepository.UpdateAsync(mediaAsset, cancellationToken);
 
