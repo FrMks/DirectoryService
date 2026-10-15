@@ -117,6 +117,17 @@ public class ProcessingPipeline : IProcessingPipeline
                 workingDirectoryResult.Error);
         }
 
+        VideoProcessingFailed videoProcessingFailedEvent = new(
+            EventId: Guid.NewGuid(),
+            FileId: context.VideoAsset.Id,
+            Status: context.VideoAsset.Status.ToString(),
+            TargetEntityType: context.VideoAsset.Owner.Context,
+            TargetEntityId: context.VideoAsset.Owner.EntityId,
+            ErrorMessage: error.Message,
+            OccurredAt: DateTimeOffset.UtcNow);
+
+        await _messageBus.PublishAsync(videoProcessingFailedEvent);
+
         UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)
         {
