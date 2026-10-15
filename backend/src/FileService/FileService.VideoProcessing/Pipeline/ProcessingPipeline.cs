@@ -1,5 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
+using FileService.Contracts.IntegrationEvents;
 using FileService.Core;
+using FileService.Core.Event;
 using FileService.Core.Processing;
 using FileService.Domain.Entities;
 using FileService.Domain.Enums;
@@ -26,6 +28,8 @@ public class ProcessingPipeline : IProcessingPipeline
 
     private readonly ITransactionManager _transactionManager;
 
+    private readonly IEventPublisher _messageBus;
+
     public ProcessingPipeline(
         IEnumerable<IProcessingStepHandler> stepHandlers,
         ILogger<ProcessingPipeline> logger,
@@ -33,7 +37,8 @@ public class ProcessingPipeline : IProcessingPipeline
         IVideoProcessingRepository videoProcessingRepository,
         IProcessingCleanupService processingCleanupService,
         ITransactionManager transactionManager,
-        IProcessingErrorClassifier processingErrorClassifier)
+        IProcessingErrorClassifier processingErrorClassifier,
+        IEventPublisher messageBus)
     {
         _stepHandlers = stepHandlers;
         _logger = logger;
@@ -42,6 +47,7 @@ public class ProcessingPipeline : IProcessingPipeline
         _processingCleanupService = processingCleanupService;
         _transactionManager = transactionManager;
         _processingErrorClassifier = processingErrorClassifier;
+        _messageBus = messageBus;
     }
 
     public async Task<UnitResult<Error>> ProcessAllStepsAsync(
@@ -143,6 +149,16 @@ public class ProcessingPipeline : IProcessingPipeline
         _logger.LogInformation(
             "Video processing completed successfully for VideoAssetId: {VideoAssetId}",
             videoAssetId);
+
+        VideoProcessingCompleted videoProcessingCompletedEvent = new(
+            EventId: Guid.NewGuid(),
+            FileId: context.VideoAsset.Id,
+            Status: context.VideoAsset.Status.ToString(),
+            TargetEntityType: context.VideoAsset.Owner.Context,
+            TargetEntityId: context.VideoAsset.Owner.EntityId,
+            OccurredAt: DateTimeOffset.UtcNow);
+
+        await _messageBus.PublishAsync(videoProcessingCompletedEvent);
 
         UnitResult<Error> saveResult = await _transactionManager.SaveChangesAsync(cancellationToken);
         if (saveResult.IsFailure)
