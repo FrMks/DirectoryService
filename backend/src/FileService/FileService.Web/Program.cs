@@ -21,6 +21,8 @@ using FileService.Core.Processing;
 using Wolverine;
 using Wolverine.RabbitMQ;
 using Wolverine.Postgresql;
+using FileService.Contracts.IntegrationEvents;
+using FileService.Web.EventRouting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,13 +65,40 @@ var rabbitMqConnectionString = builder.Configuration.GetConnectionString("Rabbit
 
 builder.Host.UseWolverine(options =>
 {
-    options.UseRabbitMq(new Uri(rabbitMqConnectionString));
+    options.UseRabbitMq(new Uri(rabbitMqConnectionString))
+        .AutoProvision(); // Автоматическое создание необходимых ресурсов в RabbitMQ (очередей, обменников и т.д.) при запуске приложения.
+
     // RabbitMQ - транспорт (под этим подразумевается, что сообщения будут передаваться через RabbitMQ),
     // а Postgres - надежное хранилище исходящих и входящих сообщений 
     // (под этим подразумевается, что сообщения будут сохраняться в базе данных Postgres для обеспечения надежности и возможности повторной обработки).
     options.PersistMessagesWithPostgresql(
         builder.Configuration.GetConnectionString("FileServiceDb")!,
         "wolverine");
+
+    // Нужно чтобы все сообщения, отправляемые из всех конечных точек (endpoints), использовали надежный Outbox (Durable Outbox).
+    // Это работает так: когда сообщение отправляется из конечной точки, оно сначала сохраняется в базе данных (Postgres) в таблице Outbox.
+    // Затем, когда транзакция завершается успешно, сообщение извлекается из таблицы Outbox и отправляется в RabbitMQ.
+    // Под отправкой сообщения тут понимается отправка сообщения из Handler в RabbitMQ.
+    options.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+    // Настройка маршрутизации сообщений в RabbitMQ
+    // Здесь мы указываем, что сообщения типа FileReady будут публиковаться в RabbitMQ Exchange с именем, определенным в FileEventsRouting.ExchangeName.
+    // RabbitMQ Exchange - это точка маршрутизации сообщений, которая определяет, как сообщения будут направляться к соответствующим очередям.
+    options.PublishMessagesToRabbitMqExchange<FileReady>(
+        FileEventsRouting.ExchangeName,
+        fileReady => FileEventsRouting.FileReady(fileReady.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<FileDeleted>(
+        FileEventsRouting.ExchangeName,
+        fileDeleted => FileEventsRouting.FileDeleted(fileDeleted.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<VideoProcessingCompleted>(
+        FileEventsRouting.ExchangeName,
+        videoProcessingCompleted => FileEventsRouting.VideoProcessingCompleted(videoProcessingCompleted.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<VideoProcessingFailed>(
+        FileEventsRouting.ExchangeName,
+        videoProcessingFailed => FileEventsRouting.VideoProcessingFailed(videoProcessingFailed.TargetEntityType));
 });
 
 var app = builder.Build();
