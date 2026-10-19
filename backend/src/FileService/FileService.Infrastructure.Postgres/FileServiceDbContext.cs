@@ -21,7 +21,7 @@ public class FileServiceDbContext : DbContext
     {
         optionsBuilder
             .UseNpgsql(_connectionString)
-            .EnableDetailedErrors()
+            .EnableDetailedErrors();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
