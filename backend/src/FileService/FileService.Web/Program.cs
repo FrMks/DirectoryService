@@ -68,7 +68,9 @@ var rabbitMqConnectionString = builder.Configuration.GetConnectionString("Rabbit
 builder.Host.UseWolverine(options =>
 {
     options.UseRabbitMq(new Uri(rabbitMqConnectionString))
-        .AutoProvision(); // Автоматическое создание необходимых ресурсов в RabbitMQ (очередей, обменников и т.д.) при запуске приложения.
+        .AutoProvision() // Автоматическое создание необходимых ресурсов в RabbitMQ (очередей, обменников и т.д.) при запуске приложения.
+        .BindExchange("file-events")
+        .ToQueue("file-deleted-consumer", "file.deleted.#"); // BindExchange и ToQueue нужен, чтобы RabbitMQ направлял сообщения из exchange file-events в конкретную очередь
 
     // RabbitMQ - транспорт (под этим подразумевается, что сообщения будут передаваться через RabbitMQ),
     // а Postgres - надежное хранилище исходящих и входящих сообщений 
@@ -101,6 +103,11 @@ builder.Host.UseWolverine(options =>
     options.PublishMessagesToRabbitMqExchange<VideoProcessingFailed>(
         FileEventsRouting.ExchangeName,
         videoProcessingFailed => FileEventsRouting.VideoProcessingFailed(videoProcessingFailed.TargetEntityType));
+
+    options
+        .ListenToRabbitQueue("file-deleted-consumer")
+        // RabbitMQ => Wolverine получает сообщение => сохраняет его в durable inbox => вызывает FileDeletedConsumer
+        .UseDurableInbox(); // Сохраняет входящие сообщения в PostgreSQL перед обработкой. Необходимо, чтобы сообщение не потерялось при сбое consumer-а и могло быть обработно повторно
 });
 
 var app = builder.Build();
