@@ -23,6 +23,7 @@ using Wolverine.RabbitMQ;
 using Wolverine.Postgresql;
 using FileService.Contracts.IntegrationEvents;
 using FileService.Web.EventRouting;
+using FileService.Core.Event;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +49,7 @@ builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IProcessingRetryOutboxRepository, ProcessingRetryOutboxRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
+builder.Services.AddScoped<IProcessedFileEventRepository, ProcessedFileEventRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
