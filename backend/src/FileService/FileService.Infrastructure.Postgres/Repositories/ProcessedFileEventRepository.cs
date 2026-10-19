@@ -1,5 +1,4 @@
 ﻿using FileService.Core.Event;
-using FileService.Domain.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 
 namespace FileService.Infrastructure.Postgres.Repositories;
@@ -18,17 +17,12 @@ public class ProcessedFileEventRepository : IProcessedFileEventRepository
         string eventType,
         CancellationToken cancellationToken)
     {
-        bool hasEventInDb = await _dbContext.ProcessedFileEvent
-            .AnyAsync(x => x.EventId == eventId, cancellationToken);
+        int affectedRows = await _dbContext.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO processed_file_events (event_id, event_type, processed_at)
+            VALUES ({eventId}, {eventType}, {DateTime.UtcNow})
+            ON CONFLICT (event_id) DO NOTHING;
+            """, cancellationToken);
 
-        if (hasEventInDb)
-            return false;
-
-        await _dbContext.AddAsync(
-            new ProcessedFileEvent(eventId, eventType, DateTime.UtcNow),
-            cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return true;
+        return affectedRows == 1;
     }
 }
