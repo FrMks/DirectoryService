@@ -22,7 +22,6 @@ public class FileServiceDbContext : DbContext
         optionsBuilder
             .UseNpgsql(_connectionString)
             .EnableDetailedErrors()
-            .LogTo(Console.WriteLine, LogLevel.Information);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

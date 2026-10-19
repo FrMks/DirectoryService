@@ -20,6 +20,11 @@ public class FileDeletedConsumer
 
     public async Task<UnitResult<Error>> Handle(FileDeleted message, CancellationToken cancellationToken)
     {
+        _logger.LogInformation(
+            "Received FileDeleted event {EventId} for file {FileId}",
+            message.EventId,
+            message.FileId);
+
         bool isNewEvent = await _processedFileEventRepository.TryRegisterAsync(
             message.EventId,
             nameof(FileDeleted),
