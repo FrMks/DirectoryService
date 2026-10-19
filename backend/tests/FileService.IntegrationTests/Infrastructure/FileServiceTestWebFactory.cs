@@ -30,6 +30,14 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
         .WithPassword("postgres")
         .Build();
 
+    private readonly DotNet.Testcontainers.Containers.IContainer _rabbitMqContainer = new ContainerBuilder()
+        .WithImage("rabbitmq:4-management-alpine")
+        .WithPortBinding(5672, true)
+        .WithEnvironment("RABBITMQ_DEFAULT_USER", "guest")
+        .WithEnvironment("RABBITMQ_DEFAULT_PASS", "guest")
+        .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(5672))
+        .Build();
+
     /// <summary>
     /// Создает builder, через который описывается будущий Docker-контейнер.
     /// ---------
@@ -82,6 +90,8 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
 
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
+                ["ConnectionStrings:RabbitMq"] =
+                    $"amqp://guest:guest@localhost:{_rabbitMqContainer.GetMappedPublicPort(5672)}",
                 ["S3Options:Endpoint"] = minioEndpoint,
                 ["S3Options:AccessKey"] = "minioadmin",
                 ["S3Options:SecretKey"] = "minioadmin",
@@ -102,6 +112,7 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
     {
         await _dbContainer.StartAsync();
         await _minioContainer.StartAsync();
+        await _rabbitMqContainer.StartAsync();
 
         await using var scope = Services.CreateAsyncScope();
         FileServiceDbContext dbContext = scope.ServiceProvider.GetRequiredService<FileServiceDbContext>();
@@ -122,8 +133,10 @@ public class FileServiceTestWebFactory : WebApplicationFactory<FileService.Web.P
     {
         await _dbContainer.StopAsync();
         await _minioContainer.StopAsync();
+        await _rabbitMqContainer.StopAsync();
         await _dbContainer.DisposeAsync();
         await _minioContainer.DisposeAsync();
+        await _rabbitMqContainer.DisposeAsync();
 
         await _dbConnection.CloseAsync();
         await _dbConnection.DisposeAsync();
