@@ -18,6 +18,12 @@ using Shared.Framework.Middlewares;
 using FileService.Infrastructure.Postgres.Outbox;
 using FileService.Core.Outbox;
 using FileService.Core.Processing;
+using Wolverine;
+using Wolverine.RabbitMQ;
+using Wolverine.Postgresql;
+using FileService.Contracts.IntegrationEvents;
+using FileService.Web.EventRouting;
+using FileService.Core.Event;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +49,7 @@ builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddScoped<IProcessingRetryOutboxRepository, ProcessingRetryOutboxRepository>();
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 builder.Services.AddScoped<IVideoProcessingRepository, VideoPorcessingRepository>();
+builder.Services.AddScoped<IProcessedFileEventRepository, ProcessedFileEventRepository>();
 builder.Services.AddScoped<ITransactionManager, TransactionManager>();
 
 if (!string.IsNullOrWhiteSpace(seqConnectionString))
@@ -53,6 +60,55 @@ if (!string.IsNullOrWhiteSpace(seqConnectionString))
 Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Host.UseSerilog();
+
+// RabbitMQ configuration
+var rabbitMqConnectionString = builder.Configuration.GetConnectionString("RabbitMq")
+    ?? throw new InvalidOperationException("RabbitMQ connection string is not configured.");
+
+builder.Host.UseWolverine(options =>
+{
+    options.UseRabbitMq(new Uri(rabbitMqConnectionString))
+        .AutoProvision() // Автоматическое создание необходимых ресурсов в RabbitMQ (очередей, обменников и т.д.) при запуске приложения.
+        .BindExchange("file-events")
+        .ToQueue("file-deleted-consumer", "file.deleted.#"); // BindExchange и ToQueue нужен, чтобы RabbitMQ направлял сообщения из exchange file-events в конкретную очередь
+
+    // RabbitMQ - транспорт (под этим подразумевается, что сообщения будут передаваться через RabbitMQ),
+    // а Postgres - надежное хранилище исходящих и входящих сообщений 
+    // (под этим подразумевается, что сообщения будут сохраняться в базе данных Postgres для обеспечения надежности и возможности повторной обработки).
+    options.PersistMessagesWithPostgresql(
+        builder.Configuration.GetConnectionString("FileServiceDb")!,
+        "wolverine");
+
+    // Нужно чтобы все сообщения, отправляемые из всех конечных точек (endpoints), использовали надежный Outbox (Durable Outbox).
+    // Это работает так: когда сообщение отправляется из конечной точки, оно сначала сохраняется в базе данных (Postgres) в таблице Outbox.
+    // Затем, когда транзакция завершается успешно, сообщение извлекается из таблицы Outbox и отправляется в RabbitMQ.
+    // Под отправкой сообщения тут понимается отправка сообщения из Handler в RabbitMQ.
+    options.Policies.UseDurableOutboxOnAllSendingEndpoints();
+
+    // Настройка маршрутизации сообщений в RabbitMQ
+    // Здесь мы указываем, что сообщения типа FileReady будут публиковаться в RabbitMQ Exchange с именем, определенным в FileEventsRouting.ExchangeName.
+    // RabbitMQ Exchange - это точка маршрутизации сообщений, которая определяет, как сообщения будут направляться к соответствующим очередям.
+    options.PublishMessagesToRabbitMqExchange<FileReady>(
+        FileEventsRouting.ExchangeName,
+        fileReady => FileEventsRouting.FileReady(fileReady.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<FileDeleted>(
+        FileEventsRouting.ExchangeName,
+        fileDeleted => FileEventsRouting.FileDeleted(fileDeleted.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<VideoProcessingCompleted>(
+        FileEventsRouting.ExchangeName,
+        videoProcessingCompleted => FileEventsRouting.VideoProcessingCompleted(videoProcessingCompleted.TargetEntityType));
+
+    options.PublishMessagesToRabbitMqExchange<VideoProcessingFailed>(
+        FileEventsRouting.ExchangeName,
+        videoProcessingFailed => FileEventsRouting.VideoProcessingFailed(videoProcessingFailed.TargetEntityType));
+
+    options
+        .ListenToRabbitQueue("file-deleted-consumer")
+        // RabbitMQ => Wolverine получает сообщение => сохраняет его в durable inbox => вызывает FileDeletedConsumer
+        .UseDurableInbox(); // Сохраняет входящие сообщения в PostgreSQL перед обработкой. Необходимо, чтобы сообщение не потерялось при сбое consumer-а и могло быть обработно повторно
+});
 
 var app = builder.Build();
 

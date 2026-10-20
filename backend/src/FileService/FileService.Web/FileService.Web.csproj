@@ -9,13 +9,17 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
     <PackageReference Include="CrystalQuartz.AspNetCore" Version="7.3.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="9.0.0" />
     <PackageReference Include="Shared.Core" Version="1.0.1" />
     <PackageReference Include="Shared.Framework" Version="1.0.1" />
     <PackageReference Include="Shared.SharedKernel" Version="1.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.3" />
+    <PackageReference Include="WolverineFx.EntityFrameworkCore" Version="6.49.0" />
+    <PackageReference Include="WolverineFx.Postgresql" Version="6.49.0" />
+    <PackageReference Include="WolverineFx.RabbitMQ" Version="6.49.0" />
+    <PackageReference Include="WolverineFx.RuntimeCompilation" Version="6.49.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -24,6 +28,7 @@
     <ProjectReference Include="..\FileService.Infrastructure.Postgres\FileService.Infrastructure.Postgres.csproj" />
     <ProjectReference Include="..\FileService.Infrastructure.S3\FileService.Infrastructure.S3.csproj" />
     <ProjectReference Include="..\FileService.VideoProcessing\FileService.VideoProcessing.csproj" />
+    <ProjectReference Include="..\FileService.Infrastructure.RabbitMQ\FileService.Infrastructure.RabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

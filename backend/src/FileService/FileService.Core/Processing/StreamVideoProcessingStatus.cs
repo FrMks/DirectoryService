@@ -168,7 +168,7 @@ public static class StreamVideoProcessingStatus
         // Используем сериализацию, потому что строка может содержать либо символы, которые не поддерживаются
         // например, символы новой строки, которые могут быть частью сообщения
         string serialized = JsonSerializer.Serialize(message);
-    
+
         await response.WriteAsync($"event: error\n", cancellationToken);
         await response.WriteAsync($"data: {serialized}\n\n", cancellationToken);
         await response.Body.FlushAsync(cancellationToken);

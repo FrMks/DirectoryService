@@ -1,5 +1,6 @@
 ﻿using FileService.Domain.Entities;
 using FileService.Domain.Entities.MediaAssetEntity;
+using FileService.Domain.IntegrationEvents;
 using FileService.Domain.MediaProcessing;
 using FileService.Domain.Outbox;
 using Microsoft.EntityFrameworkCore;
@@ -20,8 +21,7 @@ public class FileServiceDbContext : DbContext
     {
         optionsBuilder
             .UseNpgsql(_connectionString)
-            .EnableDetailedErrors()
-            .LogTo(Console.WriteLine, LogLevel.Information);
+            .EnableDetailedErrors();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,6 +33,7 @@ public class FileServiceDbContext : DbContext
     public DbSet<VideoAsset> VideoAssets => Set<VideoAsset>();
     public DbSet<PreviewAsset> PreviewAssets => Set<PreviewAsset>();
     public DbSet<VideoProcess> VideoProcess => Set<VideoProcess>();
+    public DbSet<ProcessedFileEvent> ProcessedFileEvent => Set<ProcessedFileEvent>();
     public DbSet<ProcessingJobOutboxMessage> ProcessingJobOutboxMessage => Set<ProcessingJobOutboxMessage>();
     public DbSet<ProcessingRetryOutboxMessage> ProcessingRetryOutboxMessage => Set<ProcessingRetryOutboxMessage>();
 }

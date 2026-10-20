@@ -1,7 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using FileService.Core;
 using FileService.Core.Processing;
-using FileService.Domain.Entities.MediaAssetEntity;
 using FileService.Domain.Outbox;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
